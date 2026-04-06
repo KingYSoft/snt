@@ -1,0 +1,574 @@
+const local: App.I18n.Schema = {
+  system: {
+    title: 'SNT 管理系统',
+    updateTitle: '系统版本更新通知',
+    updateContent: '检测到系统有新版本发布，是否立即刷新页面？',
+    updateConfirm: '立即刷新',
+    updateCancel: '稍后再说'
+  },
+  common: {
+    action: '操作',
+    add: '新增',
+    addSuccess: '添加成功',
+    backToHome: '返回首页',
+    batchDelete: '批量删除',
+    cancel: '取消',
+    close: '关闭',
+    check: '勾选',
+    selectAll: '全选',
+    expandColumn: '展开列',
+    columnSetting: '列设置',
+    config: '配置',
+    confirm: '确认',
+    delete: '删除',
+    deleteSuccess: '删除成功',
+    confirmDelete: '确认删除吗？',
+    edit: '编辑',
+    warning: '警告',
+    error: '错误',
+    index: '序号',
+    keywordSearch: '请输入关键词搜索',
+    logout: '退出登录',
+    logoutConfirm: '确认退出登录吗？',
+    lookForward: '敬请期待',
+    modify: '修改',
+    modifySuccess: '修改成功',
+    noData: '无数据',
+    operate: '操作',
+    pleaseCheckValue: '请检查输入的值是否合法',
+    refresh: '刷新',
+    reset: '重置',
+    save: '保存',
+    search: '搜索',
+    switch: '切换',
+    tip: '提示',
+    trigger: '触发',
+    update: '更新',
+    updateSuccess: '更新成功',
+    userCenter: '个人中心',
+    op: {
+      equal: '等于',
+      notEqual: '不等于',
+      contain: '包含',
+      notContain: '不包含'
+    },
+    yesOrNo: {
+      yes: '是',
+      no: '否'
+    }
+  },
+  request: {
+    logout: '请求失败后登出用户',
+    logoutMsg: '用户状态失效，请重新登录',
+    logoutWithModal: '请求失败后弹出模态框再登出用户',
+    logoutWithModalMsg: '用户状态失效，请重新登录',
+    refreshToken: '请求的token已过期，刷新token',
+    tokenExpired: 'token已过期'
+  },
+  theme: {
+    themeDrawerTitle: '主题配置',
+    tabs: {
+      appearance: '外观',
+      layout: '布局',
+      general: '通用',
+      preset: '预设'
+    },
+    appearance: {
+      themeSchema: {
+        title: '主题模式',
+        light: '亮色模式',
+        dark: '暗黑模式',
+        auto: '跟随系统'
+      },
+      grayscale: '灰色模式',
+      colourWeakness: '色弱模式',
+      themeColor: {
+        title: '主题颜色',
+        primary: '主色',
+        info: '信息色',
+        success: '成功色',
+        warning: '警告色',
+        error: '错误色',
+        followPrimary: '跟随主色'
+      },
+      themeRadius: {
+        title: '主题圆角'
+      },
+      recommendColor: '应用推荐算法的颜色',
+      recommendColorDesc: '推荐颜色的算法参照',
+      preset: {
+        title: '主题预设',
+        apply: '应用',
+        applySuccess: '预设应用成功',
+        default: {
+          name: '默认预设',
+          desc: 'Soybean 默认主题预设'
+        },
+        dark: {
+          name: '暗色预设',
+          desc: '适用于夜间使用的暗色主题预设'
+        },
+        compact: {
+          name: '紧凑型',
+          desc: '适用于小屏幕的紧凑布局预设'
+        },
+        azir: {
+          name: 'Azir的预设',
+          desc: '是 Azir 比较喜欢的莫兰迪色系冷淡风'
+        }
+      }
+    },
+    layout: {
+      layoutMode: {
+        title: '布局模式',
+        vertical: '左侧菜单模式',
+        'vertical-mix': '左侧菜单混合模式',
+        'vertical-hybrid-header-first': '左侧混合-顶部优先',
+        horizontal: '顶部菜单模式',
+        'top-hybrid-sidebar-first': '顶部混合-侧边优先',
+        'top-hybrid-header-first': '顶部混合-顶部优先',
+        vertical_detail: '左侧菜单布局，菜单在左，内容在右。',
+        'vertical-mix_detail': '左侧双菜单布局，一级菜单在左侧深色区域，二级菜单在左侧浅色区域。',
+        'vertical-hybrid-header-first_detail':
+          '左侧混合布局，一级菜单在顶部，二级菜单在左侧深色区域，三级菜单在左侧浅色区域。',
+        horizontal_detail: '顶部菜单布局，菜单在顶部，内容在下方。',
+        'top-hybrid-sidebar-first_detail': '顶部混合布局，一级菜单在左侧，二级菜单在顶部。',
+        'top-hybrid-header-first_detail': '顶部混合布局，一级菜单在顶部，二级菜单在左侧。'
+      },
+      tab: {
+        title: '标签栏设置',
+        visible: '显示标签栏',
+        cache: '标签栏信息缓存',
+        cacheTip: '离开页面后仍然保留标签栏信息',
+        height: '标签栏高度',
+        mode: {
+          title: '标签栏风格',
+          slider: '滑块风格',
+          chrome: '谷歌风格',
+          button: '按钮风格'
+        },
+        closeByMiddleClick: '鼠标中键关闭标签页',
+        closeByMiddleClickTip: '启用后可以使用鼠标中键点击标签页进行关闭'
+      },
+      header: {
+        title: '头部设置',
+        height: '头部高度',
+        breadcrumb: {
+          visible: '显示面包屑',
+          showIcon: '显示面包屑图标'
+        }
+      },
+      sider: {
+        title: '侧边栏设置',
+        inverted: '深色侧边栏',
+        width: '侧边栏宽度',
+        collapsedWidth: '侧边栏折叠宽度',
+        mixWidth: '混合布局侧边栏宽度',
+        mixCollapsedWidth: '混合布局侧边栏折叠宽度',
+        mixChildMenuWidth: '混合布局子菜单宽度',
+        autoSelectFirstMenu: '自动选择第一个子菜单',
+        autoSelectFirstMenuTip: '点击一级菜单时，自动选择并导航到第一个子菜单的最深层级'
+      },
+      footer: {
+        title: '底部设置',
+        visible: '显示底部',
+        fixed: '固定底部',
+        height: '底部高度',
+        right: '底部居右'
+      },
+      content: {
+        title: '内容区域设置',
+        scrollMode: {
+          title: '滚动模式',
+          tip: '主题滚动仅 main 部分滚动，外层滚动可携带头部底部一起滚动',
+          wrapper: '外层滚动',
+          content: '主体滚动'
+        },
+        page: {
+          animate: '页面切换动画',
+          mode: {
+            title: '页面切换动画类型',
+            'fade-slide': '滑动',
+            fade: '淡入淡出',
+            'fade-bottom': '底部消退',
+            'fade-scale': '缩放消退',
+            'zoom-fade': '渐变',
+            'zoom-out': '闪现',
+            none: '无'
+          }
+        },
+        fixedHeaderAndTab: '固定头部和标签栏'
+      }
+    },
+    general: {
+      title: '通用设置',
+      watermark: {
+        title: '水印设置',
+        visible: '显示全屏水印',
+        text: '自定义水印文本',
+        enableUserName: '启用用户名水印',
+        enableTime: '显示当前时间',
+        timeFormat: '时间格式'
+      },
+      multilingual: {
+        title: '多语言设置',
+        visible: '显示多语言按钮'
+      },
+      globalSearch: {
+        title: '全局搜索设置',
+        visible: '显示全局搜索按钮'
+      }
+    },
+    configOperation: {
+      copyConfig: '复制配置',
+      copySuccessMsg: '复制成功，请替换 src/theme/settings.ts 中的变量 themeSettings',
+      resetConfig: '重置配置',
+      resetSuccessMsg: '重置成功'
+    }
+  },
+  route: {
+    login: '登录',
+    403: '无权限',
+    404: '页面不存在',
+    500: '服务器错误',
+    'iframe-page': '外链页面',
+    home: '首页',
+    business: '业务管理',
+    business_shipment: '货运',
+    business_consolidation: '拼箱',
+    maintain: '基础维护',
+    maintain_airlines: '航空公司',
+    maintain_bank: '银行',
+    'maintain_carrier-contract': '承运人合同',
+    'maintain_charge-code': '费用代码',
+    'maintain_charter-flight': '包机',
+    maintain_commodities: '商品',
+    'maintain_consignee-contract': '收货人合同',
+    maintain_containers: '集装箱',
+    maintain_currency: '货币',
+    maintain_equipment: '设备',
+    'maintain_exchange-rate': '汇率',
+    'maintain_international-zone': '国际区域',
+    'maintain_mawb-stock': 'MAWB库存',
+    maintain_organization: '组织',
+    'maintain_organization-detail': '组织详情',
+    'maintain_organization-edit': '编辑组织',
+    'maintain_organization-new': '新建组织',
+    'maintain_package-types': '包装类型',
+    'maintain_port-code': '港口代码',
+    'maintain_service-level': '服务级别',
+    'maintain_shipping-lines': '船公司',
+    'maintain_shipping-schedule': '船期',
+    maintain_vessel: '船舶',
+    maintain_warehouse: '仓库',
+    system: '系统管理',
+    system_user: '用户管理',
+    system_group: '用户组',
+    system_company: '公司管理',
+    system_branch: '分支管理'
+  },
+  page: {
+    login: {
+      common: {
+        loginOrRegister: '登录 / 注册',
+        emailPlaceholder: '请输入邮箱',
+        userNamePlaceholder: '请输入用户名',
+        phonePlaceholder: '请输入手机号',
+        codePlaceholder: '请输入验证码',
+        passwordPlaceholder: '请输入密码',
+        confirmPasswordPlaceholder: '请再次输入密码',
+        codeLogin: '验证码登录',
+        confirm: '确定',
+        back: '返回',
+        validateSuccess: '验证成功',
+        loginSuccess: '登录成功',
+        welcomeBack: '欢迎回来！'
+      },
+      pwdLogin: {
+        title: '密码登录',
+        rememberMe: '记住我',
+        forgetPassword: '忘记密码？',
+        register: '注册账号',
+        otherAccountLogin: '其他账号登录',
+        otherLoginMode: '其他登录方式',
+        superAdmin: '超级管理员',
+        admin: '管理员',
+        user: '普通用户'
+      },
+      codeLogin: {
+        title: '验证码登录',
+        getCode: '获取验证码',
+        reGetCode: '{time}秒后重新获取',
+        sendCodeSuccess: '验证码发送成功',
+        imageCodePlaceholder: '请输入图片验证码'
+      },
+      register: {
+        title: '注册账号',
+        agreement: '我已经仔细阅读并接受',
+        protocol: '《用户协议》',
+        policy: '《隐私权政策》'
+      },
+      resetPwd: {
+        title: '重置密码'
+      },
+      bindWeChat: {
+        title: '绑定微信'
+      }
+    },
+    home: {
+      branchDesc:
+        '为了方便大家开发和更新合并，我们对main分支的代码进行了精简，只保留了首页菜单，其余内容已移至example分支进行维护。预览地址显示的内容即为example分支的内容。',
+      greeting: '早安，{userName}, 今天又是充满活力的一天!',
+      weatherDesc: '今日多云转晴，20℃ - 25℃!',
+      projectCount: '项目数',
+      todo: '待办',
+      message: '消息',
+      downloadCount: '下载量',
+      registerCount: '注册量',
+      schedule: '作息安排',
+      study: '学习',
+      work: '工作',
+      rest: '休息',
+      entertainment: '娱乐',
+      visitCount: '访问量',
+      turnover: '成交额',
+      dealCount: '成交量',
+      projectNews: {
+        title: '项目动态',
+        moreNews: '更多动态',
+        desc1: 'Soybean 在2021年5月28日创建了开源项目 soybean-admin!',
+        desc2: 'Yanbowe 向 soybean-admin 提交了一个bug，多标签栏不会自适应。',
+        desc3: 'Soybean 准备为 soybean-admin 的发布做充分的准备工作!',
+        desc4: 'Soybean 正在忙于为soybean-admin写项目说明文档！',
+        desc5: 'Soybean 刚才把工作台页面随便写了一些，凑合能看了！'
+      },
+      creativity: '创意'
+    },
+    maintain: {
+      currency: {
+        code: '代码',
+        symbol: '符号',
+        desc: '描述'
+      },
+      packageTypes: {
+        code: '代码',
+        description: '描述',
+        isActive: '是否启用'
+      },
+      serviceLevel: {
+        code: '代码',
+        description: '描述',
+        isActive: '是否启用'
+      },
+      commodities: {
+        code: '代码',
+        description: '描述',
+        isForwarding: '是否货代',
+        isShipping: '是否海运',
+        isActive: '是否启用',
+        isHazardous: '是否危险品'
+      },
+      vessel: {
+        vesselName: '船名',
+        shippingProvider: '船公司',
+        lloydsImo: 'Lloyds IMO',
+        vesselType: '船舶类型',
+        callSign: '呼号',
+        isActive: '是否启用'
+      },
+      portCode: {
+        rlCode: '港口代码',
+        rlPortName: '港口名称',
+        rlIata: 'IATA代码',
+        rlCountryCode: '国家代码',
+        rlHasAirport: '机场',
+        rlHasSeaport: '海港',
+        rlHasRail: '铁路',
+        rlHasTerminal: '码头'
+      },
+      containers: {
+        code: '代码',
+        description: '描述',
+        mode: '运输方式',
+        containerType: '箱型',
+        iataClass: 'IATA类别',
+        teu: 'TEU',
+        height: '高度',
+        length: '长度',
+        width: '宽度',
+        grossWeight: '毛重',
+        tareWeight: '皮重',
+        capacityM3: '容积(m³)',
+        iso: 'ISO',
+        isoType: 'ISO类型',
+        isoSize: 'ISO尺寸',
+        isoDescription: 'ISO描述',
+        isActive: '是否启用'
+      },
+      airlines: {
+        airlineNumericCode: '航司数字代码',
+        threeLetterCode: '三字代码',
+        twoCharCode: '二字代码',
+        airlineName1: '航司名称',
+        airlineName2: '航司名称2',
+        airlineCity: '城市',
+        airlineState: '省份',
+        postcode: '邮编',
+        airlineCountryRegion: '国家/地区',
+        addressLine1: '地址行1',
+        addressLine2: '地址行2',
+        cassControlled: 'CASS管控',
+        isActive: '是否启用'
+      },
+      bank: {
+        code: '代码',
+        description: '描述',
+        bankName: '银行名称',
+        accountNumber: '账号',
+        currency: '币种',
+        accountType: '账户类型',
+        abbreviation: '简称',
+        accountEft: 'EFT账号',
+        glAccount: '总账账号',
+        bankAddress: '银行地址',
+        branch: '分行',
+        company: '公司',
+        swiftCode: 'SWIFT代码',
+        isActive: '是否启用'
+      },
+      shippingLines: {
+        code: '代码',
+        name: '名称',
+        isNvo: 'NVO',
+        oceanCarrierMessaging: '海运承运人报文',
+        globalSailingSchedule: '全球船期',
+        containerAutomation: '集装箱自动化',
+        eSi: 'E-SI',
+        eVgm: 'E-VGM',
+        eSo: 'E-SO',
+        eManifest: 'E-Manifest',
+        isActive: '是否启用'
+      },
+      chargeCode: {
+        code: '代码',
+        description: '描述',
+        localLanguageDescription: '本地语言描述',
+        isActive: '是否启用',
+        type: '类型',
+        margin: '利润率',
+        tax: '税',
+        withholding: '预扣税',
+        calculator: '计算器',
+        printSequence: '打印顺序'
+      },
+      organization: {
+        code: '代码',
+        name: '名称',
+        shortName: '简称',
+        desc: '描述',
+        address1: '地址1',
+        address2: '地址2',
+        address3: '地址3',
+        city: '城市',
+        state: '州/省',
+        postal: '邮编',
+        country: '国家',
+        phone: '电话',
+        fax: '传真',
+        email: '邮箱',
+        website: '网站',
+        unloco: 'UNLOCO',
+        tin: 'TIN',
+        isActive: '是否启用',
+        isShipper: '发货人',
+        isConsignee: '收货人',
+        isCarrier: '承运人',
+        isBroker: '报关行',
+        isWarehouse: '仓库',
+        isTransportClient: '运输客户',
+        isAgent: '代理',
+        isTempAccount: '临时账户',
+        isPayable: '应付',
+        isReceivable: '应收',
+        address: '地址',
+        addressName: '地址名称',
+        addressType: '地址类型',
+        companyName: '公司名称',
+        contacts: '联系人',
+        contactName: '联系人姓名',
+        position: '职位',
+        mobile: '手机',
+        officePhone: '办公电话',
+        socialMediaId: '社交媒体ID',
+        generalInfo: '基本信息',
+        types: '类型',
+        categories: '分类'
+      }
+    }
+  },
+  form: {
+    required: '不能为空',
+    validationFailed: '表单验证失败',
+    userName: {
+      required: '请输入用户名',
+      invalid: '用户名格式不正确',
+      placeholder: '请输入用户名'
+    },
+    phone: {
+      required: '请输入手机号',
+      invalid: '手机号格式不正确',
+      placeholder: '请输入手机号'
+    },
+    code: {
+      required: '请输入验证码',
+      invalid: '验证码格式不正确',
+      placeholder: '请输入验证码'
+    },
+    confirmPwd: {
+      required: '请确认密码',
+      invalid: '两次输入的密码不一致',
+      placeholder: '请再次输入密码'
+    },
+    email: {
+      required: '请输入邮箱',
+      invalid: '邮箱格式不正确',
+      placeholder: '请输入邮箱'
+    },
+    pwd: {
+      required: '请输入密码',
+      invalid: '密码格式不正确，6-18位字符，包含字母、数字、下划线',
+      placeholder: '请输入密码'
+    }
+  },
+  dropdown: {
+    closeCurrent: '关闭',
+    closeOther: '关闭其它',
+    closeLeft: '关闭左侧',
+    closeRight: '关闭右侧',
+    closeAll: '关闭所有',
+    pin: '固定标签',
+    unpin: '取消固定'
+  },
+  icon: {
+    themeConfig: '主题配置',
+    themeSchema: '主题模式',
+    lang: '切换语言',
+    fullscreen: '全屏',
+    fullscreenExit: '退出全屏',
+    reload: '刷新页面',
+    collapse: '折叠菜单',
+    expand: '展开菜单',
+    pin: '固定',
+    unpin: '取消固定'
+  },
+  datatable: {
+    itemCount: '共 {total} 条',
+    fixed: {
+      left: '左固定',
+      right: '右固定',
+      unFixed: '取消固定'
+    }
+  }
+};
+
+export default local;
