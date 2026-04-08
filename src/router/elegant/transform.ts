@@ -169,6 +169,8 @@ const routeMap: RouteMap = {
   "business": "/business",
   "business_consolidation": "/business/consolidation",
   "business_shipment": "/business/shipment",
+  "business_shipment-edit": "/business/shipment-edit/:pk",
+  "business_shipment-new": "/business/shipment-new",
   "home": "/home",
   "iframe-page": "/iframe-page/:url",
   "login": "/login/:module(pwd-login)?",

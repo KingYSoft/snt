@@ -23,6 +23,8 @@ declare module "@elegant-router/types" {
     "business": "/business";
     "business_consolidation": "/business/consolidation";
     "business_shipment": "/business/shipment";
+    "business_shipment-edit": "/business/shipment-edit/:pk";
+    "business_shipment-new": "/business/shipment-new";
     "home": "/home";
     "iframe-page": "/iframe-page/:url";
     "login": "/login/:module(pwd-login)?";
@@ -118,6 +120,8 @@ declare module "@elegant-router/types" {
     | "iframe-page"
     | "login"
     | "business_consolidation"
+    | "business_shipment-edit"
+    | "business_shipment-new"
     | "business_shipment"
     | "home"
     | "maintain_airlines"

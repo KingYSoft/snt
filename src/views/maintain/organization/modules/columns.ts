@@ -5,7 +5,8 @@ import { $t } from '@/locales';
 
 export function getOrganizationColumns(
   handleEdit: (row: any) => void,
-  handleDelete: (row: any) => void
+  handleDelete: (row: any) => void,
+  handleView: (row: any) => void
 ): DataTableColumns<any> {
   return [
     {
@@ -71,11 +72,19 @@ export function getOrganizationColumns(
     {
       key: 'actions',
       title: $t('common.action'),
-      width: 130,
+      width: 160,
       align: 'center',
       fixed: 'right',
       render(row) {
         return h('div', { class: 'flex gap-8px justify-center' }, [
+          h(
+            'a',
+            {
+              class: 'text-primary cursor-pointer',
+              onClick: () => handleView(row)
+            },
+            $t('common.view')
+          ),
           h(
             'a',
             {

@@ -10,6 +10,7 @@ const local: App.I18n.Schema = {
     action: 'Action',
     add: 'Add',
     addSuccess: 'Add Success',
+    saveSuccess: 'Save Success',
     backToHome: 'Back to home',
     batchDelete: 'Batch Delete',
     cancel: 'Cancel',
@@ -46,11 +47,14 @@ const local: App.I18n.Schema = {
     update: 'Update',
     updateSuccess: 'Update Success',
     userCenter: 'User Center',
+    view: 'View',
     op: {
       equal: 'Equal',
       notEqual: 'Not Equal',
       contain: 'Contain',
-      notContain: 'Not Contain'
+      notContain: 'Not Contain',
+      startsWith: 'Starts with',
+      endsWith: 'Ends with'
     },
     yesOrNo: {
       yes: 'Yes',
@@ -239,6 +243,8 @@ const local: App.I18n.Schema = {
     home: 'Home',
     business: 'Business',
     business_shipment: 'Shipment',
+    'business_shipment-edit': 'Edit Shipment',
+    'business_shipment-new': 'New Shipment',
     business_consolidation: 'Consolidation',
     maintain: 'Maintain',
     maintain_airlines: 'Airlines',
@@ -347,6 +353,127 @@ const local: App.I18n.Schema = {
         desc5: 'Soybean just wrote some of the workbench pages casually, and it was enough to see!'
       },
       creativity: 'Creativity'
+    },
+    business: {
+      shipment: {
+        table: {
+          shipmentNo: 'Shipment No',
+          shipperName: 'Shipper',
+          consignee: 'Consignee',
+          destination: 'Destination',
+          origin: 'Origin',
+          goodsDescription: 'Goods Description',
+          crd: 'Cargo Ready Date',
+          eta: 'Estimated Arrival Date',
+          etd: 'Estimated Departure Date',
+          grossWeight: 'Gross Weight',
+          cbm: 'CBM',
+          ctns: 'Cartons'
+        },
+        messages: {
+          exportFailed: 'Export failed',
+          completeRequiredFields: 'Please complete required fields',
+          saveFirst: 'Please save shipment first'
+        },
+        export: 'Export',
+        tab: {
+          shipment: 'Shipment',
+          additionalDetails: 'Additional Details',
+          routing: 'Routing',
+          billing: 'Billing',
+          eDocs: 'eDocs',
+          logs: 'Logs'
+        },
+        menu: {
+          merge: 'Merge',
+          split: 'Split',
+          copy: 'Copy',
+          deactivate: 'Deactivate',
+          reopen: 'Reopen',
+          exportRow: 'Export',
+          batchPrint: 'Batch Print'
+        },
+        form: {
+          shipperName: 'Shipper Name',
+          consigneeName: 'Consignee Name',
+          transportMode: 'Transport Mode',
+          packingMode: 'Container Mode',
+          origin: 'Origin',
+          destination: 'Destination',
+          etd: 'ETD',
+          cargoReady: 'Cargo Ready Date',
+          inco: 'Inco Term',
+          freightTerms: 'Freight Terms',
+          releaseType: 'Release Type',
+          volumeWeight: 'Volume Weight',
+          chargeableWeight: 'Chargeable Weight',
+          grossWeight: 'Gross Weight',
+          volume: 'CBM',
+          totalPackage: 'No. of Package',
+          required: 'This field is required',
+          numericRequired: 'Please enter a valid number'
+        },
+        dialog: {
+          shipmentNotExists: {
+            title: 'Shipment Not Found',
+            message: 'The requested shipment does not exist or has been deleted.',
+            newShipment: 'New Shipment'
+          }
+        },
+        section: {
+          notifyParty: 'Notify Party',
+          notifyParty1: 'Notify Party 1',
+          additionalDetails: 'Additional Details',
+          consolidation: 'Consolidation Details',
+          voyageDetails: 'Voyage Details'
+        },
+        billing: {
+          grossProfitMargin: 'Gross Profit Margin',
+          arAmount: 'AR Amount',
+          apAmount: 'AP Amount',
+          profit: 'Profit',
+          copyAR: 'Copy',
+          copyToAP: 'Copy to AP',
+          copyAP: 'Copy',
+          copyToAR: 'Copy to AR',
+          generateDraft: 'Generate Draft',
+          template: 'Template',
+          arCompleted: 'AR Completed',
+          apCompleted: 'AP Completed',
+          confirmDelete: 'Confirm to delete this line?',
+          noRecords: 'No records to save.',
+          selectRecords: 'Please select at least one record.',
+          allLocked: 'All selected records are already locked.',
+          copySuccess: 'Successfully copied records.',
+          deleteSuccess: 'Successfully deleted the record.',
+          draftSuccess: 'Successfully generated draft.'
+        },
+        address: {
+          newShipper: 'New Shipper',
+          newConsignee: 'New Consignee',
+          newAddress: 'New Address',
+          companyName: 'Company Name',
+          code: 'Code',
+          shortCode: 'Short Code',
+          contact: 'Contact',
+          phone: 'Phone',
+          email: 'Email',
+          address1: 'Address 1',
+          address2: 'Address 2',
+          address3: 'Address 3',
+          city: 'City',
+          state: 'State',
+          postalCode: 'Postal Code',
+          countryCode: 'Country Code',
+          saveSuccess: 'Save success.',
+          saveFailed: 'Failed to save address.'
+        },
+        edoc: {
+          selectDocType: 'Please select document type.',
+          uploadSuccess: 'Upload success',
+          uploadFailed: 'Upload failed'
+        }
+      }
     },
     maintain: {
       currency: {

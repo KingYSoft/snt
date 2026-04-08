@@ -68,6 +68,26 @@ export const generatedRoutes: GeneratedRoute[] = [
           i18nKey: 'route.business_shipment',
           order: 2
         }
+      },
+      {
+        name: 'business_shipment-edit',
+        path: '/business/shipment-edit/:pk',
+        component: 'view.business_shipment-edit',
+        meta: {
+          title: 'business_shipment-edit',
+          i18nKey: 'route.business_shipment-edit',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'business_shipment-new',
+        path: '/business/shipment-new',
+        component: 'view.business_shipment-new',
+        meta: {
+          title: 'business_shipment-new',
+          i18nKey: 'route.business_shipment-new',
+          hideInMenu: true
+        }
       }
     ]
   },

@@ -26,25 +26,26 @@ const {
   queryFn: params => queryOrganizationPage(params),
   deleteFn: deleteOrganization,
   getColumns: (_editCb, deleteCb) =>
-    getOrganizationColumns((row: any) => {
-      router.push({
-        name: 'maintain_organization-edit',
-        params: { pk: row.pk },
-        query: { id: row.id, org_code: row.org_code }
-      });
-    }, deleteCb),
+    getOrganizationColumns(
+      (row: any) => {
+        router.push({
+          name: 'maintain_organization-edit',
+          params: { pk: row.pk },
+          query: { id: row.id, org_code: row.org_code }
+        });
+      },
+      deleteCb,
+      (row: any) =>
+        router.push({
+          name: 'maintain_organization-detail',
+          query: { pk: row.pk, id: row.id }
+        })
+    ),
   defaultSearchKey: 'code'
 });
 
 function handleAdd() {
   router.push({ name: 'maintain_organization-new' });
-}
-
-function handleRowClick(row: any) {
-  router.push({
-    name: 'maintain_organization-detail',
-    query: { pk: row.pk, id: row.id }
-  });
 }
 
 const searchKeyOptions = [
@@ -57,14 +58,7 @@ const opOptions = [
   { label: () => $t('common.op.contain'), value: 'Contain' },
   { label: () => $t('common.op.notContain'), value: 'NotContain' }
 ];
-function rowProps(row: any) {
-  return {
-    style: 'cursor: pointer;',
-    onClick: () => {
-      handleRowClick(row);
-    }
-  };
-}
+
 onMounted(() => {
   getData();
 });
@@ -102,7 +96,6 @@ onMounted(() => {
           :loading="loading || deleteLoading"
           :pagination="pagination"
           :row-key="(row: any) => row.pk"
-          :row-props="rowProps"
         />
       </NSpace>
     </NCard>

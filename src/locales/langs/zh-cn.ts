@@ -10,6 +10,7 @@ const local: App.I18n.Schema = {
     action: '操作',
     add: '新增',
     addSuccess: '添加成功',
+    saveSuccess: '保存成功',
     backToHome: '返回首页',
     batchDelete: '批量删除',
     cancel: '取消',
@@ -46,11 +47,14 @@ const local: App.I18n.Schema = {
     update: '更新',
     updateSuccess: '更新成功',
     userCenter: '个人中心',
+    view: '查看',
     op: {
       equal: '等于',
       notEqual: '不等于',
       contain: '包含',
-      notContain: '不包含'
+      notContain: '不包含',
+      startsWith: '开始于',
+      endsWith: '结束于'
     },
     yesOrNo: {
       yes: '是',
@@ -235,6 +239,8 @@ const local: App.I18n.Schema = {
     home: '首页',
     business: '业务管理',
     business_shipment: '货运',
+    'business_shipment-edit': '编辑货运',
+    'business_shipment-new': '新建货运',
     business_consolidation: '拼箱',
     maintain: '基础维护',
     maintain_airlines: '航空公司',
@@ -343,6 +349,127 @@ const local: App.I18n.Schema = {
         desc5: 'Soybean 刚才把工作台页面随便写了一些，凑合能看了！'
       },
       creativity: '创意'
+    },
+    business: {
+      shipment: {
+        table: {
+          shipmentNo: '货运编号',
+          shipperName: '发货人',
+          consignee: '收货人',
+          destination: '目的地',
+          origin: '始发地',
+          goodsDescription: '货物描述',
+          crd: '货物准备日期',
+          eta: '预计到达日期',
+          etd: '预计出发日期',
+          grossWeight: '毛重',
+          cbm: '体积',
+          ctns: '件数'
+        },
+        messages: {
+          exportFailed: '导出失败',
+          completeRequiredFields: '请完成必填字段',
+          saveFirst: '请先保存货运'
+        },
+        export: '导出',
+        tab: {
+          shipment: '货运',
+          additionalDetails: '附加详情',
+          routing: '路由',
+          billing: '账单',
+          eDocs: '电子文档',
+          logs: '日志'
+        },
+        menu: {
+          merge: '合并',
+          split: '拆分',
+          copy: '复制',
+          deactivate: '停用',
+          reopen: '重新打开',
+          exportRow: '导出',
+          batchPrint: '批量打印'
+        },
+        form: {
+          shipperName: '发货人名称',
+          consigneeName: '收货人名称',
+          transportMode: '运输方式',
+          packingMode: '装箱方式',
+          origin: '始发地',
+          destination: '目的地',
+          etd: '预计出发日期',
+          cargoReady: '货物准备日期',
+          inco: '贸易术语',
+          freightTerms: '运费条款',
+          releaseType: '放货类型',
+          volumeWeight: '体积重量',
+          chargeableWeight: '计费重量',
+          grossWeight: '毛重',
+          volume: '体积',
+          totalPackage: '件数',
+          required: '此字段为必填项',
+          numericRequired: '请输入有效数字'
+        },
+        dialog: {
+          shipmentNotExists: {
+            title: '货运不存在',
+            message: '请求的货运不存在或已被删除。',
+            newShipment: '新建货运'
+          }
+        },
+        section: {
+          notifyParty: '通知方',
+          notifyParty1: '通知方1',
+          additionalDetails: '附加详情',
+          consolidation: '合并详情',
+          voyageDetails: '航程详情'
+        },
+        billing: {
+          grossProfitMargin: '毛利率',
+          arAmount: '应收金额',
+          apAmount: '应付金额',
+          profit: '利润',
+          copyAR: '复制',
+          copyToAP: '复制到应付',
+          copyAP: '复制',
+          copyToAR: '复制到应收',
+          generateDraft: '生成草稿',
+          template: '模板',
+          arCompleted: '应收已完成',
+          apCompleted: '应付已完成',
+          confirmDelete: '确认删除此行？',
+          noRecords: '没有可保存的记录。',
+          selectRecords: '请至少选择一条记录。',
+          allLocked: '所有选中的记录已被锁定。',
+          copySuccess: '成功复制记录。',
+          deleteSuccess: '成功删除记录。',
+          draftSuccess: '成功生成草稿。'
+        },
+        address: {
+          newShipper: '新建发货人',
+          newConsignee: '新建收货人',
+          newAddress: '新建地址',
+          companyName: '公司名称',
+          code: '代码',
+          shortCode: '简称',
+          contact: '联系人',
+          phone: '电话',
+          email: '邮箱',
+          address1: '地址1',
+          address2: '地址2',
+          address3: '地址3',
+          city: '城市',
+          state: '州/省',
+          postalCode: '邮编',
+          countryCode: '国家代码',
+          saveSuccess: '保存成功。',
+          saveFailed: '保存地址失败。'
+        },
+        edoc: {
+          selectDocType: '请选择文档类型。',
+          uploadSuccess: '上传成功',
+          uploadFailed: '上传失败'
+        }
+      }
     },
     maintain: {
       currency: {

@@ -346,6 +346,8 @@ declare namespace App {
         lookForward: string;
         modify: string;
         modifySuccess: string;
+        saveSuccess: string;
+        modifySuccess: string;
         noData: string;
         operate: string;
         pleaseCheckValue: string;
@@ -360,11 +362,14 @@ declare namespace App {
         updateSuccess: string;
 
         userCenter: string;
+        view: string;
         op: {
           equal: string;
           notEqual: string;
           contain: string;
           notContain: string;
+          startsWith: string;
+          endsWith: string;
         };
         yesOrNo: {
           yes: string;
@@ -724,6 +729,127 @@ declare namespace App {
             officePhone: string;
             socialMediaId: string;
             generalInfo: string;
+          };
+        };
+        business: {
+          shipment: {
+            table: {
+              shipmentNo: string;
+              shipperName: string;
+              consignee: string;
+              destination: string;
+              origin: string;
+              goodsDescription: string;
+              crd: string;
+              eta: string;
+              etd: string;
+              grossWeight: string;
+              cbm: string;
+              ctns: string;
+            };
+            messages: {
+              exportFailed: string;
+              completeRequiredFields: string;
+              saveFirst: string;
+            };
+            export: string;
+            menu: {
+              merge: string;
+              split: string;
+              copy: string;
+              deactivate: string;
+              reopen: string;
+              exportRow: string;
+              batchPrint: string;
+            };
+            tab: {
+              shipment: string;
+              additionalDetails: string;
+              routing: string;
+              billing: string;
+              eDocs: string;
+              logs: string;
+            };
+            dialog: {
+              shipmentNotExists: {
+                title: string;
+                message: string;
+                newShipment: string;
+              };
+            };
+            form: {
+              shipperName: string;
+              consigneeName: string;
+              transportMode: string;
+              packingMode: string;
+              origin: string;
+              destination: string;
+              etd: string;
+              cargoReady: string;
+              inco: string;
+              freightTerms: string;
+              releaseType: string;
+              volumeWeight: string;
+              chargeableWeight: string;
+              grossWeight: string;
+              volume: string;
+              totalPackage: string;
+              required: string;
+              numericRequired: string;
+            };
+            section: {
+              notifyParty: string;
+              notifyParty1: string;
+              additionalDetails: string;
+              consolidation: string;
+              voyageDetails: string;
+            };
+            billing: {
+              grossProfitMargin: string;
+              arAmount: string;
+              apAmount: string;
+              profit: string;
+              copyAR: string;
+              copyToAP: string;
+              copyAP: string;
+              copyToAR: string;
+              generateDraft: string;
+              template: string;
+              arCompleted: string;
+              apCompleted: string;
+              confirmDelete: string;
+              noRecords: string;
+              selectRecords: string;
+              allLocked: string;
+              copySuccess: string;
+              deleteSuccess: string;
+              draftSuccess: string;
+            };
+            address: {
+              newShipper: string;
+              newConsignee: string;
+              newAddress: string;
+              companyName: string;
+              code: string;
+              shortCode: string;
+              contact: string;
+              phone: string;
+              email: string;
+              address1: string;
+              address2: string;
+              address3: string;
+              city: string;
+              state: string;
+              postalCode: string;
+              countryCode: string;
+              saveSuccess: string;
+              saveFailed: string;
+            };
+            edoc: {
+              selectDocType: string;
+              uploadSuccess: string;
+              uploadFailed: string;
+            };
           };
         };
       };
