@@ -168,6 +168,7 @@ const routeMap: RouteMap = {
   "500": "/500",
   "business": "/business",
   "business_consolidation": "/business/consolidation",
+  "business_consolidation-detail": "/business/consolidation-detail/:pk",
   "business_shipment": "/business/shipment",
   "business_shipment-edit": "/business/shipment-edit/:pk",
   "business_shipment-new": "/business/shipment-new",

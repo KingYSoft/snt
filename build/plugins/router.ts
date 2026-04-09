@@ -72,6 +72,7 @@ export function setupElegantRouter() {
       }
 
       const hideInMenuRoutes: RouteKey[] = [
+        'business_consolidation-detail',
         'maintain_organization-detail',
         'maintain_organization-edit',
         'maintain_organization-new'

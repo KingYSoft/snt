@@ -60,6 +60,16 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'business_consolidation-detail',
+        path: '/business/consolidation-detail/:pk',
+        component: 'view.business_consolidation-detail',
+        meta: {
+          title: 'business_consolidation',
+          i18nKey: 'route.business_consolidation',
+          hideInMenu: true
+        }
+      },
+      {
         name: 'business_shipment',
         path: '/business/shipment',
         component: 'view.business_shipment',

@@ -22,6 +22,7 @@ declare module "@elegant-router/types" {
     "500": "/500";
     "business": "/business";
     "business_consolidation": "/business/consolidation";
+    "business_consolidation-detail": "/business/consolidation-detail/:pk";
     "business_shipment": "/business/shipment";
     "business_shipment-edit": "/business/shipment-edit/:pk";
     "business_shipment-new": "/business/shipment-new";
@@ -119,6 +120,7 @@ declare module "@elegant-router/types" {
     | "500"
     | "iframe-page"
     | "login"
+    | "business_consolidation-detail"
     | "business_consolidation"
     | "business_shipment-edit"
     | "business_shipment-new"
