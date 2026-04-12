@@ -53,6 +53,10 @@ declare module "@elegant-router/types" {
     "maintain_shipping-schedule": "/maintain/shipping-schedule";
     "maintain_vessel": "/maintain/vessel";
     "maintain_warehouse": "/maintain/warehouse";
+    "settlement": "/settlement";
+    "settlement_writeoff": "/settlement/writeoff";
+    "settlement_writeoff-create": "/settlement/writeoff-create";
+    "settlement_writeoff-detail": "/settlement/writeoff-detail";
     "system": "/system";
     "system_branch": "/system/branch";
     "system_company": "/system/company";
@@ -97,6 +101,7 @@ declare module "@elegant-router/types" {
     | "iframe-page"
     | "login"
     | "maintain"
+    | "settlement"
     | "system"
   >;
 
@@ -148,6 +153,9 @@ declare module "@elegant-router/types" {
     | "maintain_shipping-schedule"
     | "maintain_vessel"
     | "maintain_warehouse"
+    | "settlement_writeoff-create"
+    | "settlement_writeoff-detail"
+    | "settlement_writeoff"
     | "system_branch"
     | "system_company"
     | "system_group"

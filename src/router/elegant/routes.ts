@@ -384,6 +384,44 @@ export const generatedRoutes: GeneratedRoute[] = [
     props: true
   },
   {
+    name: 'settlement',
+    path: '/settlement',
+    component: 'layout.base',
+    meta: {
+      title: 'settlement',
+      i18nKey: 'route.settlement'
+    },
+    children: [
+      {
+        name: 'settlement_writeoff',
+        path: '/settlement/writeoff',
+        component: 'view.settlement_writeoff',
+        meta: {
+          title: 'settlement_writeoff',
+          i18nKey: 'route.settlement_writeoff'
+        }
+      },
+      {
+        name: 'settlement_writeoff-create',
+        path: '/settlement/writeoff-create',
+        component: 'view.settlement_writeoff-create',
+        meta: {
+          title: 'settlement_writeoff-create',
+          i18nKey: 'route.settlement_writeoff-create'
+        }
+      },
+      {
+        name: 'settlement_writeoff-detail',
+        path: '/settlement/writeoff-detail',
+        component: 'view.settlement_writeoff-detail',
+        meta: {
+          title: 'settlement_writeoff-detail',
+          i18nKey: 'route.settlement_writeoff-detail'
+        }
+      }
+    ]
+  },
+  {
     name: 'system',
     path: '/system',
     component: 'layout.base',
