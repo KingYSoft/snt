@@ -2,11 +2,10 @@
 import { ref, computed, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { NButton, NSpace, NCard, NForm, NFormItem, NInput, NInputNumber, NSelect } from 'naive-ui';
+import { NButton, NCard, NForm, NFormItem, NInput, NInputNumber, NSelect } from 'naive-ui';
 import { queryBankPage } from '@/service/api/maintain/bank';
 import { getCurrencyList } from '@/service/api/maintain/currency';
 import { saveWriteoff, type WriteoffCreateRequest } from '@/service/api/business/settlement';
-import { useCompanySearch } from './composables/useCompanySearch';
 import { useOutstandingData } from './composables/useOutstandingData';
 import { useExchangeRate } from './composables/useExchangeRate';
 import { useFormRules } from './modules/validation';
@@ -40,15 +39,7 @@ const formData = ref<Omit<WriteoffCreateRequest, 'amount'>>({
 });
 
 // 公司搜索
-const {
-  companyOptions,
-  companyLoading,
-  companySearchQuery,
-  companyPagination,
-  searchCompany,
-  handlePageChange: handleCompanyPageChange
-} = useCompanySearch();
-const showCompanyDropdown = ref(false);
+const companySearchQuery = ref('');
 
 // 结欠数据
 const {
@@ -96,7 +87,10 @@ const baseCurrency = ref('CNY');
 
 // 付款方式选项
 const paymentMethodOptions = computed(() => [
-  { label: t('page.settlement.writeoff.create.wireTransfer'), value: 'wire_transfer' },
+  {
+    label: t('page.settlement.writeoff.create.wireTransfer'),
+    value: 'wire_transfer'
+  },
   { label: t('page.settlement.writeoff.create.check'), value: 'check' },
   { label: t('page.settlement.writeoff.create.cash'), value: 'cash' },
   { label: t('page.settlement.writeoff.create.other'), value: 'other' }
@@ -162,14 +156,17 @@ async function handleSearchBank(query: string) {
 function handleSelectCompany(company: any) {
   formData.value.companyId = company.value;
   companySearchQuery.value = company.label;
-  showCompanyDropdown.value = false;
+}
+
+function handleClearCompany() {
+  formData.value.companyId = '';
+  companySearchQuery.value = '';
 }
 
 // 监听公司选择变化
 watch(
   () => formData.value.companyId,
   async newCompanyId => {
-    console.log('newCompanyId: ', newCompanyId);
     // TODO: 待删除
     const companyId = newCompanyId || '1';
     await loadOutstandingData(companyId);
@@ -279,19 +276,21 @@ loadCurrencies();
 <template>
   <div class="h-full overflow-auto p-16px">
     <NCard :title="t('page.settlement.writeoff.create.title')" :bordered="false">
+      <template #header-extra>
+        <div class="flex gap-2">
+          <NButton @click="handleCancel">
+            {{ t('page.settlement.writeoff.create.cancel') }}
+          </NButton>
+          <NButton type="primary" :loading="saving" @click="handleSave">
+            {{ t('page.settlement.writeoff.create.save') }}
+          </NButton>
+        </div>
+      </template>
+
       <NForm ref="formRef" :model="formData" :rules="rules" label-placement="left" label-width="120px">
         <!-- 公司选择 -->
         <NFormItem :label="t('page.settlement.writeoff.create.settlementUnit')" path="companyId">
-          <CompanySelector
-            v-model:show-dropdown="showCompanyDropdown"
-            :company-options="companyOptions"
-            :company-loading="companyLoading"
-            :company-pagination="companyPagination"
-            :search-query="companySearchQuery"
-            @search="searchCompany"
-            @page-change="handleCompanyPageChange"
-            @select="handleSelectCompany"
-          />
+          <CompanySelector v-model="companySearchQuery" @select="handleSelectCompany" @clear="handleClearCompany" />
         </NFormItem>
 
         <!-- 结欠余额展示 -->
@@ -334,7 +333,8 @@ loadCurrencies();
               <div class="flex justify-between">
                 <span class="text-gray">{{ t('page.settlement.writeoff.create.outstandingBalance') }}:</span>
                 <span class="font-semibold">
-                  {{ outstandingBalance.balance.toFixed(2) }} {{ outstandingBalance.currency }}
+                  {{ outstandingBalance.balance.toFixed(2) }}
+                  {{ outstandingBalance.currency }}
                 </span>
               </div>
               <div class="flex justify-between">
@@ -343,10 +343,15 @@ loadCurrencies();
               </div>
               <div v-if="formData.isForeignCurrency" class="flex justify-between">
                 <span class="text-gray">
-                  {{ t('page.settlement.writeoff.create.selectedTotalCurrency', { currency: formData.currency }) }}:
+                  {{
+                    t('page.settlement.writeoff.create.selectedTotalCurrency', {
+                      currency: formData.currency
+                    })
+                  }}:
                 </span>
                 <span class="font-semibold text-primary">
-                  {{ convertedSettledAmount.toFixed(2) }} {{ formData.currency }}
+                  {{ convertedSettledAmount.toFixed(2) }}
+                  {{ formData.currency }}
                 </span>
               </div>
               <div v-if="formData.isForeignCurrency" class="text-12px text-gray">
@@ -431,7 +436,8 @@ loadCurrencies();
           </NInputNumber>
           <div v-if="selectedTotal > 0" class="ml-16px text-gray">
             {{ t('page.settlement.writeoff.create.convertedAmount') }}:
-            {{ (selectedTotal * (formData.exchangeRate || 1)).toFixed(2) }} {{ baseCurrency }}
+            {{ (selectedTotal * (formData.exchangeRate || 1)).toFixed(2) }}
+            {{ baseCurrency }}
           </div>
         </NFormItem>
 
@@ -460,16 +466,6 @@ loadCurrencies();
             :rows="3"
             :placeholder="t('page.settlement.writeoff.create.remarkPlaceholder')"
           />
-        </NFormItem>
-
-        <!-- 操作按钮 -->
-        <NFormItem>
-          <NSpace>
-            <NButton type="primary" :loading="saving" @click="handleSave">
-              {{ t('page.settlement.writeoff.create.save') }}
-            </NButton>
-            <NButton @click="handleCancel">{{ t('page.settlement.writeoff.create.cancel') }}</NButton>
-          </NSpace>
         </NFormItem>
       </NForm>
     </NCard>

@@ -1028,6 +1028,41 @@ declare namespace App {
           };
         };
         settlement: {
+          transactions: {
+            invoiceDate: string;
+            ledger: string;
+            type: string;
+            jobInvoiceNumber: string;
+            transactionNum: string;
+            creditorDebtor: string;
+            creditorDebtorFullName: string;
+            invoiceDescription: string;
+            postDate: string;
+            dueDate: string;
+            currency: string;
+            transAmount: string;
+            exchangeRate: string;
+            localAmount: string;
+            branch: string;
+            department: string;
+            taxAmount: string;
+            outstandingAmount: string;
+            fullyPaidDate: string;
+            jobNumber: string;
+            canceled: string;
+            print: string;
+            export: string;
+            moreFilters: string;
+            hideMoreFilters: string;
+            keywordPlaceholder: string;
+            exportRow: string;
+            exportSuccess: string;
+            exportFailed: string;
+            exportRowSuccess: string;
+            createDeveloping: string;
+            editDeveloping: string;
+            printDeveloping: string;
+          };
           writeoff: {
             title: string;
             addWriteoff: string;

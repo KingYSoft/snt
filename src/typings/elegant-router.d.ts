@@ -55,6 +55,8 @@ declare module "@elegant-router/types" {
     "maintain_vessel": "/maintain/vessel";
     "maintain_warehouse": "/maintain/warehouse";
     "settlement": "/settlement";
+    "settlement_payable-transactions": "/settlement/payable-transactions";
+    "settlement_receivable-transactions": "/settlement/receivable-transactions";
     "settlement_writeoff": "/settlement/writeoff";
     "settlement_writeoff-create": "/settlement/writeoff-create";
     "settlement_writeoff-detail": "/settlement/writeoff-detail";
@@ -155,6 +157,8 @@ declare module "@elegant-router/types" {
     | "maintain_shipping-schedule"
     | "maintain_vessel"
     | "maintain_warehouse"
+    | "settlement_payable-transactions"
+    | "settlement_receivable-transactions"
     | "settlement_writeoff-create"
     | "settlement_writeoff-detail"
     | "settlement_writeoff"

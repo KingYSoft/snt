@@ -127,6 +127,33 @@ function onSelectShipper(row: any) {
   s.add_email = row.email;
 }
 
+function clearShipper() {
+  if (!props.inputData.shipper || typeof props.inputData.shipper !== 'object') {
+    props.inputData.shipper = {};
+  }
+
+  props.inputData.shipper = {
+    ...props.inputData.shipper,
+    add_address_type: '',
+    add_address_short_code: '',
+    add_address_code: '',
+    add_address_name: '',
+    add_address: '',
+    add_address1: '',
+    add_address2: '',
+    add_address3: '',
+    add_contact: '',
+    add_city: '',
+    add_state: '',
+    add_postal_code: '',
+    add_country_code: '',
+    add_phone: '',
+    add_mobile: '',
+    add_fax: '',
+    add_email: ''
+  };
+}
+
 function onSelectConsignee(row: any) {
   if (!row || typeof row !== 'object') return;
   if (!props.inputData.consignee || typeof props.inputData.consignee !== 'object') {
@@ -150,6 +177,33 @@ function onSelectConsignee(row: any) {
   c.add_mobile = row.mobile;
   c.add_fax = row.fax;
   c.add_email = row.email;
+}
+
+function clearConsignee() {
+  if (!props.inputData.consignee || typeof props.inputData.consignee !== 'object') {
+    props.inputData.consignee = {};
+  }
+
+  props.inputData.consignee = {
+    ...props.inputData.consignee,
+    add_address_type: '',
+    add_address_short_code: '',
+    add_address_code: '',
+    add_address_name: '',
+    add_address: '',
+    add_address1: '',
+    add_address2: '',
+    add_address3: '',
+    add_contact: '',
+    add_city: '',
+    add_state: '',
+    add_postal_code: '',
+    add_country_code: '',
+    add_phone: '',
+    add_mobile: '',
+    add_fax: '',
+    add_email: ''
+  };
 }
 
 // --- Address Dialog ---
@@ -443,6 +497,7 @@ const addrDialogTitle = computed(() => {
                   }
                 "
                 @row-select="(row: any) => onSelectShipper(row)"
+                @clear="clearShipper"
                 @new-handle="openAddrDialog('SHIPPER')"
               />
             </NFormItemGi>
@@ -476,6 +531,7 @@ const addrDialogTitle = computed(() => {
                   }
                 "
                 @row-select="(row: any) => onSelectConsignee(row)"
+                @clear="clearConsignee"
                 @new-handle="openAddrDialog('CONSIGNEE')"
               />
             </NFormItemGi>

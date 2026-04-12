@@ -7,12 +7,18 @@ const routeOrderMap: Partial<Record<RouteKey, number>> = {
   // Top-level modules
   home: 1,
   business: 2,
+  settlement: 3,
   maintain: 8,
   system: 9,
 
   // Business children
   business_shipment: 2,
   business_consolidation: 3,
+
+  // Settlement children
+  'settlement_receivable-transactions': 1,
+  'settlement_payable-transactions': 2,
+  settlement_writeoff: 3,
 
   // Maintain children
   maintain_airlines: 1,

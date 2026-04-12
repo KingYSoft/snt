@@ -174,6 +174,46 @@ export interface WriteoffCreateResponse {
   message: string;
 }
 
+export interface SettlementTransactionRecord {
+  pk: string;
+  id: string;
+  invoice_date: string;
+  ledger: string;
+  tran_type: string;
+  job_invoice_number: string;
+  transaction_num: string;
+  creditor_debtor: string;
+  creditor_debtor_full_name: string;
+  invoice_description: string;
+  post_date: string;
+  due_date: string;
+  currency: string;
+  trans_amount: number;
+  exchange_rate: number;
+  local_amount: number;
+  branch: string;
+  department: string;
+  tax_amount: number;
+  outstanding_amount: number;
+  fully_paid_date: string;
+  job_number: string;
+  canceled: 'Y' | 'N';
+}
+
+export interface SettlementTransactionQueryParams {
+  skipCount: number;
+  maxResultCount: number;
+  dateStart?: string;
+  dateEnd?: string;
+  keywordField?: keyof SettlementTransactionRecord | string;
+  keywordValue?: string;
+  ledger?: string;
+  tranType?: string;
+  branch?: string;
+  department?: string;
+  canceled?: string;
+}
+
 // ==================== Mock 数据 ====================
 
 /**
@@ -233,6 +273,237 @@ const mockWriteoffList: WriteoffRecord[] = [
     status: 'submitted',
     createdAt: '2025-01-19T11:30:00',
     remark: '港币结算'
+  }
+];
+
+const mockReceivableTransactions: SettlementTransactionRecord[] = [
+  {
+    pk: '2634001505',
+    id: '2634001505',
+    invoice_date: '2024-03-31',
+    ledger: 'AR',
+    tran_type: 'CRD',
+    job_invoice_number: 'SRU235008880A',
+    transaction_num: '2634001505',
+    creditor_debtor: 'TIANWUF SN',
+    creditor_debtor_full_name: 'TIANJIN WUFANG NEW MATERIAL CO LTD',
+    invoice_description: '费用推关于 2634001505 -',
+    post_date: '2024-03-31',
+    due_date: '2024-03-30',
+    currency: 'CNY',
+    trans_amount: -2850,
+    exchange_rate: 1,
+    local_amount: -2850,
+    branch: 'SHA',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 0,
+    fully_paid_date: '2024-03-31',
+    job_number: 'SRU235008880',
+    canceled: 'Y'
+  },
+  {
+    pk: '2634001506',
+    id: '2634001506',
+    invoice_date: '2024-04-01',
+    ledger: 'AR',
+    tran_type: 'INV',
+    job_invoice_number: 'SB0226002200',
+    transaction_num: '2634001506',
+    creditor_debtor: 'SHANGHAI01',
+    creditor_debtor_full_name: 'SHANGHAI SAMPLE TRADING CO LTD',
+    invoice_description: 'Freight charges SB0226002200',
+    post_date: '2024-04-01',
+    due_date: '2024-04-30',
+    currency: 'CNY',
+    trans_amount: 5600.5,
+    exchange_rate: 1,
+    local_amount: 5600.5,
+    branch: 'CKG',
+    department: 'FIA',
+    tax_amount: 0,
+    outstanding_amount: 1200,
+    fully_paid_date: '',
+    job_number: 'SB0226002200',
+    canceled: 'N'
+  },
+  {
+    pk: '2634001507',
+    id: '2634001507',
+    invoice_date: '2024-04-02',
+    ledger: 'AR',
+    tran_type: 'INV',
+    job_invoice_number: 'NGB24040012',
+    transaction_num: '2634001507',
+    creditor_debtor: 'NINGBOFX',
+    creditor_debtor_full_name: 'NINGBO FORWARDING EXPRESS LTD',
+    invoice_description: 'Handling fee NGB24040012',
+    post_date: '2024-04-02',
+    due_date: '2024-05-02',
+    currency: 'CNY',
+    trans_amount: 890.25,
+    exchange_rate: 1,
+    local_amount: 890.25,
+    branch: 'NGB',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 890.25,
+    fully_paid_date: '',
+    job_number: 'NGB24040012',
+    canceled: 'N'
+  },
+  {
+    pk: '2634001544',
+    id: '2634001544',
+    invoice_date: '2024-04-03',
+    ledger: 'AR',
+    tran_type: 'INV',
+    job_invoice_number: 'SB0226002334',
+    transaction_num: '2634001544',
+    creditor_debtor: 'WENTILNGB',
+    creditor_debtor_full_name: 'WENZHOU TILING TOOLS IMPORT AND EXPORT CO. LTD',
+    invoice_description: 'SB0226002334',
+    post_date: '2024-04-03',
+    due_date: '2024-04-03',
+    currency: 'CNY',
+    trans_amount: 3112.33,
+    exchange_rate: 1,
+    local_amount: 3112.33,
+    branch: 'NGB',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 3112.33,
+    fully_paid_date: '',
+    job_number: 'SB0226002334',
+    canceled: 'N'
+  },
+  {
+    pk: '2634001545',
+    id: '2634001545',
+    invoice_date: '2024-04-03',
+    ledger: 'AR',
+    tran_type: 'INV',
+    job_invoice_number: 'SB0226002334',
+    transaction_num: '2634001545',
+    creditor_debtor: 'WENTILNGB',
+    creditor_debtor_full_name: 'WENZHOU TILING TOOLS IMPORT AND EXPORT CO. LTD',
+    invoice_description: 'SB0226002334 (line 2)',
+    post_date: '2024-04-03',
+    due_date: '2024-04-03',
+    currency: 'CNY',
+    trans_amount: 1200,
+    exchange_rate: 1,
+    local_amount: 1200,
+    branch: 'NGB',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 1200,
+    fully_paid_date: '',
+    job_number: 'SB0226002334',
+    canceled: 'N'
+  },
+  {
+    pk: '2634001546',
+    id: '2634001546',
+    invoice_date: '2024-04-03',
+    ledger: 'AR',
+    tran_type: 'CRD',
+    job_invoice_number: 'SB0226002334',
+    transaction_num: '2634001546',
+    creditor_debtor: 'WENTILNGB',
+    creditor_debtor_full_name: 'WENZHOU TILING TOOLS IMPORT AND EXPORT CO. LTD',
+    invoice_description: 'SB0226002334 (credit)',
+    post_date: '2024-04-03',
+    due_date: '2024-04-03',
+    currency: 'CNY',
+    trans_amount: -200,
+    exchange_rate: 1,
+    local_amount: -200,
+    branch: 'NGB',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 0,
+    fully_paid_date: '2024-04-03',
+    job_number: 'SB0226002334',
+    canceled: 'N'
+  },
+  {
+    pk: '2634001600',
+    id: '2634001600',
+    invoice_date: '2024-04-05',
+    ledger: 'AR',
+    tran_type: 'CRD',
+    job_invoice_number: 'SHA24040501',
+    transaction_num: '2634001600',
+    creditor_debtor: 'SHAEXAMPLE',
+    creditor_debtor_full_name: 'SHANGHAI EXAMPLE LOGISTICS CO LTD',
+    invoice_description: 'Credit adjustment SHA24040501',
+    post_date: '2024-04-05',
+    due_date: '2024-04-05',
+    currency: 'CNY',
+    trans_amount: -500,
+    exchange_rate: 1,
+    local_amount: -500,
+    branch: 'SHA',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 0,
+    fully_paid_date: '2024-04-05',
+    job_number: 'SHA240405',
+    canceled: 'Y'
+  }
+];
+
+const mockPayableTransactions: SettlementTransactionRecord[] = [
+  {
+    pk: 'ap-1001',
+    id: 'ap-1001',
+    invoice_date: '2026-03-23',
+    ledger: 'AP',
+    tran_type: 'INV',
+    job_invoice_number: 'APBILL-202603-001',
+    transaction_num: 'ap-1001',
+    creditor_debtor: 'SUPPLIER01',
+    creditor_debtor_full_name: 'SAMPLE SUPPLIER CO LTD',
+    invoice_description: 'AP invoice APBILL-202603-001',
+    post_date: '2026-03-23',
+    due_date: '2026-04-22',
+    currency: 'CNY',
+    trans_amount: 360,
+    exchange_rate: 1,
+    local_amount: 360,
+    branch: 'SHA',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 360,
+    fully_paid_date: '',
+    job_number: 'JOB-AP-001',
+    canceled: 'N'
+  },
+  {
+    pk: 'ap-1002',
+    id: 'ap-1002',
+    invoice_date: '2026-03-30',
+    ledger: 'AP',
+    tran_type: 'INV',
+    job_invoice_number: 'APBILL-202603-002',
+    transaction_num: 'ap-1002',
+    creditor_debtor: 'SUPPLIER02',
+    creditor_debtor_full_name: 'ANOTHER SUPPLIER INC',
+    invoice_description: 'AP invoice APBILL-202603-002',
+    post_date: '2026-03-30',
+    due_date: '2026-04-29',
+    currency: 'GBP',
+    trans_amount: 456,
+    exchange_rate: 9.12,
+    local_amount: 4158.72,
+    branch: 'NGB',
+    department: 'FES',
+    tax_amount: 0,
+    outstanding_amount: 0,
+    fully_paid_date: '2026-04-05',
+    job_number: 'JOB-AP-002',
+    canceled: 'N'
   }
 ];
 
@@ -532,6 +803,92 @@ export async function queryWriteoffList(params: WriteoffListQueryParams) {
   //   method: 'get',
   //   params
   // });
+}
+
+function parseDateString(value?: string) {
+  if (!value) {
+    return null;
+  }
+
+  const date = new Date(`${value}T00:00:00`);
+
+  if (Number.isNaN(date.getTime())) {
+    return null;
+  }
+
+  return date;
+}
+
+function filterSettlementTransactions(items: SettlementTransactionRecord[], params: SettlementTransactionQueryParams) {
+  const start = parseDateString(params.dateStart);
+  const end = parseDateString(params.dateEnd);
+  const keywordField = params.keywordField || 'creditor_debtor';
+  const keywordValue = params.keywordValue?.trim().toLowerCase();
+
+  return items.filter(item => {
+    const invoiceDate = parseDateString(item.invoice_date);
+
+    if (start && invoiceDate && invoiceDate < start) {
+      return false;
+    }
+
+    if (end && invoiceDate && invoiceDate > end) {
+      return false;
+    }
+
+    if (keywordValue) {
+      const value = String(item[keywordField as keyof SettlementTransactionRecord] || '').toLowerCase();
+
+      if (!value.includes(keywordValue)) {
+        return false;
+      }
+    }
+
+    const simpleFilters: Array<[string | undefined, string]> = [
+      [params.ledger, item.ledger],
+      [params.tranType, item.tran_type],
+      [params.branch, item.branch],
+      [params.department, item.department],
+      [params.canceled, item.canceled]
+    ];
+
+    return simpleFilters.every(([filterValue, actualValue]) => {
+      if (!filterValue) {
+        return true;
+      }
+
+      return actualValue.toLowerCase().includes(filterValue.trim().toLowerCase());
+    });
+  });
+}
+
+async function querySettlementTransactions(
+  source: SettlementTransactionRecord[],
+  params: SettlementTransactionQueryParams
+) {
+  return new Promise<any>(resolve => {
+    setTimeout(() => {
+      const filteredList = filterSettlementTransactions(source, params);
+      const start = params.skipCount;
+      const end = start + params.maxResultCount;
+
+      resolve({
+        data: {
+          items: filteredList.slice(start, end),
+          totalCount: filteredList.length
+        },
+        error: null
+      });
+    }, 180);
+  });
+}
+
+export async function queryReceivableTransactions(params: SettlementTransactionQueryParams) {
+  return querySettlementTransactions(mockReceivableTransactions, params);
+}
+
+export async function queryPayableTransactions(params: SettlementTransactionQueryParams) {
+  return querySettlementTransactions(mockPayableTransactions, params);
 }
 
 /**

@@ -23,6 +23,10 @@ export interface RemoteTableMenuProps {
   label?: string;
   /** Whether to show the "New" button */
   showNew?: boolean;
+  /** Popover width */
+  width?: number;
+  /** Empty state text */
+  emptyText?: string;
 }
 
 const props = withDefaults(defineProps<RemoteTableMenuProps>(), {
@@ -33,12 +37,15 @@ const props = withDefaults(defineProps<RemoteTableMenuProps>(), {
   debounceMs: 300,
   modelValue: '',
   label: '',
-  showNew: false
+  showNew: false,
+  width: 620,
+  emptyText: ''
 });
 
 const emit = defineEmits<{
   (e: 'update:modelValue', val: string): void;
   (e: 'rowSelect', row: Record<string, any>): void;
+  (e: 'clear'): void;
   (e: 'newHandle'): void;
 }>();
 
@@ -66,16 +73,36 @@ watch(
 let snapshotText = '';
 
 function openMenu() {
+  if (showPopover.value) {
+    return;
+  }
+
   snapshotText = inputText.value;
   currentPage.value = 1;
   showPopover.value = true;
-  runQuery('');
+  runQuery(inputText.value);
+}
+
+function handleFocus() {
+  openMenu();
+}
+
+function handleBlur() {
+  showPopover.value = false;
 }
 
 function handleClear() {
+  if (debounceTimer) {
+    clearTimeout(debounceTimer);
+  }
+
   inputText.value = '';
   emit('update:modelValue', '');
   snapshotText = '';
+  tableData.value = [];
+  totalCount.value = 0;
+  currentPage.value = 1;
+  emit('clear');
 }
 
 function handleInput(val: string) {
@@ -152,6 +179,19 @@ function handleNew() {
   showPopover.value = false;
 }
 
+function toggleMenu() {
+  if (showPopover.value) {
+    showPopover.value = false;
+    return;
+  }
+
+  openMenu();
+}
+
+function handleClickOutside() {
+  showPopover.value = false;
+}
+
 // Table row key
 function rowKey(row: Record<string, any>): string {
   return String(row[props.itemValue] ?? row.id ?? Math.random());
@@ -167,6 +207,32 @@ const pagination = computed(() => ({
   showQuickJumper: false,
   prefix: (info: { itemCount: number | undefined }) => `${info.itemCount ?? 0} items`
 }));
+
+function parseColumnWidth(value: unknown) {
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return value;
+  }
+
+  if (typeof value === 'string') {
+    const parsed = Number.parseFloat(value);
+
+    if (Number.isFinite(parsed)) {
+      return parsed;
+    }
+  }
+
+  return null;
+}
+
+const scrollX = computed(() => {
+  const columnsWidth = props.headers.reduce((sum, col) => {
+    const width = parseColumnWidth(col.width) ?? parseColumnWidth(col.minWidth) ?? 120;
+
+    return sum + width;
+  }, 0);
+
+  return Math.max(props.width, columnsWidth);
+});
 
 // Table columns with click selection via first column wrapper
 const tableColumns = computed(() => {
@@ -193,11 +259,12 @@ const tableColumns = computed(() => {
 <template>
   <NPopover
     v-model:show="showPopover"
-    trigger="click"
+    trigger="manual"
     placement="bottom-start"
     :show-arrow="false"
-    style="width: 620px"
+    :style="{ width: `${width}px` }"
     raw
+    @clickoutside="handleClickOutside"
   >
     <template #trigger>
       <NInput
@@ -205,13 +272,18 @@ const tableColumns = computed(() => {
         clearable
         size="small"
         :placeholder="label || 'Search...'"
-        @focus="openMenu"
+        @focus="handleFocus"
+        @blur="handleBlur"
         @clear="handleClear"
         @update:value="handleInput"
-      />
+      >
+        <template #suffix>
+          <span class="text-gray cursor-pointer" @click.stop="toggleMenu">▼</span>
+        </template>
+      </NInput>
     </template>
 
-    <div class="remote-table-menu">
+    <div class="remote-table-menu" @mousedown.prevent>
       <NProgress
         v-if="loading"
         type="line"
@@ -233,6 +305,7 @@ const tableColumns = computed(() => {
         :row-props="
           (row: Record<string, any>) => ({
             style: 'cursor: pointer',
+            onClick: () => handleRowClick(row),
             onDblclick: () => handleRowClick(row)
           })
         "
@@ -242,12 +315,16 @@ const tableColumns = computed(() => {
         size="small"
         :max-height="340"
         :bordered="false"
-        :scroll-x="700"
+        :scroll-x="scrollX"
         striped
         :single-line="false"
         style="width: 100%"
         @update:page="handlePageChange"
       />
+
+      <div v-if="!loading && tableData.length === 0" class="remote-table-menu__empty">
+        {{ emptyText || label || 'No Data' }}
+      </div>
 
       <div class="remote-table-menu__footer">
         <NSpace>
@@ -261,8 +338,14 @@ const tableColumns = computed(() => {
 
 <style scoped>
 .remote-table-menu {
-  width: 620px;
+  width: 100%;
   background-color: #ffffff;
+}
+
+.remote-table-menu__empty {
+  padding: 16px 12px;
+  text-align: center;
+  color: #9ca3af;
 }
 
 .remote-table-menu__row {
