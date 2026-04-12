@@ -2,10 +2,12 @@ import { h } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 import { NTag, NButton } from 'naive-ui';
 import { useRouter } from 'vue-router';
+import { useI18n } from 'vue-i18n';
 import type { WriteoffRecord } from '@/service/api/business/settlement';
 
 export function getWriteoffColumns(): DataTableColumns<WriteoffRecord> {
   const router = useRouter();
+  const { t } = useI18n();
 
   return [
     {
@@ -17,18 +19,18 @@ export function getWriteoffColumns(): DataTableColumns<WriteoffRecord> {
     },
     {
       key: 'writeoffNo',
-      title: '销账单号',
+      title: () => t('page.settlement.writeoff.writeoffNo'),
       width: 150,
       align: 'center' as const
     },
     {
       key: 'companyName',
-      title: '公司名称',
+      title: () => t('page.settlement.writeoff.companyName'),
       minWidth: 180
     },
     {
       key: 'amount',
-      title: '销账金额',
+      title: () => t('page.settlement.writeoff.amount'),
       width: 130,
       align: 'right' as const,
       render: row => {
@@ -37,41 +39,41 @@ export function getWriteoffColumns(): DataTableColumns<WriteoffRecord> {
     },
     {
       key: 'currency',
-      title: '币种',
+      title: () => t('page.settlement.writeoff.currency'),
       width: 90,
       align: 'center' as const
     },
     {
       key: 'writeoffDate',
-      title: '销账日期',
+      title: () => t('page.settlement.writeoff.writeoffDate'),
       width: 120,
       align: 'center' as const
     },
     {
       key: 'status',
-      title: '状态',
+      title: () => t('page.settlement.writeoff.status'),
       width: 110,
       align: 'center' as const,
       render: row => {
         const statusMap = {
-          draft: { type: 'default' as const, text: '草稿' },
-          submitted: { type: 'info' as const, text: '已提交' },
-          approved: { type: 'success' as const, text: '已批准' },
-          rejected: { type: 'error' as const, text: '已拒绝' }
+          draft: { type: 'default' as const, text: () => t('page.settlement.writeoff.statusDraft') },
+          submitted: { type: 'info' as const, text: () => t('page.settlement.writeoff.statusSubmitted') },
+          approved: { type: 'success' as const, text: () => t('page.settlement.writeoff.statusApproved') },
+          rejected: { type: 'error' as const, text: () => t('page.settlement.writeoff.statusRejected') }
         };
         const status = statusMap[row.status] || statusMap.draft;
-        return h(NTag, { type: status.type, size: 'small' }, () => status.text);
+        return h(NTag, { type: status.type, size: 'small' }, () => status.text());
       }
     },
     {
       key: 'createdAt',
-      title: '创建时间',
+      title: () => t('page.settlement.writeoff.createdAt'),
       width: 160,
       align: 'center' as const
     },
     {
       key: 'remark',
-      title: '备注',
+      title: () => t('page.settlement.writeoff.remark'),
       minWidth: 150,
       ellipsis: {
         tooltip: true
@@ -79,7 +81,7 @@ export function getWriteoffColumns(): DataTableColumns<WriteoffRecord> {
     },
     {
       key: 'actions',
-      title: '操作',
+      title: () => t('page.settlement.writeoff.actions'),
       width: 100,
       align: 'center' as const,
       fixed: 'right' as const,
@@ -98,7 +100,7 @@ export function getWriteoffColumns(): DataTableColumns<WriteoffRecord> {
                 });
               }
             },
-            () => '查看'
+            () => t('page.settlement.writeoff.view')
           )
         ]);
       }

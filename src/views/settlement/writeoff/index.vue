@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
-import { $t } from '@/locales';
+import { useI18n } from 'vue-i18n';
+import { NCard, NSpace, NSelect, NInput, NButton, NDataTable } from 'naive-ui';
 import { useMaintainTable } from '@/hooks/common/maintain-table';
 import { queryWriteoffList } from '@/service/api/business/settlement';
 import { getWriteoffColumns } from './modules/columns';
@@ -9,6 +10,7 @@ import { getWriteoffColumns } from './modules/columns';
 defineOptions({ name: 'PageSettlementWriteoff' });
 
 const router = useRouter();
+const { t } = useI18n();
 
 // 搜索状态
 const searchKey = ref('writeoffNo');
@@ -67,16 +69,16 @@ function handleAdd() {
 
 // 搜索选项
 const searchKeyOptions = [
-  { label: '销账单号', value: 'writeoffNo' },
-  { label: '公司名称', value: 'companyName' },
-  { label: '状态', value: 'status' }
+  { label: () => t('page.settlement.writeoff.writeoffNo'), value: 'writeoffNo' },
+  { label: () => t('page.settlement.writeoff.companyName'), value: 'companyName' },
+  { label: () => t('page.settlement.writeoff.status'), value: 'status' }
 ];
 
 const opOptions = [
-  { label: () => $t('common.op.equal'), value: 'Equal' },
-  { label: () => $t('common.op.notEqual'), value: 'NotEqual' },
-  { label: () => $t('common.op.contain'), value: 'Contain' },
-  { label: () => $t('common.op.notContain'), value: 'NotContain' }
+  { label: () => t('common.op.equal'), value: 'Equal' },
+  { label: () => t('common.op.notEqual'), value: 'NotEqual' },
+  { label: () => t('common.op.contain'), value: 'Contain' },
+  { label: () => t('common.op.notContain'), value: 'NotContain' }
 ];
 
 onMounted(() => {
@@ -86,27 +88,27 @@ onMounted(() => {
 
 <template>
   <div class="h-full flex-col-stretch gap-16px overflow-hidden">
-    <NCard title="销账列表" :bordered="false" class="flex-shrink-0">
+    <NCard :title="t('page.settlement.writeoff.title')" :bordered="false" class="flex-shrink-0">
       <NSpace align="center" :wrap="false">
         <NSelect v-model:value="searchKey" :options="searchKeyOptions" style="width: 150px" />
         <NSelect v-model:value="searchOp" :options="opOptions" style="width: 120px" />
         <NInput
           v-model:value="searchVal"
-          :placeholder="$t('common.keywordSearch')"
+          :placeholder="t('common.keywordSearch')"
           clearable
           style="width: 200px"
           @keyup.enter="handleSearch"
         />
         <NButton type="primary" @click="handleSearch">
-          {{ $t('common.search') }}
+          {{ t('common.search') }}
         </NButton>
-        <NButton @click="handleReset">{{ $t('common.reset') }}</NButton>
+        <NButton @click="handleReset">{{ t('common.reset') }}</NButton>
       </NSpace>
     </NCard>
 
     <NCard :bordered="false" class="flex-1-hidden overflow-auto">
       <NSpace vertical :size="12">
-        <NButton type="primary" @click="handleAdd">新增销账</NButton>
+        <NButton type="primary" @click="handleAdd">{{ t('page.settlement.writeoff.addWriteoff') }}</NButton>
 
         <NDataTable
           :columns="columns"
