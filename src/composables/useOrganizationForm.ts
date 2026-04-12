@@ -12,6 +12,39 @@ export function useOrganizationForm() {
   const cardLoading = ref(false);
   const activedTab = ref('1');
 
+  const defaultDetailData = () => ({
+    is_active: 1,
+    is_debtor: 0,
+    is_creditor: 0,
+    ap_category: '',
+    ap_external_creditor_code: '',
+    ap_credit_limit: null,
+    ap_payment_term_days: null,
+    ap_payment_terms: '',
+    ap_withholding_tax: '',
+    ap_currency: '',
+    bank_account: '',
+    ar_category: '',
+    ar_external_debtor_code: '',
+    ar_credit_limit: null,
+    ar_temp_credit_limit_increase: null,
+    ar_temp_credit_limit_increase_expiry: '',
+    ar_credit_on_hold: 0,
+    ar_credit_approved: 0,
+    ar_credit_approved_by: '',
+    ar_combined_statement_invoice: 0,
+    ar_credit_rating: '',
+    ar_use_settlement_group_credit_limit: 0,
+    ar_account_and_credit_review_due: '',
+    ar_eft_customs_payment_method: '',
+    ar_withholding_tax: null,
+    ar_currency: '',
+    ar_client_number: '',
+    ar_term_days_list: [] as Record<string, any>[],
+    ar_invoice_cycle_list: [] as Record<string, any>[],
+    ar_periodic_invoicing_list: [] as Record<string, any>[]
+  });
+
   const defaultData = () => ({
     org_code: '',
     org_full_name: '',
@@ -39,8 +72,10 @@ export function useOrganizationForm() {
     org_category: '',
     org_screening_status: '',
     org_approved_by: '',
+    detail: defaultDetailData(),
     addresses_list: [] as Record<string, any>[],
-    contacts_list: [] as Record<string, any>[]
+    contacts_list: [] as Record<string, any>[],
+    staff_assignments_list: [] as Record<string, any>[]
   });
 
   const inputData = ref(defaultData());
@@ -87,9 +122,17 @@ export function useOrganizationForm() {
       skeletonLoading.value = false;
       if (res.data && res.data.items && res.data.items.length > 0) {
         const el = res.data.items[0];
-        inputData.value = el || {};
+        inputData.value = {
+          ...defaultData(),
+          ...el
+        };
         inputData.value.addresses_list = el.addresses || [];
         inputData.value.contacts_list = el.contacts || [];
+        inputData.value.detail = {
+          ...defaultDetailData(),
+          ...el.detail
+        };
+        inputData.value.staff_assignments_list = el.staff_assignments_list || el.staff_assignments || [];
       } else {
         showOrganizationEmptyDialog();
       }
@@ -135,6 +178,7 @@ export function useOrganizationForm() {
       // 创建保存数据，去掉 id 字段
       const saveData = {
         ...inputData.value,
+        detail: inputData.value.detail || defaultDetailData(),
         addresses: inputData.value.addresses_list || [],
         contacts: inputData.value.contacts_list || []
       };

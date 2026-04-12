@@ -4,6 +4,9 @@ import { $t } from '@/locales';
 import GeneralInfoForm from '../organization/modules/general-info-form.vue';
 import AddressSection from '../organization/modules/address-section.vue';
 import ContactsSection from '../organization/modules/contacts-section.vue';
+import ArSection from '../organization/modules/ar-section.vue';
+import ApSection from '../organization/modules/ap-section.vue';
+import StaffAssignmentsSection from '../organization/modules/staff-assignments-section.vue';
 import { NButton } from 'naive-ui';
 import { useOrganizationForm } from '@/composables/useOrganizationForm';
 
@@ -61,13 +64,13 @@ function handleBack() {
             <ContactsSection v-model:contacts="inputData.contacts_list" />
           </NTabPane>
           <NTabPane name="4" tab="AR">
-            <!-- AR content -->
+            <ArSection v-model:detail="inputData.detail" />
           </NTabPane>
           <NTabPane name="5" tab="AP">
-            <!-- AP content -->
+            <ApSection v-model:detail="inputData.detail" />
           </NTabPane>
           <NTabPane name="6" tab="Staff Assignments">
-            <!-- Staff Assignments content -->
+            <StaffAssignmentsSection v-model:staff-assignments="inputData.staff_assignments_list" />
           </NTabPane>
           <NTabPane name="9" tab="Logs">
             <!-- Logs content -->

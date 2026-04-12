@@ -72,25 +72,49 @@ function handleSave() {
 
 const columns: DataTableColumns = [
   {
+    key: 'index',
+    title: '#',
+    width: 60,
+    align: 'center',
+    render(_, index) {
+      return index + 1;
+    }
+  },
+  {
     key: 'address_type',
     title: $t('page.maintain.organization.addressType'),
-    width: 100,
+    width: 110,
     align: 'center'
+  },
+  {
+    key: 'code',
+    title: 'Code',
+    width: 140
+  },
+  {
+    key: 'short_code',
+    title: 'Short Code',
+    width: 140
   },
   {
     key: 'company_name',
     title: $t('page.maintain.organization.companyName'),
-    width: 150
+    minWidth: 180
   },
   {
     key: 'address1',
-    title: $t('page.maintain.organization.address1'),
-    minWidth: 150
+    title: 'Address Details',
+    minWidth: 220
+  },
+  {
+    key: 'city',
+    title: $t('page.maintain.organization.city'),
+    width: 140
   },
   {
     key: 'country_code',
     title: $t('page.maintain.organization.country'),
-    width: 80,
+    width: 120,
     align: 'center'
   },
   {
@@ -132,6 +156,7 @@ const columns: DataTableColumns = [
       :data="addresses"
       :bordered="false"
       size="small"
+      :scroll-x="1200"
     />
     <NModal v-model:show="showModal" preset="dialog" :title="editingIndex >= 0 ? $t('common.edit') : $t('common.add')">
       <NForm :model="formData" label-placement="left" label-width="100">

@@ -52,6 +52,15 @@ function handleSave() {
 }
 
 const columns: DataTableColumns = [
+  {
+    key: 'index',
+    title: '#',
+    width: 60,
+    align: 'center',
+    render(_, index) {
+      return index + 1;
+    }
+  },
   { key: 'contact_name', title: $t('page.maintain.organization.contactName'), width: 150 },
   { key: 'position', title: $t('page.maintain.organization.position'), width: 120 },
   { key: 'email', title: $t('page.maintain.organization.email'), minWidth: 180 },
@@ -83,6 +92,7 @@ const columns: DataTableColumns = [
       :data="contacts"
       :bordered="false"
       size="small"
+      :scroll-x="1100"
     />
     <NModal v-model:show="showModal" preset="dialog" :title="editingIndex >= 0 ? $t('common.edit') : $t('common.add')">
       <NForm :model="formData" label-placement="left" label-width="100">
