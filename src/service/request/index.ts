@@ -13,7 +13,7 @@ const { baseURL, otherBaseURL } = getServiceBaseURL(import.meta.env, isHttpProxy
 export const request = createFlatRequest(
   {
     baseURL,
-    headers: {}
+    headers: { 'ngrok-skip-browser-warning': 69420 }
   },
   {
     defaultState: {
@@ -112,6 +112,14 @@ export const request = createFlatRequest(
       return null;
     },
     onError(error) {
+      const authStore = useAuthStore();
+
+      // Handle HTTP 401 Unauthorized error
+      if (error.response?.status === 401) {
+        authStore.resetStore();
+        return;
+      }
+
       let message = error.message;
       let backendErrorCode = '';
 

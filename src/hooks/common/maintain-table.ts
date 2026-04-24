@@ -14,7 +14,7 @@ export function useMaintainTable<T = any>(options: {
   queryFn: (params: any) => Promise<any>;
   deleteFn: (id: number) => Promise<any>;
   getColumns: (handleEdit: (id: any) => void, handleDelete: (row: any) => void) => DataTableColumns<T>;
-  filters?: () => Array<{ key: string; op: string; val: string }>;
+  filters?: () => Array<{ key: string; op: string; val: string; start?: string; end?: string }>;
   defaultSearchKey?: string;
 }) {
   const { queryFn, deleteFn, getColumns, filters, defaultSearchKey } = options;
@@ -23,7 +23,7 @@ export function useMaintainTable<T = any>(options: {
   const searchKey = ref(defaultSearchKey || '');
   const searchOp = ref('Contain');
   const searchVal = ref('');
-  const currentFilters = ref<Array<{ key: string; op: string; val: string }>>([]);
+  const currentFilters = ref<Array<{ key: string; op: string; val: string; start?: string; end?: string }>>([]);
 
   function handleSearch() {
     currentFilters.value = searchVal.value ? [{ key: searchKey.value, op: searchOp.value, val: searchVal.value }] : [];

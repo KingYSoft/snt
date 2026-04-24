@@ -4,7 +4,7 @@ import { useRoute, useRouter } from 'vue-router';
 import { NCard, NSkeleton, NTabPane, NTabs } from 'naive-ui';
 import { $t } from '@/locales';
 import { useTabStore } from '@/store/modules/tab';
-import { consolidationGetById, consolidationQueryPage } from '@/service/api/business/consolidation';
+import { consolidationGetById } from '@/service/api/business/consolidation';
 import TabDetails from '../consolidation/modules/tab-details.vue';
 import TabContainer from '../consolidation/modules/tab-container.vue';
 import TabRouting from '../consolidation/modules/tab-routing.vue';
@@ -26,7 +26,8 @@ const activedTab = ref(1);
 const inputData = ref<Record<string, any>>({
   id: 0,
   pk: '',
-  con_unique_consign_ref: '',
+  jk_pk: '',
+  jk_uniqueconsignref: '',
   shipper: {},
   consignee: {},
   notify_party: {},
@@ -36,13 +37,12 @@ const inputData = ref<Record<string, any>>({
 });
 
 const tabTitle = computed(() => {
-  const consolNo = String(route.query.con_unique_consign_ref || inputData.value.con_unique_consign_ref || '');
+  const consolNo = String(route.query.con_unique_consign_ref || inputData.value.jk_uniqueconsignref || '');
   return consolNo ? `${$t('route.business_consolidation')} - ${consolNo}` : $t('route.business_consolidation');
 });
 
 async function loadData() {
-  const id = route.query.id;
-  const pk = String(route.params.pk || '');
+  const id = String(route.params.pk || '');
 
   try {
     let detailData: Record<string, any> | null = null;
@@ -50,13 +50,6 @@ async function loadData() {
     if (id) {
       const response = await consolidationGetById(String(id));
       detailData = response.data || null;
-    } else if (pk) {
-      const response = await consolidationQueryPage({
-        SkipCount: 0,
-        MaxResultCount: 1,
-        filters: [{ key: 'pk', op: '=', val: pk }]
-      });
-      detailData = response.data?.items?.[0] || null;
     }
 
     if (detailData) {
@@ -68,11 +61,13 @@ async function loadData() {
         containers_list: detailData.containers_list || [],
         routing_list: detailData.routing_list || [],
         shipments: detailData.shipments || [],
-        pk: detailData.pk || pk
+        pk: detailData.jk_pk || id,
+        jk_pk: detailData.jk_pk || '',
+        jk_uniqueconsignref: detailData.jk_uniqueconsignref || ''
       };
 
-      if (inputData.value.con_unique_consign_ref) {
-        tabStore.setTabLabel(`${$t('route.business_consolidation')} - ${inputData.value.con_unique_consign_ref}`);
+      if (inputData.value.jk_uniqueconsignref) {
+        tabStore.setTabLabel(`${$t('route.business_consolidation')} - ${inputData.value.jk_uniqueconsignref}`);
       }
     } else {
       window.$dialog?.warning({

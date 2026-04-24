@@ -7,7 +7,7 @@ import { $t } from '@/locales';
 type DetailData = Record<string, any>;
 
 const props = defineProps<{ inputData: DetailData }>();
-const detailData = computed<DetailData>(() => props.inputData ?? {});
+const detailData = computed<DetailData>(() => props.inputData || {});
 
 function formatValue(value: unknown) {
   if (value === null || value === undefined || value === '') {
@@ -17,7 +17,7 @@ function formatValue(value: unknown) {
 }
 
 function formatParty(party: Record<string, any> | undefined) {
-  if (!party) return '-';
+  if (!party || typeof party !== 'object') return '-';
 
   const parts = [
     party.add_address_name,
@@ -30,87 +30,77 @@ function formatParty(party: Record<string, any> | undefined) {
     party.add_postal_code,
     party.add_country_code,
     party.add_phone,
-    party.add_email
+    party.add_email,
+    party.e2_companyname,
+    party.e2_contact
   ].filter(Boolean);
 
   return parts.length > 0 ? parts.join(' / ') : '-';
 }
 
 function getShipmentRowKey(row: any) {
-  return row.pk ?? row.id ?? row.shp_consign_no ?? JSON.stringify(row);
+  if (!row) return Math.random().toString(36);
+  return row.pk ?? row.id ?? row.shp_consign_no ?? row.js_uniqueconsignref ?? JSON.stringify(row);
 }
 
-const basicItems = computed(() => [
-  { label: $t('page.business.consolidation.detail.consolidationNo'), value: detailData.value.con_unique_consign_ref },
-  { label: $t('page.business.consolidation.detail.consolStatus'), value: detailData.value.con_consol_status },
-  { label: $t('page.business.consolidation.detail.phase'), value: detailData.value.con_phase },
-  { label: $t('page.business.consolidation.detail.transportMode'), value: detailData.value.con_transport_mode },
-  { label: $t('page.business.consolidation.detail.consolMode'), value: detailData.value.con_consol_mode },
-  { label: $t('page.business.consolidation.detail.releaseType'), value: detailData.value.con_release_type },
-  { label: $t('page.business.consolidation.detail.serviceLevel'), value: detailData.value.con_awb_service_level },
-  { label: $t('page.business.consolidation.detail.freightTerms'), value: detailData.value.con_prepaid_collect },
-  { label: $t('page.business.consolidation.detail.deliveryMode'), value: detailData.value.con_delivery_mode }
-]);
+const basicItems = computed(() => {
+  const data = detailData.value || {};
+  return [
+    { label: $t('page.business.consolidation.detail.consolidationNo'), value: data.jk_uniqueconsignref },
+    { label: $t('page.business.consolidation.detail.consolStatus'), value: data.jk_consolstatus },
+    { label: $t('page.business.consolidation.detail.phase'), value: data.jk_phase },
+    { label: $t('page.business.consolidation.detail.transportMode'), value: data.jk_transportmode },
+    { label: $t('page.business.consolidation.detail.consolMode'), value: data.jk_consolmode },
+    { label: $t('page.business.consolidation.detail.releaseType'), value: data.jk_releasetype },
+    { label: $t('page.business.consolidation.detail.serviceLevel'), value: data.jk_awbservicelevel },
+    { label: $t('page.business.consolidation.detail.freightTerms'), value: data.jk_prepaidcollect },
+    { label: $t('page.business.consolidation.detail.deliveryMode'), value: data.jk_agenttype }
+  ];
+});
 
-const movementItems = computed(() => [
-  { label: $t('page.business.consolidation.detail.origin'), value: detailData.value.con_origin },
-  { label: $t('page.business.consolidation.detail.destination'), value: detailData.value.con_destination },
-  { label: $t('page.business.consolidation.detail.placeOfReceipt'), value: detailData.value.con_place_of_receipt },
-  { label: $t('page.business.consolidation.detail.placeOfDelivery'), value: detailData.value.con_place_of_delivery },
-  { label: $t('page.business.consolidation.detail.loadPort'), value: detailData.value.con_load_port },
-  { label: $t('page.business.consolidation.detail.dischargePort'), value: detailData.value.con_discharge_port },
-  { label: $t('page.business.consolidation.detail.etd'), value: detailData.value.con_etd },
-  { label: $t('page.business.consolidation.detail.eta'), value: detailData.value.con_eta },
-  { label: $t('page.business.consolidation.detail.atd'), value: detailData.value.con_atd },
-  { label: $t('page.business.consolidation.detail.ata'), value: detailData.value.con_ata }
-]);
+const movementItems = computed(() => {
+  const data = detailData.value || {};
+  return [
+    { label: $t('page.business.consolidation.detail.loadPort'), value: data.jk_rl_nkloadport },
+    { label: $t('page.business.consolidation.detail.dischargePort'), value: data.jk_rl_nkdischargeport },
+    { label: 'First Foreign Port', value: data.jk_rl_nkfirstforeignport },
+    { label: 'Last Foreign Port', value: data.jk_rl_nklastforeignport },
+    { label: 'Port of First Arrival', value: data.jk_rl_nkportoffirstarrival }
+  ];
+});
 
-const referenceItems = computed(() => [
-  { label: $t('page.business.consolidation.detail.bolMasterBillNo'), value: detailData.value.con_master_bill_num },
-  { label: $t('page.business.consolidation.detail.carrierBookingRef'), value: detailData.value.con_booking_reference },
-  { label: $t('page.business.consolidation.detail.contractNo'), value: detailData.value.con_carrier_contract_number },
-  { label: $t('page.business.consolidation.detail.carrier'), value: detailData.value.con_carrier },
-  { label: $t('page.business.consolidation.detail.vessel'), value: detailData.value.con_vessel },
-  { label: $t('page.business.consolidation.detail.voyage'), value: detailData.value.con_voyage },
-  { label: $t('page.business.consolidation.detail.bookingAgent'), value: detailData.value.con_booking_agent },
-  { label: $t('page.business.consolidation.detail.coloadAgent'), value: detailData.value.con_coload_agent },
-  { label: $t('page.business.consolidation.detail.coloadMbl'), value: detailData.value.con_co_load_master_bill },
-  { label: $t('page.business.consolidation.detail.coloadRef'), value: detailData.value.con_coload_ref },
-  { label: $t('page.business.consolidation.detail.agentRef'), value: detailData.value.con_agents_reference }
-]);
+const referenceItems = computed(() => {
+  const data = detailData.value || {};
+  return [
+    { label: $t('page.business.consolidation.detail.bolMasterBillNo'), value: data.jk_masterbillnum },
+    { label: $t('page.business.consolidation.detail.carrierBookingRef'), value: data.jk_bookingreference },
+    { label: $t('page.business.consolidation.detail.contractNo'), value: data.jk_carriercontractnumber },
+    { label: 'Carrier Booking Office', value: data.jk_rl_nkcarrierbookingoffice },
+    { label: $t('page.business.consolidation.detail.agentRef'), value: data.jk_agentsreference },
+    { label: 'Co-load Booking Ref', value: data.jk_coloadbookingreference },
+    { label: $t('page.business.consolidation.detail.coloadMbl'), value: data.jk_coloadmasterbill }
+  ];
+});
 
-const dateItems = computed(() => [
-  { label: $t('page.business.consolidation.detail.soConfirm'), value: detailData.value.con_booking_confirm_date },
-  { label: $t('page.business.consolidation.detail.shippedOnBoard'), value: detailData.value.con_shipped_on_board_date },
-  { label: $t('page.business.consolidation.detail.vgmCutOff'), value: detailData.value.con_vgm_cut_off_date },
-  { label: $t('page.business.consolidation.detail.docCutOff'), value: detailData.value.con_doc_cut_off_date },
-  {
-    label: $t('page.business.consolidation.detail.portCargoCutOff'),
-    value: detailData.value.con_port_cargo_cut_off_date
-  }
-]);
+const dateItems = computed(() => {
+  const data = detailData.value || {};
+  return [
+    { label: $t('page.business.consolidation.detail.shippedOnBoard'), value: data.jk_shippedonboarddate },
+    { label: 'Master Bill Issue Date', value: data.jk_masterbillissuedate },
+    { label: 'Consol Cut Off Date', value: data.jk_consolcutoffdate }
+  ];
+});
 
-const totalItems = computed(() => [
-  { label: $t('page.business.consolidation.detail.shipCount'), value: detailData.value.con_total_shipmentcount },
-  { label: $t('page.business.consolidation.detail.packs'), value: detailData.value.con_total_packs },
-  {
-    label: $t('page.business.consolidation.detail.gross'),
-    value: detailData.value.con_total_gw,
-    unit: $t('page.business.consolidation.detail.unitKg')
-  },
-  {
-    label: $t('page.business.consolidation.detail.volume'),
-    value: detailData.value.con_total_cbm,
-    unit: $t('page.business.consolidation.detail.unitM3')
-  },
-  {
-    label: $t('page.business.consolidation.detail.chargeable'),
-    value: detailData.value.con_consol_chargeable,
-    unit: $t('page.business.consolidation.detail.unitM3')
-  }
-]);
+const totalItems = computed(() => {
+  const data = detailData.value || {};
+  return [
+    { label: 'Consol Chargeable', value: data.jk_consolchargeable, unit: data.jk_consolchargeableunit || '' },
+    { label: 'Corrected Weight', value: data.jk_correctedconsolweight, unit: data.jk_correctedconsolweightunit || '' },
+    { label: 'Corrected Volume', value: data.jk_correctedconsolvolume, unit: data.jk_correctedconsolvolumeunit || '' }
+  ];
+});
 
-const shipmentList = computed<any[]>(() => detailData.value.shipments || []);
+const shipmentList = computed<any[]>(() => detailData.value?.shipments || []);
 
 const shipmentColumns: DataTableColumns<any> = [
   { title: $t('page.business.consolidation.detail.shipmentNo'), key: 'shp_consign_no', minWidth: 140 },

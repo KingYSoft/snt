@@ -31,8 +31,9 @@ export function getConsolidationColumns<T>(
   return [
     {
       title: $t('page.business.consolidation.table.consolidationNo'),
-      key: 'con_unique_consign_ref',
+      key: 'jk_uniqueconsignref',
       minWidth: 160,
+      ellipsis: { tooltip: true },
       render(row: T & Record<string, unknown>) {
         return h(
           NButton,
@@ -45,63 +46,79 @@ export function getConsolidationColumns<T>(
             }
           },
           {
-            default: () => String(row.con_unique_consign_ref || '-')
+            default: () => String(row.jk_uniqueconsignref || '-')
           }
         );
       }
     },
     {
       title: $t('page.business.consolidation.table.masterBillNo'),
-      key: 'con_master_bill_num',
-      minWidth: 160
+      key: 'jk_masterbillnum',
+      minWidth: 160,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.bookingReference'),
-      key: 'con_booking_reference',
-      minWidth: 160
+      key: 'jk_bookingreference',
+      minWidth: 160,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.consolStatus'),
-      key: 'con_consol_status',
-      minWidth: 140
+      key: 'jk_consolstatus',
+      minWidth: 140,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.phase'),
-      key: 'con_phase',
-      minWidth: 120
+      key: 'jk_phase',
+      minWidth: 120,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.transportMode'),
-      key: 'con_transport_mode',
-      minWidth: 120
+      key: 'jk_transportmode',
+      minWidth: 120,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.loadPort'),
-      key: 'con_load_port',
-      minWidth: 120
+      key: 'jk_rl_nkloadport',
+      minWidth: 120,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.dischargePort'),
-      key: 'con_discharge_port',
-      minWidth: 120
+      key: 'jk_rl_nkdischargeport',
+      minWidth: 120,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.shippedOnBoardDate'),
-      key: 'con_shipped_on_board_date',
-      minWidth: 160
+      key: 'jk_shippedonboarddate',
+      minWidth: 160,
+      ellipsis: { tooltip: true },
+      render(row: T & Record<string, unknown>) {
+        const date = row.jk_shippedonboarddate as string | null | undefined;
+        if (!date) return '-';
+        const dateObj = new Date(date);
+        if (isNaN(dateObj.getTime())) return '-';
+        return dateObj.toISOString().split('T')[0];
+      }
     },
     {
       title: $t('page.business.consolidation.table.consolChargeable'),
-      key: 'con_consol_chargeable',
-      minWidth: 140
+      key: 'jk_consolchargeable',
+      minWidth: 140,
+      ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.cancelled'),
-      key: 'con_is_cancelled',
+      key: 'jk_iscancelled',
       width: 110,
       align: 'center' as const,
       render(row: T & Record<string, unknown>) {
-        return renderCancelledTag(row.con_is_cancelled);
+        return renderCancelledTag(row.jk_iscancelled);
       }
     },
     {

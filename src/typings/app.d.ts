@@ -828,6 +828,8 @@ declare namespace App {
               unitKg: string;
               unitM3: string;
               shipmentNo: string;
+              housebill: string;
+              status: string;
               shipperName: string;
               consigneeName: string;
               packages: string;
@@ -910,6 +912,8 @@ declare namespace App {
           shipment: {
             table: {
               shipmentNo: string;
+              housebill: string;
+              status: string;
               shipperName: string;
               consignee: string;
               destination: string;
