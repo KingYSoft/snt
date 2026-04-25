@@ -2,14 +2,15 @@ import { h } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 import { NDropdown } from 'naive-ui';
 import { $t } from '@/locales';
+import type { ShipmentListItem } from '@/service/api/business/shipment';
 
 export type ShipmentActionKey = 'edit' | 'merge' | 'split' | 'copy' | 'deactivate' | 'reopen' | 'export' | 'batchprint';
 
-export function getShipmentColumns<T>(
-  _handleEdit: (row: T) => void,
-  _handleDelete: (row: T) => void,
-  handleAction?: (key: ShipmentActionKey, row: T) => void
-) {
+export function getShipmentColumns(
+  _handleEdit: (row: ShipmentListItem) => void,
+  _handleDelete: (row: ShipmentListItem) => void,
+  handleAction?: (key: ShipmentActionKey, row: ShipmentListItem) => void
+): DataTableColumns<ShipmentListItem> {
   const rowMenuOptions = [
     { label: $t('common.edit'), key: 'edit' },
     { label: $t('page.business.shipment.menu.merge'), key: 'merge' },
@@ -27,79 +28,86 @@ export function getShipmentColumns<T>(
     { type: 'selection' as const },
     {
       title: $t('page.business.shipment.table.shipmentNo'),
-      key: 'shp_consign_no',
-      align: 'start',
+      key: 'js_uniqueconsignref',
+      align: 'left',
       minWidth: 150
     },
     {
-      title: $t('page.business.shipment.table.shipperName'),
-      key: 'shipper_name',
-      align: 'start',
+      title: $t('page.business.shipment.table.housebill'),
+      key: 'js_housebill',
+      align: 'left',
       minWidth: 140,
-      maxWidth: 200,
-      ellipsis: true
-    },
-    {
-      title: $t('page.business.shipment.table.consignee'),
-      key: 'consignee_name',
-      align: 'start',
-      minWidth: 140,
-      maxWidth: 200,
       ellipsis: true
     },
     {
       title: $t('page.business.shipment.table.destination'),
-      key: 'shp_destination',
-      align: 'start',
+      key: 'js_rl_nkdestination',
+      align: 'left',
       minWidth: 100
     },
     {
       title: $t('page.business.shipment.table.origin'),
-      key: 'shp_origin',
-      align: 'start',
+      key: 'js_rl_nkorigin',
+      align: 'left',
       minWidth: 100
     },
     {
       title: $t('page.business.shipment.table.goodsDescription'),
-      key: 'shp_goods_description',
-      align: 'start',
+      key: 'js_goodsdescription',
+      align: 'left',
       minWidth: 140,
       ellipsis: true
     },
     {
-      title: $t('page.business.shipment.table.crd'),
-      key: 'shp_cargo_ready',
-      align: 'start',
-      minWidth: 100
-    },
-    {
-      title: $t('page.business.shipment.table.eta'),
-      key: 'shp_eta',
-      align: 'start',
-      minWidth: 100
+      title: $t('page.business.shipment.table.status'),
+      key: 'js_shipmentstatus',
+      align: 'left',
+      minWidth: 80
     },
     {
       title: $t('page.business.shipment.table.etd'),
-      key: 'shp_etd',
-      align: 'start',
-      minWidth: 100
+      key: 'js_e_dep',
+      align: 'left',
+      minWidth: 100,
+      render: (row: ShipmentListItem) => {
+        if (!row.js_e_dep) return '-';
+        const date = new Date(row.js_e_dep);
+        return date.toISOString().split('T')[0];
+      }
+    },
+    {
+      title: $t('page.business.shipment.table.eta'),
+      key: 'js_e_arv',
+      align: 'left',
+      minWidth: 100,
+      render: (row: ShipmentListItem) => {
+        if (!row.js_e_arv) return '-';
+        const date = new Date(row.js_e_arv);
+        return date.toISOString().split('T')[0];
+      }
     },
     {
       title: $t('page.business.shipment.table.grossWeight'),
-      key: 'shp_actual_weight',
-      align: 'start',
-      minWidth: 140
+      key: 'js_actualweight',
+      align: 'left',
+      minWidth: 140,
+      render: (row: ShipmentListItem) => {
+        return row.js_actualweight ? `${row.js_actualweight} ${row.js_unitofweight || 'KG'}` : '-';
+      }
     },
     {
       title: $t('page.business.shipment.table.cbm'),
-      key: 'shp_actual_volume',
-      align: 'start',
-      minWidth: 100
+      key: 'js_actualvolume',
+      align: 'left',
+      minWidth: 100,
+      render: (row: ShipmentListItem) => {
+        return row.js_actualvolume ? `${row.js_actualvolume} ${row.js_unitofvolume || 'M3'}` : '-';
+      }
     },
     {
       title: $t('page.business.shipment.table.ctns'),
-      key: 'shp_total_package_count',
-      align: 'start',
+      key: 'js_outerpacks',
+      align: 'left',
       minWidth: 100
     },
     {
@@ -108,7 +116,7 @@ export function getShipmentColumns<T>(
       width: 70,
       align: 'center',
       fixed: 'right' as const,
-      render(row: T) {
+      render(row: ShipmentListItem) {
         return h(
           NDropdown,
           {
@@ -126,5 +134,5 @@ export function getShipmentColumns<T>(
         );
       }
     }
-  ] as DataTableColumns<T>;
+  ];
 }

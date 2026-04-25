@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { $t } from '@/locales';
 import { useMaintainTable } from '@/hooks/common/maintain-table';
@@ -46,9 +46,18 @@ function etdRangeToStr(): { start: string; end: string } {
 
 // --- Search options ---
 const searchKeyOptions = [
-  { label: () => $t('page.business.shipment.table.shipmentNo'), value: 'shp_consign_no' },
-  { label: () => $t('page.business.shipment.table.shipperName'), value: 'shipper_name' },
-  { label: () => $t('page.business.shipment.table.consignee'), value: 'consignee_name' }
+  {
+    label: () => $t('page.business.shipment.table.shipmentNo'),
+    value: 'js_uniqueconsignref'
+  },
+  {
+    label: () => $t('page.business.shipment.table.housebill'),
+    value: 'js_housebill'
+  },
+  {
+    label: () => $t('page.business.shipment.table.destination'),
+    value: 'js_rl_nkdestination'
+  }
 ];
 
 const opOptions = [
@@ -76,16 +85,20 @@ const { data, loading, columns, pagination, getData, handleSearch, handleReset, 
     deleteFn: async () => Promise.resolve(),
     getColumns: (editCb, deleteCb) => getShipmentColumns(editCb, deleteCb, handleMenuAction),
     filters: () => buildFiltersRef.value(),
-    defaultSearchKey: 'shp_consign_no'
+    defaultSearchKey: 'js_uniqueconsignref'
   });
 
 // Now define buildFilters after searchKey/searchOp/searchVal are available
 buildFiltersRef.value = () => {
   const filters: Array<any> = [];
   const { start, end } = etdRangeToStr();
-  filters.push({ key: 'shp_etd', op: 'between', val: '', start, end });
+  filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
   if (searchVal.value) {
-    filters.push({ key: searchKey.value, op: searchOp.value, val: searchVal.value });
+    filters.push({
+      key: searchKey.value,
+      op: searchOp.value,
+      val: searchVal.value
+    });
   }
   return filters;
 };
@@ -103,8 +116,7 @@ function onReset() {
 function navigateToEdit(row: any) {
   router.push({
     name: 'business_shipment-edit',
-    params: { pk: row.pk },
-    query: { id: row.id, shipment_no: row.shp_consign_no }
+    params: { pk: row.js_pk }
   });
 }
 
@@ -137,7 +149,7 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
     case 'deactivate': {
       window.$dialog?.warning({
         title: $t('common.confirm'),
-        content: `${$t('page.business.shipment.menu.deactivate')}: ${row.shp_consign_no}?`,
+        content: `${$t('page.business.shipment.menu.deactivate')}: ${row.js_uniqueconsignref}?`,
         positiveText: $t('common.confirm'),
         negativeText: $t('common.cancel'),
         onPositiveClick: async () => {
@@ -155,7 +167,7 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
     case 'reopen': {
       window.$dialog?.warning({
         title: $t('common.confirm'),
-        content: `${$t('page.business.shipment.menu.reopen')}: ${row.shp_consign_no}?`,
+        content: `${$t('page.business.shipment.menu.reopen')}: ${row.js_uniqueconsignref}?`,
         positiveText: $t('common.confirm'),
         negativeText: $t('common.cancel'),
         onPositiveClick: async () => {
@@ -175,13 +187,19 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
         const response = await shipmentExport({
           skipCount: 0,
           maxResultCount: 1,
-          filters: [{ key: 'shp_consign_no', op: 'Equal', val: row.shp_consign_no }]
+          filters: [
+            {
+              key: 'js_uniqueconsignref',
+              op: 'Equal',
+              val: row.js_uniqueconsignref
+            }
+          ]
         });
         if (response.data) {
           const url = window.URL.createObjectURL(new Blob([response.data]));
           const link = document.createElement('a');
           link.href = url;
-          link.setAttribute('download', `${row.shp_consign_no}.xlsx`);
+          link.setAttribute('download', `${row.js_uniqueconsignref}.xlsx`);
           document.body.append(link);
           link.click();
           link.remove();
@@ -228,7 +246,7 @@ async function handleBatchExport() {
         op: 'Equal',
         val: String(id)
       }));
-      filters = [{ key: 'shp_etd', op: 'Or', val: '', or: selectedFilters }];
+      filters = [{ key: 'js_e_dep', op: 'Or', val: '', or: selectedFilters }];
     }
 
     const response = await shipmentExport({
@@ -250,10 +268,6 @@ async function handleBatchExport() {
     window.$message?.error($t('page.business.shipment.messages.exportFailed'));
   }
 }
-
-onMounted(() => {
-  getData();
-});
 </script>
 
 <template>

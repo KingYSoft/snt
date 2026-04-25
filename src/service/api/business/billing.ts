@@ -30,9 +30,45 @@ export interface BillingParams {
   }>;
 }
 
+export interface BillingTblInput {
+  skipCount: number;
+  maxResultCount: number;
+  filters?: Array<{
+    key: string;
+    op: string;
+    val: string;
+    start?: string;
+    end?: string;
+  }>;
+}
+
 export async function createOrUpdateBilling(params: BillingParams) {
   return request({
     url: '/api/billing/save',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function getBillingDetail(id: string) {
+  return request({
+    url: '/billing/detail',
+    method: 'get',
+    params: { id }
+  });
+}
+
+export async function queryArBilling(params: BillingTblInput) {
+  return request({
+    url: '/billing/ar/tbl',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function queryApBilling(params: BillingTblInput) {
+  return request({
+    url: '/billing/ap/tbl',
     method: 'post',
     data: params
   });

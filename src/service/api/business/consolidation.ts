@@ -17,18 +17,15 @@ export interface ConsolidationQueryParams {
 
 export async function consolidationQueryPage(params: ConsolidationQueryParams) {
   return request({
-    url: '/api/con-consol/query-page',
-    method: 'get',
-    params: {
-      ...params,
-      filters: JSON.stringify(params.filters || [])
-    }
+    url: '/consolidation/tbl',
+    method: 'post',
+    data: params
   });
 }
 
 export async function consolidationGetById(id: number | string) {
   return request({
-    url: `/api/con-consol/get/${id}`,
+    url: '/consolidation/detail',
     method: 'get',
     params: { id }
   });

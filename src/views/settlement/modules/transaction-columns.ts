@@ -52,34 +52,40 @@ export function getSettlementTransactionColumns(
     {
       key: 'invoice_date',
       title: $t('page.settlement.transactions.invoiceDate'),
-      minWidth: 110
+      minWidth: 110,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'ledger',
       title: $t('page.settlement.transactions.ledger'),
       align: 'center',
-      minWidth: 72
+      minWidth: 72,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'tran_type',
       title: $t('page.settlement.transactions.type'),
       align: 'center',
-      minWidth: 72
+      minWidth: 72,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'job_invoice_number',
       title: $t('page.settlement.transactions.jobInvoiceNumber'),
-      minWidth: 140
+      minWidth: 140,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'transaction_num',
       title: $t('page.settlement.transactions.transactionNum'),
-      minWidth: 120
+      minWidth: 120,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'creditor_debtor',
       title: $t('page.settlement.transactions.creditorDebtor'),
-      minWidth: 120
+      minWidth: 120,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'creditor_debtor_full_name',
@@ -96,24 +102,28 @@ export function getSettlementTransactionColumns(
     {
       key: 'post_date',
       title: $t('page.settlement.transactions.postDate'),
-      minWidth: 110
+      minWidth: 110,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'due_date',
       title: $t('page.settlement.transactions.dueDate'),
-      minWidth: 110
+      minWidth: 110,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'currency',
       title: $t('page.settlement.transactions.currency'),
       align: 'center',
-      minWidth: 80
+      minWidth: 80,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'trans_amount',
       title: $t('page.settlement.transactions.transAmount'),
       align: 'right',
       minWidth: 120,
+      ellipsis: { tooltip: true },
       render: row => h('span', { class: 'font-600' }, formatTransactionMoney(row.trans_amount, row.currency))
     },
     {
@@ -121,6 +131,7 @@ export function getSettlementTransactionColumns(
       title: $t('page.settlement.transactions.exchangeRate'),
       align: 'right',
       minWidth: 110,
+      ellipsis: { tooltip: true },
       render: row => formatTransactionExchangeRate(row.exchange_rate)
     },
     {
@@ -128,25 +139,29 @@ export function getSettlementTransactionColumns(
       title: $t('page.settlement.transactions.localAmount'),
       align: 'right',
       minWidth: 120,
+      ellipsis: { tooltip: true },
       render: row => h('span', { class: 'font-600' }, formatTransactionMoney(row.local_amount, row.currency))
     },
     {
       key: 'branch',
       title: $t('page.settlement.transactions.branch'),
       align: 'center',
-      minWidth: 72
+      minWidth: 72,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'department',
       title: $t('page.settlement.transactions.department'),
       align: 'center',
-      minWidth: 88
+      minWidth: 88,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'tax_amount',
       title: $t('page.settlement.transactions.taxAmount'),
       align: 'right',
       minWidth: 100,
+      ellipsis: { tooltip: true },
       render: row => formatTransactionMoney(row.tax_amount, row.currency)
     },
     {
@@ -154,31 +169,35 @@ export function getSettlementTransactionColumns(
       title: $t('page.settlement.transactions.outstandingAmount'),
       align: 'right',
       minWidth: 130,
+      ellipsis: { tooltip: true },
       render: row => h('span', { class: 'font-600' }, formatTransactionMoney(row.outstanding_amount, row.currency))
     },
     {
       key: 'fully_paid_date',
       title: $t('page.settlement.transactions.fullyPaidDate'),
-      minWidth: 110
+      minWidth: 110,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'job_number',
       title: $t('page.settlement.transactions.jobNumber'),
-      minWidth: 120
+      minWidth: 120,
+      ellipsis: { tooltip: true }
     },
     {
       key: 'canceled',
       title: $t('page.settlement.transactions.canceled'),
       align: 'center',
       minWidth: 88,
+      ellipsis: { tooltip: true },
       render: row =>
         h(
           NTag,
           {
-            type: row.canceled === 'Y' ? 'error' : 'success',
+            type: row?.canceled === 'Y' ? 'error' : 'success',
             size: 'small'
           },
-          () => row.canceled
+          () => row?.canceled || 'N'
         )
     },
     {
@@ -188,13 +207,14 @@ export function getSettlementTransactionColumns(
       align: 'center',
       fixed: 'right',
       render(row) {
+        if (!row) return null;
         return h(
           NDropdown,
           {
             options: rowMenuOptions,
             trigger: 'click',
             onSelect: (key: string) => {
-              onAction(key as SettlementTransactionActionKey, row);
+              onAction?.(key as SettlementTransactionActionKey, row);
             }
           },
           {

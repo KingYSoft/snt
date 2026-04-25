@@ -458,6 +458,8 @@ const local: App.I18n.Schema = {
           unitKg: 'KG',
           unitM3: 'M3',
           shipmentNo: 'Shipment No.',
+          housebill: 'Housebill',
+          status: 'Status',
           shipperName: 'Shipper',
           consigneeName: 'Consignee',
           packages: 'Packages',
@@ -540,6 +542,8 @@ const local: App.I18n.Schema = {
       shipment: {
         table: {
           shipmentNo: 'Shipment No',
+          housebill: 'Housebill',
+          status: 'Status',
           shipperName: 'Shipper',
           consignee: 'Consignee',
           destination: 'Destination',

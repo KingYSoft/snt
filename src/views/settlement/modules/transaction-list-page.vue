@@ -55,7 +55,7 @@ const defaultStart = formatDate(defaultStartDate);
 function createDefaultFilters(): TransactionFilterState {
   return {
     field1: {
-      key: 'invoice_date',
+      key: 'ah_invoicedate',
       start: defaultStart,
       end: defaultEnd
     },
@@ -80,7 +80,7 @@ const title = computed(() =>
 const field1Options = computed<SelectOption[]>(() => [
   {
     label: t('page.settlement.transactions.invoiceDate'),
-    value: 'invoice_date'
+    value: 'ah_invoicedate'
   }
 ]);
 
@@ -111,7 +111,7 @@ const queryFn = props.type === 'receivable' ? queryReceivableTransactions : quer
 
 const pagination = reactive({
   page: 1,
-  pageSize: 2000,
+  pageSize: 200,
   itemCount: 0,
   showSizePicker: true,
   pageSizes: [20, 50, 100, 200, 500, 2000],
@@ -156,8 +156,8 @@ async function getData() {
   try {
     const res = await queryFn(buildParams());
 
-    if (res.data) {
-      rows.value = res.data.items;
+    if (res) {
+      rows.value = res.data?.items;
       pagination.itemCount = res.data.totalCount;
     }
   } finally {
@@ -265,7 +265,7 @@ function downloadCsv(items: SettlementTransactionRecord[], fileName: string) {
 async function handleExportAll() {
   try {
     const res = await queryFn(buildParams({ skipCount: 0, maxResultCount: 100000 }));
-    const items = res.data?.items || [];
+    const items = res?.data?.items || [];
     const fileName = props.type === 'receivable' ? 'receivable_transactions.csv' : 'payable_transactions.csv';
 
     downloadCsv(items, fileName);

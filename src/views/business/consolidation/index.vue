@@ -16,9 +16,7 @@ defineOptions({
 
 const router = useRouter();
 const showMore = ref(true);
-const searchKeyOptions = [
-  { label: $t('page.business.consolidation.search.masterBillNo'), value: 'con_master_bill_num' }
-];
+const searchKeyOptions = [{ label: $t('page.business.consolidation.search.masterBillNo'), value: 'jk_masterbillnum' }];
 
 const operatorOptions = [
   { label: '=', value: '=' },
@@ -46,26 +44,26 @@ const { data, loading, columns, pagination, getData, handleSearch, handleReset, 
     deleteFn: async () => Promise.resolve(),
     getColumns: (_editCb, _deleteCb) => getConsolidationColumns(handleMenuAction, navigateToDetail),
     filters: () => buildFiltersRef.value(),
-    defaultSearchKey: 'con_master_bill_num'
+    defaultSearchKey: 'jk_masterbillnum'
   });
 
 buildFiltersRef.value = () => {
   const filters: ConsolidationFilter[] = [];
 
   if (searchVal.value) {
-    filters.push({ key: searchKey.value, op: '=', val: searchVal.value });
+    filters.push({ key: searchKey.value, op: 'Contain', val: searchVal.value });
   }
 
   if (transportMode.value) {
-    filters.push({ key: 'con_transport_mode', op: transportModeOp.value, val: transportMode.value });
+    filters.push({ key: 'jk_transportmode', op: transportModeOp.value, val: transportMode.value });
   }
 
   if (consolMode.value) {
-    filters.push({ key: 'con_consol_mode', op: consolModeOp.value, val: consolMode.value });
+    filters.push({ key: 'jk_consolmode', op: consolModeOp.value, val: consolMode.value });
   }
 
   if (cancelled.value) {
-    filters.push({ key: 'con_is_cancelled', op: cancelledOp.value, val: cancelled.value });
+    filters.push({ key: 'jk_iscancelled', op: cancelledOp.value, val: cancelled.value });
   }
 
   return filters;
@@ -76,7 +74,7 @@ function onSearch() {
 }
 
 function onReset() {
-  searchKey.value = 'con_master_bill_num';
+  searchKey.value = 'jk_masterbillnum';
   searchVal.value = '';
   transportModeOp.value = '=';
   transportMode.value = '';
@@ -90,10 +88,10 @@ function onReset() {
 function navigateToDetail(row: any) {
   router.push({
     name: 'business_consolidation-detail',
-    params: { pk: row.pk },
+    params: { pk: row.jk_pk },
     query: {
       id: row.id,
-      con_unique_consign_ref: row.con_unique_consign_ref
+      con_unique_consign_ref: row.jk_uniqueconsignref
     }
   });
 }
@@ -120,7 +118,11 @@ async function handleMenuAction(key: ConsolidationActionKey, row: any) {
   if (key !== 'export') return;
 
   try {
-    await handleExport([{ key: 'pk', op: '=', val: row.pk }], `Consol_${row.con_unique_consign_ref || row.pk}.xlsx`, 1);
+    await handleExport(
+      [{ key: 'jk_pk', op: '=', val: row.jk_pk }],
+      `Consol_${row.jk_uniqueconsignref || row.jk_pk}.xlsx`,
+      1
+    );
   } catch {
     window.$message?.error($t('page.business.shipment.messages.exportFailed'));
   }

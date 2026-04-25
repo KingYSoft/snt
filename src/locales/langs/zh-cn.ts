@@ -455,6 +455,8 @@ const local: App.I18n.Schema = {
           unitKg: 'KG',
           unitM3: 'M3',
           shipmentNo: '货运编号',
+          housebill: '提单号',
+          status: '状态',
           shipperName: '发货人',
           consigneeName: '收货人',
           packages: '件数',
@@ -537,6 +539,8 @@ const local: App.I18n.Schema = {
       shipment: {
         table: {
           shipmentNo: '货运编号',
+          housebill: '提单号',
+          status: '状态',
           shipperName: '发货人',
           consignee: '收货人',
           destination: '目的地',

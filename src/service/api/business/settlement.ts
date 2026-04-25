@@ -1,9 +1,8 @@
 /**
  * 结算模块 API 服务
- * TODO: 待后端对接后，替换 Mock 实现为真实 API 调用
  */
 
-// import { request } from '@/service/request'; // TODO: 待后端对接后启用
+import { queryArBilling, queryApBilling, type BillingTblInput } from './billing';
 
 /**
  * API 契约文档（待后端对接）
@@ -273,237 +272,6 @@ const mockWriteoffList: WriteoffRecord[] = [
     status: 'submitted',
     createdAt: '2025-01-19T11:30:00',
     remark: '港币结算'
-  }
-];
-
-const mockReceivableTransactions: SettlementTransactionRecord[] = [
-  {
-    pk: '2634001505',
-    id: '2634001505',
-    invoice_date: '2024-03-31',
-    ledger: 'AR',
-    tran_type: 'CRD',
-    job_invoice_number: 'SRU235008880A',
-    transaction_num: '2634001505',
-    creditor_debtor: 'TIANWUF SN',
-    creditor_debtor_full_name: 'TIANJIN WUFANG NEW MATERIAL CO LTD',
-    invoice_description: '费用推关于 2634001505 -',
-    post_date: '2024-03-31',
-    due_date: '2024-03-30',
-    currency: 'CNY',
-    trans_amount: -2850,
-    exchange_rate: 1,
-    local_amount: -2850,
-    branch: 'SHA',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 0,
-    fully_paid_date: '2024-03-31',
-    job_number: 'SRU235008880',
-    canceled: 'Y'
-  },
-  {
-    pk: '2634001506',
-    id: '2634001506',
-    invoice_date: '2024-04-01',
-    ledger: 'AR',
-    tran_type: 'INV',
-    job_invoice_number: 'SB0226002200',
-    transaction_num: '2634001506',
-    creditor_debtor: 'SHANGHAI01',
-    creditor_debtor_full_name: 'SHANGHAI SAMPLE TRADING CO LTD',
-    invoice_description: 'Freight charges SB0226002200',
-    post_date: '2024-04-01',
-    due_date: '2024-04-30',
-    currency: 'CNY',
-    trans_amount: 5600.5,
-    exchange_rate: 1,
-    local_amount: 5600.5,
-    branch: 'CKG',
-    department: 'FIA',
-    tax_amount: 0,
-    outstanding_amount: 1200,
-    fully_paid_date: '',
-    job_number: 'SB0226002200',
-    canceled: 'N'
-  },
-  {
-    pk: '2634001507',
-    id: '2634001507',
-    invoice_date: '2024-04-02',
-    ledger: 'AR',
-    tran_type: 'INV',
-    job_invoice_number: 'NGB24040012',
-    transaction_num: '2634001507',
-    creditor_debtor: 'NINGBOFX',
-    creditor_debtor_full_name: 'NINGBO FORWARDING EXPRESS LTD',
-    invoice_description: 'Handling fee NGB24040012',
-    post_date: '2024-04-02',
-    due_date: '2024-05-02',
-    currency: 'CNY',
-    trans_amount: 890.25,
-    exchange_rate: 1,
-    local_amount: 890.25,
-    branch: 'NGB',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 890.25,
-    fully_paid_date: '',
-    job_number: 'NGB24040012',
-    canceled: 'N'
-  },
-  {
-    pk: '2634001544',
-    id: '2634001544',
-    invoice_date: '2024-04-03',
-    ledger: 'AR',
-    tran_type: 'INV',
-    job_invoice_number: 'SB0226002334',
-    transaction_num: '2634001544',
-    creditor_debtor: 'WENTILNGB',
-    creditor_debtor_full_name: 'WENZHOU TILING TOOLS IMPORT AND EXPORT CO. LTD',
-    invoice_description: 'SB0226002334',
-    post_date: '2024-04-03',
-    due_date: '2024-04-03',
-    currency: 'CNY',
-    trans_amount: 3112.33,
-    exchange_rate: 1,
-    local_amount: 3112.33,
-    branch: 'NGB',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 3112.33,
-    fully_paid_date: '',
-    job_number: 'SB0226002334',
-    canceled: 'N'
-  },
-  {
-    pk: '2634001545',
-    id: '2634001545',
-    invoice_date: '2024-04-03',
-    ledger: 'AR',
-    tran_type: 'INV',
-    job_invoice_number: 'SB0226002334',
-    transaction_num: '2634001545',
-    creditor_debtor: 'WENTILNGB',
-    creditor_debtor_full_name: 'WENZHOU TILING TOOLS IMPORT AND EXPORT CO. LTD',
-    invoice_description: 'SB0226002334 (line 2)',
-    post_date: '2024-04-03',
-    due_date: '2024-04-03',
-    currency: 'CNY',
-    trans_amount: 1200,
-    exchange_rate: 1,
-    local_amount: 1200,
-    branch: 'NGB',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 1200,
-    fully_paid_date: '',
-    job_number: 'SB0226002334',
-    canceled: 'N'
-  },
-  {
-    pk: '2634001546',
-    id: '2634001546',
-    invoice_date: '2024-04-03',
-    ledger: 'AR',
-    tran_type: 'CRD',
-    job_invoice_number: 'SB0226002334',
-    transaction_num: '2634001546',
-    creditor_debtor: 'WENTILNGB',
-    creditor_debtor_full_name: 'WENZHOU TILING TOOLS IMPORT AND EXPORT CO. LTD',
-    invoice_description: 'SB0226002334 (credit)',
-    post_date: '2024-04-03',
-    due_date: '2024-04-03',
-    currency: 'CNY',
-    trans_amount: -200,
-    exchange_rate: 1,
-    local_amount: -200,
-    branch: 'NGB',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 0,
-    fully_paid_date: '2024-04-03',
-    job_number: 'SB0226002334',
-    canceled: 'N'
-  },
-  {
-    pk: '2634001600',
-    id: '2634001600',
-    invoice_date: '2024-04-05',
-    ledger: 'AR',
-    tran_type: 'CRD',
-    job_invoice_number: 'SHA24040501',
-    transaction_num: '2634001600',
-    creditor_debtor: 'SHAEXAMPLE',
-    creditor_debtor_full_name: 'SHANGHAI EXAMPLE LOGISTICS CO LTD',
-    invoice_description: 'Credit adjustment SHA24040501',
-    post_date: '2024-04-05',
-    due_date: '2024-04-05',
-    currency: 'CNY',
-    trans_amount: -500,
-    exchange_rate: 1,
-    local_amount: -500,
-    branch: 'SHA',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 0,
-    fully_paid_date: '2024-04-05',
-    job_number: 'SHA240405',
-    canceled: 'Y'
-  }
-];
-
-const mockPayableTransactions: SettlementTransactionRecord[] = [
-  {
-    pk: 'ap-1001',
-    id: 'ap-1001',
-    invoice_date: '2026-03-23',
-    ledger: 'AP',
-    tran_type: 'INV',
-    job_invoice_number: 'APBILL-202603-001',
-    transaction_num: 'ap-1001',
-    creditor_debtor: 'SUPPLIER01',
-    creditor_debtor_full_name: 'SAMPLE SUPPLIER CO LTD',
-    invoice_description: 'AP invoice APBILL-202603-001',
-    post_date: '2026-03-23',
-    due_date: '2026-04-22',
-    currency: 'CNY',
-    trans_amount: 360,
-    exchange_rate: 1,
-    local_amount: 360,
-    branch: 'SHA',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 360,
-    fully_paid_date: '',
-    job_number: 'JOB-AP-001',
-    canceled: 'N'
-  },
-  {
-    pk: 'ap-1002',
-    id: 'ap-1002',
-    invoice_date: '2026-03-30',
-    ledger: 'AP',
-    tran_type: 'INV',
-    job_invoice_number: 'APBILL-202603-002',
-    transaction_num: 'ap-1002',
-    creditor_debtor: 'SUPPLIER02',
-    creditor_debtor_full_name: 'ANOTHER SUPPLIER INC',
-    invoice_description: 'AP invoice APBILL-202603-002',
-    post_date: '2026-03-30',
-    due_date: '2026-04-29',
-    currency: 'GBP',
-    trans_amount: 456,
-    exchange_rate: 9.12,
-    local_amount: 4158.72,
-    branch: 'NGB',
-    department: 'FES',
-    tax_amount: 0,
-    outstanding_amount: 0,
-    fully_paid_date: '2026-04-05',
-    job_number: 'JOB-AP-002',
-    canceled: 'N'
   }
 ];
 
@@ -805,90 +573,198 @@ export async function queryWriteoffList(params: WriteoffListQueryParams) {
   // });
 }
 
-function parseDateString(value?: string) {
-  if (!value) {
-    return null;
-  }
+function buildBillingFilters(params: SettlementTransactionQueryParams): Array<{
+  key: string;
+  op: string;
+  val: string;
+  start?: string;
+  end?: string;
+}> {
+  const filters: Array<{
+    key: string;
+    op: string;
+    val: string;
+    start?: string;
+    end?: string;
+  }> = [];
 
-  const date = new Date(`${value}T00:00:00`);
-
-  if (Number.isNaN(date.getTime())) {
-    return null;
-  }
-
-  return date;
-}
-
-function filterSettlementTransactions(items: SettlementTransactionRecord[], params: SettlementTransactionQueryParams) {
-  const start = parseDateString(params.dateStart);
-  const end = parseDateString(params.dateEnd);
-  const keywordField = params.keywordField || 'creditor_debtor';
-  const keywordValue = params.keywordValue?.trim().toLowerCase();
-
-  return items.filter(item => {
-    const invoiceDate = parseDateString(item.invoice_date);
-
-    if (start && invoiceDate && invoiceDate < start) {
-      return false;
-    }
-
-    if (end && invoiceDate && invoiceDate > end) {
-      return false;
-    }
-
-    if (keywordValue) {
-      const value = String(item[keywordField as keyof SettlementTransactionRecord] || '').toLowerCase();
-
-      if (!value.includes(keywordValue)) {
-        return false;
-      }
-    }
-
-    const simpleFilters: Array<[string | undefined, string]> = [
-      [params.ledger, item.ledger],
-      [params.tranType, item.tran_type],
-      [params.branch, item.branch],
-      [params.department, item.department],
-      [params.canceled, item.canceled]
-    ];
-
-    return simpleFilters.every(([filterValue, actualValue]) => {
-      if (!filterValue) {
-        return true;
-      }
-
-      return actualValue.toLowerCase().includes(filterValue.trim().toLowerCase());
+  // Date range filter - use ah_invoicedate
+  if (params.dateStart || params.dateEnd) {
+    filters.push({
+      key: 'ah_invoicedate',
+      op: 'between',
+      val: '',
+      start: params.dateStart || '',
+      end: params.dateEnd || ''
     });
-  });
+  }
+
+  // Keyword filter - map to actual field names
+  if (params.keywordValue && params.keywordField) {
+    const fieldMap: Record<string, string> = {
+      creditor_debtor: 'ah_oh',
+      creditor_debtor_full_name: 'ah_oh',
+      job_number: 'ah_jobnumber',
+      transaction_num: 'ah_transactionnum',
+      job_invoice_number: 'ah_jobnumber'
+    };
+    filters.push({
+      key: fieldMap[params.keywordField] || params.keywordField,
+      op: 'Contain',
+      val: params.keywordValue
+    });
+  }
+
+  // Ledger filter
+  if (params.ledger) {
+    filters.push({
+      key: 'ah_ledger',
+      op: 'Equal',
+      val: params.ledger
+    });
+  }
+
+  // Transaction type filter
+  if (params.tranType) {
+    filters.push({
+      key: 'ah_transactiontype',
+      op: 'Equal',
+      val: params.tranType
+    });
+  }
+
+  // Branch filter
+  if (params.branch) {
+    filters.push({
+      key: 'ah_systemcreatebranch',
+      op: 'Equal',
+      val: params.branch
+    });
+  }
+
+  // Department filter
+  if (params.department) {
+    filters.push({
+      key: 'ah_systemcreatedepartment',
+      op: 'Equal',
+      val: params.department
+    });
+  }
+
+  // Canceled filter
+  if (params.canceled) {
+    filters.push({
+      key: 'ah_iscancelled',
+      op: 'Equal',
+      val: params.canceled === 'Y' ? '1' : '0'
+    });
+  }
+
+  return filters;
 }
 
-async function querySettlementTransactions(
-  source: SettlementTransactionRecord[],
-  params: SettlementTransactionQueryParams
-) {
-  return new Promise<any>(resolve => {
-    setTimeout(() => {
-      const filteredList = filterSettlementTransactions(source, params);
-      const start = params.skipCount;
-      const end = start + params.maxResultCount;
+function formatDateToYYYYMMDD(isoDate: string | null): string {
+  if (!isoDate) return '';
+  return isoDate.split('T')[0];
+}
 
-      resolve({
-        data: {
-          items: filteredList.slice(start, end),
-          totalCount: filteredList.length
-        },
-        error: null
-      });
-    }, 180);
-  });
+function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
+  if (!item) {
+    return {
+      pk: '',
+      id: '',
+      invoice_date: '',
+      ledger: '',
+      tran_type: '',
+      job_invoice_number: '',
+      transaction_num: '',
+      creditor_debtor: '',
+      creditor_debtor_full_name: '',
+      invoice_description: '',
+      post_date: '',
+      due_date: '',
+      currency: '',
+      trans_amount: 0,
+      exchange_rate: 1,
+      local_amount: 0,
+      branch: '',
+      department: '',
+      tax_amount: 0,
+      outstanding_amount: 0,
+      fully_paid_date: '',
+      job_number: '',
+      canceled: 'N'
+    };
+  }
+
+  // Map organization fields - check for joined data or use PK fallback
+  const creditorDebtorCode = item.oh_e2_oa_address || item.oh_oa_code || item.ah_oh || '';
+  const creditorDebtorName = item.oh_e2_companyname || item.oh_oa_name || item.ab_e2_companyname || '';
+
+  // Job invoice number: priority based on field availability
+  // AR uses consolidatedinvoiceref, AP uses chequeorreference, fallback to jobnumber or transactionnum
+  const jobInvoiceNumber =
+    item.ah_consolidatedinvoiceref || item.ah_chequeorreference || item.ah_jobnumber || item.ah_transactionnum || '';
+
+  return {
+    pk: item.ah_pk || '',
+    id: item.ah_pk || '',
+    invoice_date: formatDateToYYYYMMDD(item.ah_invoicedate),
+    ledger: item.ah_ledger || '',
+    tran_type: item.ah_transactiontype || '',
+    job_invoice_number: jobInvoiceNumber,
+    transaction_num: item.ah_transactionnum || '',
+    creditor_debtor: creditorDebtorCode,
+    creditor_debtor_full_name: creditorDebtorName,
+    invoice_description: item.ah_desc || '',
+    post_date: formatDateToYYYYMMDD(item.ah_postdate),
+    due_date: formatDateToYYYYMMDD(item.ah_duedate),
+    currency: item.ah_rx_nktransactioncurrency || '',
+    trans_amount: item.ah_invoiceamount || 0,
+    exchange_rate: item.ah_exchangerate || 1,
+    local_amount: item.ah_localtotal || 0,
+    branch: item.ah_systemcreatebranch || '',
+    department: item.ah_systemcreatedepartment || '',
+    tax_amount: item.ah_gstamount || 0,
+    outstanding_amount: item.ah_outstandingamount || 0,
+    fully_paid_date: formatDateToYYYYMMDD(item.ah_fullypaiddate),
+    job_number: item.ah_jobnumber || '',
+    canceled: item.ah_iscancelled === 1 ? 'Y' : 'N'
+  };
 }
 
 export async function queryReceivableTransactions(params: SettlementTransactionQueryParams) {
-  return querySettlementTransactions(mockReceivableTransactions, params);
+  const billingParams: BillingTblInput = {
+    skipCount: params.skipCount,
+    maxResultCount: params.maxResultCount,
+    filters: buildBillingFilters(params)
+  };
+
+  const response = (await queryArBilling(billingParams)) as any;
+
+  // Transform the response to match SettlementTransactionRecord format
+  if (response?.data?.items && Array.isArray(response.data.items)) {
+    response.data.items = response.data.items.filter((item: any) => item != null).map(mapBillingRecordToTransaction);
+  }
+
+  return response;
 }
 
 export async function queryPayableTransactions(params: SettlementTransactionQueryParams) {
-  return querySettlementTransactions(mockPayableTransactions, params);
+  const billingParams: BillingTblInput = {
+    skipCount: params.skipCount,
+    maxResultCount: params.maxResultCount,
+    filters: buildBillingFilters(params)
+  };
+
+  const response = (await queryApBilling(billingParams)) as any;
+
+  // Transform the response to match SettlementTransactionRecord format
+  if (response?.data?.items && Array.isArray(response.data.items)) {
+    response.data.items = response.data.items.filter((item: any) => item != null).map(mapBillingRecordToTransaction);
+  }
+
+  return response;
 }
 
 /**

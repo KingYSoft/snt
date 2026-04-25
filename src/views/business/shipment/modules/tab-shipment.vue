@@ -25,7 +25,11 @@ import { createContainerColumns, createLooseColumns, packTypeOptions } from './t
 const props = defineProps<{
   inputData: Record<string, any>;
   queryPortList?: Array<{ rl_code: string; rl_port_name: string }>;
-  queryAllUserList?: Array<{ pk: string; full_name: string; email_address: string }>;
+  queryAllUserList?: Array<{
+    pk: string;
+    full_name: string;
+    email_address: string;
+  }>;
 }>();
 
 const emit = defineEmits<{
@@ -444,24 +448,82 @@ function addLoose() {
 
 // --- Validation rules ---
 const rules = {
-  shipper_name: [{ required: true, message: () => $t('page.business.shipment.form.shipperName'), trigger: 'blur' }],
-  consignee_name: [{ required: true, message: () => $t('page.business.shipment.form.consigneeName'), trigger: 'blur' }],
+  shipper_name: [
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.shipperName'),
+      trigger: 'blur'
+    }
+  ],
+  consignee_name: [
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.consigneeName'),
+      trigger: 'blur'
+    }
+  ],
   shp_transport_mode: [
-    { required: true, message: () => $t('page.business.shipment.form.transportMode'), trigger: 'change' }
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.transportMode'),
+      trigger: 'change'
+    }
   ],
   shp_packing_mode: [
-    { required: true, message: () => $t('page.business.shipment.form.packingMode'), trigger: 'change' }
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.packingMode'),
+      trigger: 'change'
+    }
   ],
-  shp_origin: [{ required: true, message: () => $t('page.business.shipment.form.origin'), trigger: 'blur' }],
-  shp_destination: [{ required: true, message: () => $t('page.business.shipment.form.destination'), trigger: 'blur' }],
-  shp_etd: [{ required: true, message: () => $t('page.business.shipment.form.etd'), trigger: 'change' }],
-  shp_cargo_ready: [{ required: true, message: () => $t('page.business.shipment.form.cargoReady'), trigger: 'change' }],
-  shp_inco: [{ required: true, message: () => $t('page.business.shipment.form.inco'), trigger: 'change' }],
+  shp_origin: [
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.origin'),
+      trigger: 'blur'
+    }
+  ],
+  shp_destination: [
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.destination'),
+      trigger: 'blur'
+    }
+  ],
+  shp_etd: [
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.etd'),
+      trigger: 'change'
+    }
+  ],
+  shp_cargo_ready: [
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.cargoReady'),
+      trigger: 'change'
+    }
+  ],
+  shp_inco: [
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.inco'),
+      trigger: 'change'
+    }
+  ],
   shp_freight_terms: [
-    { required: true, message: () => $t('page.business.shipment.form.freightTerms'), trigger: 'change' }
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.freightTerms'),
+      trigger: 'change'
+    }
   ],
   shp_release_type: [
-    { required: true, message: () => $t('page.business.shipment.form.releaseType'), trigger: 'change' }
+    {
+      required: true,
+      message: () => $t('page.business.shipment.form.releaseType'),
+      trigger: 'change'
+    }
   ]
 };
 
@@ -482,6 +544,7 @@ const addrDialogTitle = computed(() => {
           <NCard
             :title="$t('page.business.shipment.section.notifyParty').replace('Notify Party', 'Shipper')"
             size="small"
+            class="overflow-visible-card"
           >
             <NFormItemGi label="Name" path="shipper_name" :rule="rules.shipper_name">
               <RemoteTableMenu
@@ -692,6 +755,7 @@ const addrDialogTitle = computed(() => {
               :min="0"
               :show-button="false"
               style="width: 100%"
+              class="input-with-select-suffix"
               @update:value="(v: number | null) => (inputData.shp_actual_weight = v ?? 0)"
             >
               <template #suffix>
@@ -699,7 +763,8 @@ const addrDialogTitle = computed(() => {
                   :value="inputData.shp_unit_of_weight"
                   :options="weightUnitOptions"
                   size="small"
-                  style="width: 60px"
+                  :consistent-menu-width="false"
+                  style="width: 80px"
                   @update:value="(v: string) => (inputData.shp_unit_of_weight = v)"
                 />
               </template>
@@ -711,6 +776,7 @@ const addrDialogTitle = computed(() => {
               :min="0"
               :show-button="false"
               style="width: 100%"
+              class="input-with-select-suffix"
               @update:value="(v: number | null) => (inputData.shp_actual_volume = v ?? 0)"
             >
               <template #suffix>
@@ -718,7 +784,8 @@ const addrDialogTitle = computed(() => {
                   :value="inputData.shp_unit_of_volume"
                   :options="volumeUnitOptions"
                   size="small"
-                  style="width: 60px"
+                  :consistent-menu-width="false"
+                  style="width: 80px"
                   @update:value="(v: string) => (inputData.shp_unit_of_volume = v)"
                 />
               </template>
@@ -736,6 +803,7 @@ const addrDialogTitle = computed(() => {
               :min="0"
               :show-button="false"
               style="width: 100%"
+              class="input-with-select-suffix"
               @update:value="(v: number | null) => (inputData.shp_total_package_count = v ?? 0)"
             >
               <template #suffix>
@@ -743,7 +811,8 @@ const addrDialogTitle = computed(() => {
                   :value="inputData.shp_pack_type"
                   :options="packTypeOptions"
                   size="small"
-                  style="width: 65px"
+                  :consistent-menu-width="false"
+                  style="width: 90px"
                   @update:value="(v: string) => (inputData.shp_pack_type = v)"
                 />
               </template>
@@ -787,6 +856,7 @@ const addrDialogTitle = computed(() => {
               :min="0"
               :show-button="false"
               style="width: 100%"
+              class="input-with-select-suffix"
               @update:value="(v: number | null) => (inputData.shp_transit_time = v ?? 0)"
             >
               <template #suffix>
@@ -794,7 +864,8 @@ const addrDialogTitle = computed(() => {
                   :value="inputData.shp_transit_time_unit"
                   :options="transitTimeUnitOptions"
                   size="small"
-                  style="width: 70px"
+                  :consistent-menu-width="false"
+                  style="width: 90px"
                   @update:value="(v: string) => (inputData.shp_transit_time_unit = v)"
                 />
               </template>
@@ -850,7 +921,7 @@ const addrDialogTitle = computed(() => {
                   :value="inputData.shp_goods_value_currency"
                   :options="currencyOptions"
                   size="small"
-                  style="width: 65px"
+                  style="width: 80px"
                   @update:value="(v: string) => (inputData.shp_goods_value_currency = v)"
                 />
               </template>
@@ -874,7 +945,7 @@ const addrDialogTitle = computed(() => {
                   :value="inputData.shp_insurance_currency"
                   :options="currencyOptions"
                   size="small"
-                  style="width: 65px"
+                  style="width: 80px"
                   @update:value="(v: string) => (inputData.shp_insurance_currency = v)"
                 />
               </template>
@@ -1090,3 +1161,46 @@ const addrDialogTitle = computed(() => {
     </NModal>
   </div>
 </template>
+
+<style scoped>
+/* Allow dropdown menus to overflow from cards */
+.overflow-visible-card :deep(.n-card__content) {
+  overflow: visible !important;
+}
+
+.overflow-visible-card :deep(.n-card__content:first-child) {
+  overflow: visible !important;
+}
+
+/* Ensure form items don't clip dropdowns */
+:deep(.n-form-item) {
+  overflow: visible;
+}
+
+/* Ensure grid items don't clip dropdowns */
+:deep(.n-gi) {
+  overflow: visible;
+}
+
+/* Allow NInputNumber with select suffix to show dropdown */
+.input-with-select-suffix :deep(.n-input) {
+  overflow: visible;
+}
+
+.input-with-select-suffix :deep(.n-input__input-el) {
+  overflow: visible;
+}
+
+.input-with-select-suffix :deep(.n-input__wrapper) {
+  overflow: visible;
+}
+
+.input-with-select-suffix :deep(.n-input__suffix) {
+  overflow: visible;
+}
+
+/* Ensure form items with input-with-select-suffix allow overflow */
+:deep(.n-form-item:has(.input-with-select-suffix)) {
+  overflow: visible !important;
+}
+</style>
