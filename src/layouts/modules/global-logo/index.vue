@@ -6,7 +6,7 @@ defineOptions({
 
 <template>
   <RouterLink to="/" class="w-full flex-center nowrap-hidden">
-    <SystemLogo class="size-32px" />
+    <SystemLogo class="h-full" />
   </RouterLink>
 </template>
 

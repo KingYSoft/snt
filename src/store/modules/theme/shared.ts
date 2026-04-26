@@ -213,8 +213,14 @@ function getNaiveThemeColors(colors: App.Theme.ThemeColor, recommended = false) 
   const colorActions: NaiveColorAction[] = [
     { scene: '', handler: color => color },
     { scene: 'Suppl', handler: color => color },
-    { scene: 'Hover', handler: color => getPaletteColorByNumber(color, 500, recommended) },
-    { scene: 'Pressed', handler: color => getPaletteColorByNumber(color, 700, recommended) },
+    {
+      scene: 'Hover',
+      handler: color => getPaletteColorByNumber(color, 500, recommended)
+    },
+    {
+      scene: 'Pressed',
+      handler: color => getPaletteColorByNumber(color, 700, recommended)
+    },
     { scene: 'Active', handler: color => addColorAlpha(color, 0.1) }
   ];
 
@@ -254,6 +260,10 @@ export function getNaiveTheme(
     },
     LoadingBar: {
       colorLoading
+    },
+    Card: { size: 'small' },
+    DataTable: {
+      emptyPadding: '8px 0'
     },
     Tag: {
       borderRadius: `${settings.themeRadius}px`

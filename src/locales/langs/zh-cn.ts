@@ -547,8 +547,8 @@ const local: App.I18n.Schema = {
           origin: '始发地',
           goodsDescription: '货物描述',
           crd: '货物准备日期',
-          eta: '预计到达日期',
-          etd: '预计出发日期',
+          eta: 'ETA',
+          etd: 'ETD',
           grossWeight: '毛重',
           cbm: '体积',
           ctns: '件数'
@@ -604,7 +604,7 @@ const local: App.I18n.Schema = {
           }
         },
         section: {
-          notifyParty: '通知方',
+          notifyParty: 'Notify Party',
           notifyParty1: '通知方1',
           additionalDetails: '附加详情',
           consolidation: '合并详情',

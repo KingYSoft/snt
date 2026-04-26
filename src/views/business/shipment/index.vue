@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { $t } from '@/locales';
 import { useMaintainTable } from '@/hooks/common/maintain-table';
@@ -69,8 +69,13 @@ const opOptions = [
   { label: () => $t('common.op.endsWith'), value: 'EndWith' }
 ];
 
-// Use a ref to hold the filters builder, set after destructuring
-const buildFiltersRef = ref<() => Array<any>>(() => []);
+// Use a ref to hold the filters builder, initialized with ETD range so first load carries filters
+const buildFiltersRef = ref<() => Array<any>>(() => {
+  const filters: Array<any> = [];
+  const { start, end } = etdRangeToStr();
+  filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
+  return filters;
+});
 
 const { data, loading, columns, pagination, getData, handleSearch, handleReset, searchKey, searchOp, searchVal } =
   useMaintainTable({
@@ -83,7 +88,7 @@ const { data, loading, columns, pagination, getData, handleSearch, handleReset, 
       return result;
     },
     deleteFn: async () => Promise.resolve(),
-    getColumns: (editCb, deleteCb) => getShipmentColumns(editCb, deleteCb, handleMenuAction),
+    getColumns: (editCb, deleteCb) => getShipmentColumns(editCb, deleteCb, handleMenuAction, navigateToEdit),
     filters: () => buildFiltersRef.value(),
     defaultSearchKey: 'js_uniqueconsignref'
   });
@@ -102,6 +107,10 @@ buildFiltersRef.value = () => {
   }
   return filters;
 };
+
+const scrollX = computed(() => {
+  return columns.value.reduce((acc: number, col: any) => acc + Number(col.width ?? col.minWidth ?? 120), 0);
+});
 
 function onSearch() {
   handleSearch();
@@ -310,11 +319,13 @@ async function handleBatchExport() {
 
         <NDataTable
           v-model:checked-row-keys="checkedRowKeys"
+          size="small"
           :columns="columns"
           :data="data"
           :loading="loading"
           :pagination="pagination"
           :row-key="(row: any) => row.id"
+          :scroll-x="scrollX"
           @row-click="handleRowClick"
         />
       </NSpace>
