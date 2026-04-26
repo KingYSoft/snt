@@ -1,30 +1,30 @@
-import type { PaginationData } from '@sa/hooks';
+import type { PaginationData } from "@sa/hooks";
 
 /**
  * Transform sjc paginated response to soybean-admin PaginationData format.
  * sjc returns { items, totalCount }, useNaivePaginatedTable expects { data, pageNum, pageSize, total }
  */
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
-export function sjcTransform(response: any, params?: { pageSize: number; page?: number }): PaginationData<any> {
+export function sjcTransform(
+  response: any,
+  params?: { pageSize: number; page?: number },
+): PaginationData<any> {
   const { data, error } = response;
-  console.log('sjcTransform response:', data);
 
-  // The request transform already extracts data.data, so we're working with the actual data here
   if (!error && data) {
-    console.log('sjcTransform data:', data);
     return {
       data: data.items || [],
       pageNum: params?.page ?? 1,
-      pageSize: params?.pageSize ?? 10,
-      total: data.totalCount || 0
+      pageSize: params?.pageSize ?? 20,
+      total: data.totalCount || 0,
     };
   }
 
   return {
     data: [],
     pageNum: params?.page ?? 1,
-    pageSize: params?.pageSize ?? 10,
-    total: 0
+    pageSize: params?.pageSize ?? 20,
+    total: 0,
   };
 }
 
@@ -35,6 +35,6 @@ export function sjcTransform(response: any, params?: { pageSize: number; page?: 
 export function buildSjcPaginationParams(page: number, pageSize: number) {
   return {
     skipCount: (page - 1) * pageSize,
-    maxResultCount: pageSize
+    maxResultCount: pageSize,
   };
 }

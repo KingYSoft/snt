@@ -1,27 +1,32 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
-import { useRouter } from 'vue-router';
-import { $t } from '@/locales';
-import { useMaintainTable } from '@/hooks/common/maintain-table';
+import { computed, ref } from "vue";
+import { useRouter } from "vue-router";
+import { $t } from "@/locales";
+import { useNaivePaginatedTable } from "@/hooks/common/table";
+import {
+  sjcTransform,
+  buildSjcPaginationParams,
+} from "@/utils/maintain/transform";
 import {
   shipmentTbl,
   shipmentExport,
   shipmentDeactivate,
   shipmentReopen,
   shipmentCopy,
-  shipmentPdfGenerate
-} from '@/service/api/business/shipment';
-import { getShipmentColumns } from './modules/columns';
-import type { ShipmentActionKey } from './modules/columns';
+  shipmentPdfGenerate,
+} from "@/service/api/business/shipment";
+import { getShipmentColumns } from "./modules/columns";
+import type { ShipmentActionKey } from "./modules/columns";
 
 const router = useRouter();
+
 const checkedRowKeys = ref<Array<number | string>>([]);
 
 // --- ETD date range ---
 function formatDate(date: Date): string {
   const year = date.getFullYear();
-  const month = String(date.getMonth() + 1).padStart(2, '0');
-  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
   return `${year}-${month}-${day}`;
 }
 
@@ -32,7 +37,10 @@ function addDays(date: Date, days: number): Date {
 }
 
 function defaultEtdRange(): [number, number] {
-  return [addDays(new Date(), -20).getTime(), addDays(new Date(), 20).getTime()];
+  return [
+    addDays(new Date(), -20).getTime(),
+    addDays(new Date(), 20).getTime(),
+  ];
 }
 
 const etdRange = ref<[number, number]>(defaultEtdRange());
@@ -40,195 +48,220 @@ const etdRange = ref<[number, number]>(defaultEtdRange());
 function etdRangeToStr(): { start: string; end: string } {
   return {
     start: formatDate(new Date(etdRange.value[0])),
-    end: formatDate(new Date(etdRange.value[1]))
+    end: formatDate(new Date(etdRange.value[1])),
   };
 }
 
-// --- Search options ---
+// --- Search state ---
+const searchKey = ref("js_uniqueconsignref");
+const searchOp = ref("Contain");
+const searchVal = ref("");
+
 const searchKeyOptions = [
   {
-    label: () => $t('page.business.shipment.table.shipmentNo'),
-    value: 'js_uniqueconsignref'
+    label: () => $t("page.business.shipment.table.shipmentNo"),
+    value: "js_uniqueconsignref",
   },
   {
-    label: () => $t('page.business.shipment.table.housebill'),
-    value: 'js_housebill'
+    label: () => $t("page.business.shipment.table.housebill"),
+    value: "js_housebill",
   },
   {
-    label: () => $t('page.business.shipment.table.destination'),
-    value: 'js_rl_nkdestination'
-  }
+    label: () => $t("page.business.shipment.table.destination"),
+    value: "js_rl_nkdestination",
+  },
 ];
 
 const opOptions = [
-  { label: () => $t('common.op.equal'), value: 'Equal' },
-  { label: () => $t('common.op.notEqual'), value: 'NotEqual' },
-  { label: () => $t('common.op.contain'), value: 'Contain' },
-  { label: () => $t('common.op.notContain'), value: 'NotContain' },
-  { label: () => $t('common.op.startsWith'), value: 'StartWith' },
-  { label: () => $t('common.op.endsWith'), value: 'EndWith' }
+  { label: () => $t("common.op.equal"), value: "Equal" },
+  { label: () => $t("common.op.notEqual"), value: "NotEqual" },
+  { label: () => $t("common.op.contain"), value: "Contain" },
+  { label: () => $t("common.op.notContain"), value: "NotContain" },
+  { label: () => $t("common.op.startsWith"), value: "StartWith" },
+  { label: () => $t("common.op.endsWith"), value: "EndWith" },
 ];
 
-// Use a ref to hold the filters builder, initialized with ETD range so first load carries filters
-const buildFiltersRef = ref<() => Array<any>>(() => {
+// --- Pagination refs synced with useNaivePaginatedTable ---
+const pageRef = ref(1);
+const pageSizeRef = ref(20);
+
+function buildFilters() {
   const filters: Array<any> = [];
   const { start, end } = etdRangeToStr();
-  filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
-  return filters;
-});
-
-const { data, loading, columns, pagination, getData, handleSearch, handleReset, searchKey, searchOp, searchVal } =
-  useMaintainTable({
-    queryFn: async params => {
-      const result = await shipmentTbl({
-        skipCount: params.skipCount,
-        maxResultCount: params.maxResultCount,
-        filters: params.filters
-      });
-      return result;
-    },
-    deleteFn: async () => Promise.resolve(),
-    getColumns: (editCb, deleteCb) => getShipmentColumns(editCb, deleteCb, handleMenuAction, navigateToEdit),
-    filters: () => buildFiltersRef.value(),
-    defaultSearchKey: 'js_uniqueconsignref'
-  });
-
-// Now define buildFilters after searchKey/searchOp/searchVal are available
-buildFiltersRef.value = () => {
-  const filters: Array<any> = [];
-  const { start, end } = etdRangeToStr();
-  filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
+  filters.push({ key: "js_e_dep", op: "between", val: "", start, end });
   if (searchVal.value) {
     filters.push({
       key: searchKey.value,
       op: searchOp.value,
-      val: searchVal.value
+      val: searchVal.value,
     });
   }
   return filters;
-};
-
-const scrollX = computed(() => {
-  return columns.value.reduce((acc: number, col: any) => acc + Number(col.width ?? col.minWidth ?? 120), 0);
-});
-
-function onSearch() {
-  handleSearch();
 }
 
-function onReset() {
+// --- Table hook ---
+const { data, loading, columns, pagination, getData, getDataByPage } =
+  useNaivePaginatedTable<any, any>({
+    api: async () => {
+      return shipmentTbl({
+        ...buildSjcPaginationParams(pageRef.value, pageSizeRef.value),
+        filters: buildFilters(),
+      });
+    },
+    columns: () =>
+      getShipmentColumns(
+        () => {},
+        () => {},
+        handleMenuAction,
+        navigateToEdit,
+      ),
+    transform: (response) =>
+      sjcTransform(response, {
+        page: pageRef.value,
+        pageSize: pageSizeRef.value,
+      }),
+    paginationProps: {
+      pageSize: 20,
+      pageSizes: [10, 20, 50, 100],
+    },
+    onPaginationParamsChange: (params) => {
+      pageRef.value = params.page ?? 1;
+      pageSizeRef.value = params.pageSize ?? 20;
+    },
+  });
+
+const scrollX = computed(() => {
+  return columns.value.reduce(
+    (acc: number, col: any) => acc + Number(col.width ?? col.minWidth ?? 120),
+    0,
+  );
+});
+
+function handleSearch() {
+  getDataByPage(1);
+}
+
+function handleReset() {
+  searchVal.value = "";
+  searchOp.value = "Contain";
   etdRange.value = defaultEtdRange();
-  handleReset();
+  getDataByPage(1);
 }
 
 // --- Row actions ---
 function navigateToEdit(row: any) {
   router.push({
-    name: 'business_shipment-edit',
-    params: { pk: row.js_pk }
+    name: "business_shipment-edit",
+    params: { pk: row.js_pk },
   });
 }
 
 async function handleMenuAction(key: ShipmentActionKey, row: any) {
   switch (key) {
-    case 'edit': {
+    case "edit": {
       navigateToEdit(row);
       break;
     }
-    case 'merge': {
-      window.$message?.warning($t('page.business.shipment.menu.merge') + ' - Coming soon');
+    case "merge": {
+      window.$message?.warning(
+        $t("page.business.shipment.menu.merge") + " - Coming soon",
+      );
       break;
     }
-    case 'split': {
-      window.$message?.warning($t('page.business.shipment.menu.split') + ' - Coming soon');
+    case "split": {
+      window.$message?.warning(
+        $t("page.business.shipment.menu.split") + " - Coming soon",
+      );
       break;
     }
-    case 'copy': {
+    case "copy": {
       try {
         const res = await shipmentCopy(row.id);
         if (res) {
-          window.$message?.success($t('common.addSuccess'));
+          window.$message?.success($t("common.addSuccess"));
           getData();
         }
       } catch {
-        window.$message?.error('Copy failed');
+        window.$message?.error("Copy failed");
       }
       break;
     }
-    case 'deactivate': {
+    case "deactivate": {
       window.$dialog?.warning({
-        title: $t('common.confirm'),
-        content: `${$t('page.business.shipment.menu.deactivate')}: ${row.js_uniqueconsignref}?`,
-        positiveText: $t('common.confirm'),
-        negativeText: $t('common.cancel'),
+        title: $t("common.confirm"),
+        content: `${$t("page.business.shipment.menu.deactivate")}: ${row.js_uniqueconsignref}?`,
+        positiveText: $t("common.confirm"),
+        negativeText: $t("common.cancel"),
         onPositiveClick: async () => {
           try {
             await shipmentDeactivate(row.id);
-            window.$message?.success($t('common.modifySuccess'));
+            window.$message?.success($t("common.modifySuccess"));
             getData();
           } catch {
-            window.$message?.error('Deactivate failed');
+            window.$message?.error("Deactivate failed");
           }
-        }
+        },
       });
       break;
     }
-    case 'reopen': {
+    case "reopen": {
       window.$dialog?.warning({
-        title: $t('common.confirm'),
-        content: `${$t('page.business.shipment.menu.reopen')}: ${row.js_uniqueconsignref}?`,
-        positiveText: $t('common.confirm'),
-        negativeText: $t('common.cancel'),
+        title: $t("common.confirm"),
+        content: `${$t("page.business.shipment.menu.reopen")}: ${row.js_uniqueconsignref}?`,
+        positiveText: $t("common.confirm"),
+        negativeText: $t("common.cancel"),
         onPositiveClick: async () => {
           try {
             await shipmentReopen(row.id);
-            window.$message?.success($t('common.modifySuccess'));
+            window.$message?.success($t("common.modifySuccess"));
             getData();
           } catch {
-            window.$message?.error('Reopen failed');
+            window.$message?.error("Reopen failed");
           }
-        }
+        },
       });
       break;
     }
-    case 'export': {
+    case "export": {
       try {
         const response = await shipmentExport({
           skipCount: 0,
           maxResultCount: 1,
           filters: [
             {
-              key: 'js_uniqueconsignref',
-              op: 'Equal',
-              val: row.js_uniqueconsignref
-            }
-          ]
+              key: "js_uniqueconsignref",
+              op: "Equal",
+              val: row.js_uniqueconsignref,
+            },
+          ],
         });
         if (response.data) {
           const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
+          const link = document.createElement("a");
           link.href = url;
-          link.setAttribute('download', `${row.js_uniqueconsignref}.xlsx`);
+          link.setAttribute("download", `${row.js_uniqueconsignref}.xlsx`);
           document.body.append(link);
           link.click();
           link.remove();
         }
       } catch {
-        window.$message?.error($t('page.business.shipment.messages.exportFailed'));
+        window.$message?.error(
+          $t("page.business.shipment.messages.exportFailed"),
+        );
       }
       break;
     }
-    case 'batchprint': {
+    case "batchprint": {
       try {
         await shipmentPdfGenerate({
           business_id: row.id,
           business_pk: row.pk,
-          template_code: 'SHIPMENT',
-          version_no: '1.0'
+          template_code: "SHIPMENT",
+          version_no: "1.0",
         });
-        window.$message?.success('PDF generated');
+        window.$message?.success("PDF generated");
       } catch {
-        window.$message?.error('PDF generation failed');
+        window.$message?.error("PDF generation failed");
       }
       break;
     }
@@ -237,7 +270,7 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
 
 // --- Top actions ---
 function handleNewShipment() {
-  router.push({ name: 'business_shipment-new' });
+  router.push({ name: "business_shipment-new" });
 }
 
 function handleRowClick(row: any) {
@@ -246,35 +279,35 @@ function handleRowClick(row: any) {
 
 async function handleBatchExport() {
   try {
-    let filters = buildFiltersRef.value();
+    let filters = buildFilters();
 
     // If rows are selected, export only selected rows
     if (checkedRowKeys.value.length > 0) {
-      const selectedFilters = checkedRowKeys.value.map(id => ({
-        key: 'id',
-        op: 'Equal',
-        val: String(id)
+      const selectedFilters = checkedRowKeys.value.map((id) => ({
+        key: "id",
+        op: "Equal",
+        val: String(id),
       }));
-      filters = [{ key: 'js_e_dep', op: 'Or', val: '', or: selectedFilters }];
+      filters = [{ key: "js_e_dep", op: "Or", val: "", or: selectedFilters }];
     }
 
     const response = await shipmentExport({
       skipCount: 0,
       maxResultCount: checkedRowKeys.value.length || pagination.pageSize || 100,
-      filters
+      filters,
     });
 
     if (response.data) {
       const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
+      const link = document.createElement("a");
       link.href = url;
-      link.setAttribute('download', 'Shipments.xlsx');
+      link.setAttribute("download", "Shipments.xlsx");
       document.body.append(link);
       link.click();
       link.remove();
     }
   } catch {
-    window.$message?.error($t('page.business.shipment.messages.exportFailed'));
+    window.$message?.error($t("page.business.shipment.messages.exportFailed"));
   }
 }
 </script>
@@ -290,19 +323,27 @@ async function handleBatchExport() {
           :placeholder="$t('page.business.shipment.table.etd')"
           style="width: 260px"
         />
-        <NSelect v-model:value="searchKey" :options="searchKeyOptions" style="width: 150px" />
-        <NSelect v-model:value="searchOp" :options="opOptions" style="width: 120px" />
+        <NSelect
+          v-model:value="searchKey"
+          :options="searchKeyOptions"
+          style="width: 150px"
+        />
+        <NSelect
+          v-model:value="searchOp"
+          :options="opOptions"
+          style="width: 120px"
+        />
         <NInput
           v-model:value="searchVal"
           :placeholder="$t('common.keywordSearch')"
           clearable
           style="width: 200px"
-          @keyup.enter="onSearch"
+          @keyup.enter="handleSearch"
         />
-        <NButton type="primary" @click="onSearch">
-          {{ $t('common.search') }}
+        <NButton type="primary" :loading="loading" @click="handleSearch">
+          {{ $t("common.search") }}
         </NButton>
-        <NButton @click="onReset">{{ $t('common.reset') }}</NButton>
+        <NButton @click="handleReset">{{ $t("common.reset") }}</NButton>
       </NSpace>
     </NCard>
 
@@ -310,22 +351,24 @@ async function handleBatchExport() {
       <NSpace vertical :size="12">
         <NSpace>
           <NButton type="primary" @click="handleNewShipment">
-            {{ $t('common.add') }}
+            {{ $t("common.add") }}
           </NButton>
           <NButton @click="handleBatchExport">
-            {{ $t('page.business.shipment.export') }}
+            {{ $t("page.business.shipment.export") }}
           </NButton>
         </NSpace>
 
         <NDataTable
           v-model:checked-row-keys="checkedRowKeys"
           size="small"
-          :columns="columns"
+          :columns="(columns as any)"
           :data="data"
           :loading="loading"
           :pagination="pagination"
           :row-key="(row: any) => row.id"
           :scroll-x="scrollX"
+          remote
+          striped
           @row-click="handleRowClick"
         />
       </NSpace>
