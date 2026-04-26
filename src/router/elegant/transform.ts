@@ -201,6 +201,7 @@ const routeMap: RouteMap = {
   "maintain_vessel": "/maintain/vessel",
   "maintain_warehouse": "/maintain/warehouse",
   "settlement": "/settlement",
+  "settlement_billing-detail": "/settlement/billing-detail",
   "settlement_payable-transactions": "/settlement/payable-transactions",
   "settlement_receivable-transactions": "/settlement/receivable-transactions",
   "settlement_writeoff": "/settlement/writeoff",

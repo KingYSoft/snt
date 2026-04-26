@@ -278,6 +278,7 @@ const local: App.I18n.Schema = {
     settlement_writeoff: 'Write-off List',
     'settlement_writeoff-create': 'New Write-off',
     'settlement_writeoff-detail': 'Write-off Detail',
+    'settlement_billing-detail': 'Billing Detail',
     system: 'System',
     system_user: 'User',
     system_group: 'Group',

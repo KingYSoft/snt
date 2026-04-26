@@ -404,6 +404,16 @@ export const generatedRoutes: GeneratedRoute[] = [
     },
     children: [
       {
+        name: 'settlement_billing-detail',
+        path: '/settlement/billing-detail',
+        component: 'view.settlement_billing-detail',
+        meta: {
+          title: 'settlement_billing-detail',
+          i18nKey: 'route.settlement_billing-detail',
+          hideInMenu: true
+        }
+      },
+      {
         name: 'settlement_payable-transactions',
         path: '/settlement/payable-transactions',
         component: 'view.settlement_payable-transactions',
