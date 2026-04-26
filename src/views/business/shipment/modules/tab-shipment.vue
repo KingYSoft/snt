@@ -9,7 +9,6 @@ import {
   NSelect,
   NDatePicker,
   NGrid,
-  NGi,
   NCard,
   NFormItemGi,
   NForm,
@@ -52,7 +51,7 @@ const containerTypeOptions = [
   { label: 'LCL', value: 'LCL' }
 ];
 
-const freightTermsOptions = [
+const _freightTermsOptions = [
   { label: 'Prepaid (PP)', value: 'PP' },
   { label: 'Collect (CC)', value: 'CC' }
 ];
@@ -299,7 +298,7 @@ const mergedUserList = computed(() => {
   });
 });
 
-const userOptions = computed(() =>
+const _userOptions = computed(() =>
   mergedUserList.value.map(u => ({
     label: `${u.full_name} (${u.email_address})`,
     value: u.pk
@@ -307,7 +306,7 @@ const userOptions = computed(() =>
 );
 
 let userSearchTimer: ReturnType<typeof setTimeout> | null = null;
-function searchUser(query: string) {
+function _searchUser(query: string) {
   if (userSearchTimer) clearTimeout(userSearchTimer);
   userSearchTimer = setTimeout(async () => {
     if (!query) {
@@ -325,7 +324,7 @@ function searchUser(query: string) {
   }, 300);
 }
 
-function onSelectUser(field: 'sales' | 'ops' | 'cs', pkOrRow: any) {
+function _onSelectUser(field: 'sales' | 'ops' | 'cs', pkOrRow: any) {
   const row = typeof pkOrRow === 'string' ? mergedUserList.value.find(u => u.pk === pkOrRow) : pkOrRow;
   if (!row) return;
   if (field === 'sales') {
@@ -538,41 +537,43 @@ const addrDialogTitle = computed(() => {
 <template>
   <div class="p-4">
     <NForm ref="formRef" label-placement="left" label-width="120">
-      <!-- Row 1: Shipper | Consignee | Dates -->
-      <NGrid :cols="3" :x-gap="12" class="mb-12px">
+      <!-- Row 1: Shipper | Consignee -->
+      <NGrid :cols="2" :x-gap="12" class="mb-12px">
         <NGi>
           <NCard
             :title="$t('page.business.shipment.section.notifyParty').replace('Notify Party', 'Shipper')"
             size="small"
             class="overflow-visible-card"
           >
-            <NFormItemGi label="Name" path="shipper_name" :rule="rules.shipper_name">
-              <RemoteTableMenu
-                :model-value="inputData.shipper?.add_address_name || ''"
-                :fetch-method="shipmentQueryOrgAddress"
-                :headers="addrTableHeaders"
-                display-key="company_name"
-                :query-extra="{ address_type: 'SHIPPER' }"
-                show-new
-                @update:model-value="
-                  (v: string) => {
-                    if (inputData.shipper) inputData.shipper.add_address_name = v;
-                  }
-                "
-                @row-select="(row: any) => onSelectShipper(row)"
-                @clear="clearShipper"
-                @new-handle="openAddrDialog('SHIPPER')"
-              />
-            </NFormItemGi>
-            <NFormItemGi label="Address1">
-              <NInput :value="inputData.shipper?.add_address1" readonly />
-            </NFormItemGi>
-            <NFormItemGi label="Address2">
-              <NInput :value="inputData.shipper?.add_address2" readonly />
-            </NFormItemGi>
-            <NFormItemGi label="Address3">
-              <NInput :value="inputData.shipper?.add_address3" readonly />
-            </NFormItemGi>
+            <NGrid :cols="2" :x-gap="12">
+              <NFormItemGi label="Name" path="shipper_name" :rule="rules.shipper_name">
+                <RemoteTableMenu
+                  :model-value="inputData.shipper?.add_address_name || ''"
+                  :fetch-method="shipmentQueryOrgAddress"
+                  :headers="addrTableHeaders"
+                  display-key="company_name"
+                  :query-extra="{ address_type: 'SHIPPER' }"
+                  show-new
+                  @update:model-value="
+                    (v: string) => {
+                      if (inputData.shipper) inputData.shipper.add_address_name = v;
+                    }
+                  "
+                  @row-select="(row: any) => onSelectShipper(row)"
+                  @clear="clearShipper"
+                  @new-handle="openAddrDialog('SHIPPER')"
+                />
+              </NFormItemGi>
+              <NFormItemGi label="Address1">
+                <NInput :value="inputData.shipper?.add_address1" readonly />
+              </NFormItemGi>
+              <NFormItemGi label="Address2">
+                <NInput :value="inputData.shipper?.add_address2" readonly />
+              </NFormItemGi>
+              <NFormItemGi label="Address3">
+                <NInput :value="inputData.shipper?.add_address3" readonly />
+              </NFormItemGi>
+            </NGrid>
           </NCard>
         </NGi>
         <NGi>
@@ -580,495 +581,377 @@ const addrDialogTitle = computed(() => {
             :title="$t('page.business.shipment.section.notifyParty').replace('Notify Party', 'Consignee')"
             size="small"
           >
-            <NFormItemGi label="Name" path="consignee_name" :rule="rules.consignee_name">
-              <RemoteTableMenu
-                :model-value="inputData.consignee?.add_address_name || ''"
-                :fetch-method="shipmentQueryOrgAddress"
-                :headers="addrTableHeaders"
-                display-key="company_name"
-                :query-extra="{ address_type: 'CONSIGNEE' }"
-                show-new
-                @update:model-value="
-                  (v: string) => {
-                    if (inputData.consignee) inputData.consignee.add_address_name = v;
-                  }
-                "
-                @row-select="(row: any) => onSelectConsignee(row)"
-                @clear="clearConsignee"
-                @new-handle="openAddrDialog('CONSIGNEE')"
-              />
-            </NFormItemGi>
-            <NFormItemGi label="Address1">
-              <NInput :value="inputData.consignee?.add_address1" readonly />
-            </NFormItemGi>
-            <NFormItemGi label="Address2">
-              <NInput :value="inputData.consignee?.add_address2" readonly />
-            </NFormItemGi>
-            <NFormItemGi label="Address3">
-              <NInput :value="inputData.consignee?.add_address3" readonly />
-            </NFormItemGi>
-          </NCard>
-        </NGi>
-        <NGi>
-          <NCard title="Dates" size="small">
-            <NFormItemGi label="SO Confirm">
-              <NDatePicker
-                :formatted-value="inputData.shp_so_confirm_date"
-                type="date"
-                value-format="yyyy-MM-dd"
-                style="width: 100%"
-                clearable
-                @update:formatted-value="(v: string) => (inputData.shp_so_confirm_date = v)"
-              />
-            </NFormItemGi>
-            <NFormItemGi label="VGM Cut-Off">
-              <NDatePicker
-                :formatted-value="inputData.shp_vgm_cut_off_date"
-                type="date"
-                value-format="yyyy-MM-dd"
-                style="width: 100%"
-                clearable
-                @update:formatted-value="(v: string) => (inputData.shp_vgm_cut_off_date = v)"
-              />
-            </NFormItemGi>
-            <NFormItemGi label="Doc Cut-Off">
-              <NDatePicker
-                :formatted-value="inputData.shp_doc_cut_off_date"
-                type="date"
-                value-format="yyyy-MM-dd"
-                style="width: 100%"
-                clearable
-                @update:formatted-value="(v: string) => (inputData.shp_doc_cut_off_date = v)"
-              />
-            </NFormItemGi>
-            <NFormItemGi label="Port Cargo Cut-Off">
-              <NDatePicker
-                :formatted-value="inputData.shp_port_cargo_cut_off_date"
-                type="date"
-                value-format="yyyy-MM-dd"
-                style="width: 100%"
-                clearable
-                @update:formatted-value="(v: string) => (inputData.shp_port_cargo_cut_off_date = v)"
-              />
-            </NFormItemGi>
+            <NGrid :cols="2" :x-gap="12">
+              <NFormItemGi label="Name" path="consignee_name" :rule="rules.consignee_name">
+                <RemoteTableMenu
+                  :model-value="inputData.consignee?.add_address_name || ''"
+                  :fetch-method="shipmentQueryOrgAddress"
+                  :headers="addrTableHeaders"
+                  display-key="company_name"
+                  :query-extra="{ address_type: 'CONSIGNEE' }"
+                  show-new
+                  @update:model-value="
+                    (v: string) => {
+                      if (inputData.consignee) inputData.consignee.add_address_name = v;
+                    }
+                  "
+                  @row-select="(row: any) => onSelectConsignee(row)"
+                  @clear="clearConsignee"
+                  @new-handle="openAddrDialog('CONSIGNEE')"
+                />
+              </NFormItemGi>
+              <NFormItemGi label="Address1">
+                <NInput :value="inputData.consignee?.add_address1" readonly />
+              </NFormItemGi>
+              <NFormItemGi label="Address2">
+                <NInput :value="inputData.consignee?.add_address2" readonly />
+              </NFormItemGi>
+              <NFormItemGi label="Address3">
+                <NInput :value="inputData.consignee?.add_address3" readonly />
+              </NFormItemGi>
+            </NGrid>
           </NCard>
         </NGi>
       </NGrid>
 
       <!-- Row 2: Main fields - 4 columns -->
       <NGrid :cols="4" :x-gap="12" class="mb-12px">
-        <!-- Col 1 -->
-        <NGi>
-          <NFormItemGi label="Transport*" path="shp_transport_mode" :rule="rules.shp_transport_mode">
-            <NSelect
-              :value="inputData.shp_transport_mode"
-              :options="transportModeOptions"
-              @update:value="(v: string) => (inputData.shp_transport_mode = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Container*" path="shp_packing_mode" :rule="rules.shp_packing_mode">
-            <NSelect
-              :value="inputData.shp_packing_mode || inputData.shp_container_type"
-              :options="containerTypeOptions"
-              @update:value="
-                (v: string) => {
-                  inputData.shp_packing_mode = v;
-                  inputData.shp_container_type = v;
-                }
-              "
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Origin*" path="shp_origin" :rule="rules.shp_origin">
-            <NAutoComplete
-              :value="inputData.shp_origin"
-              :options="portOptions"
-              clearable
-              @search="(q: string) => queryPort(q)"
-              @select="(v: string) => (inputData.shp_origin = v)"
-              @update:value="(v: string) => (inputData.shp_origin = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Destination*" path="shp_destination" :rule="rules.shp_destination">
-            <NAutoComplete
-              :value="inputData.shp_destination"
-              :options="portOptions"
-              clearable
-              @search="(q: string) => queryPort(q)"
-              @select="(v: string) => (inputData.shp_destination = v)"
-              @update:value="(v: string) => (inputData.shp_destination = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Load">
-            <NAutoComplete
-              :value="inputData.shp_load_port"
-              :options="portOptions"
-              clearable
-              @search="(q: string) => queryPort(q)"
-              @select="(v: string) => (inputData.shp_load_port = v)"
-              @update:value="(v: string) => (inputData.shp_load_port = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Discharge">
-            <NAutoComplete
-              :value="inputData.shp_discharge_port"
-              :options="portOptions"
-              clearable
-              @search="(q: string) => queryPort(q)"
-              @select="(v: string) => (inputData.shp_discharge_port = v)"
-              @update:value="(v: string) => (inputData.shp_discharge_port = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="ETD*" path="shp_etd" :rule="rules.shp_etd">
-            <NDatePicker
-              :formatted-value="inputData.shp_etd"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              @update:formatted-value="(v: string) => (inputData.shp_etd = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="ETA">
-            <NDatePicker
-              :formatted-value="inputData.shp_eta"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              @update:formatted-value="(v: string) => (inputData.shp_eta = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Cargo Ready*" path="shp_cargo_ready" :rule="rules.shp_cargo_ready">
-            <NDatePicker
-              :formatted-value="inputData.shp_cargo_ready"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              @update:formatted-value="(v: string) => (inputData.shp_cargo_ready = v)"
-            />
-          </NFormItemGi>
-        </NGi>
-
-        <!-- Col 2 -->
-        <NGi>
-          <NFormItemGi label="Gross Weight">
-            <NInputNumber
-              :value="inputData.shp_actual_weight"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              class="input-with-select-suffix"
-              @update:value="(v: number | null) => (inputData.shp_actual_weight = v ?? 0)"
-            >
-              <template #suffix>
-                <NSelect
-                  :value="inputData.shp_unit_of_weight"
-                  :options="weightUnitOptions"
-                  size="small"
-                  :consistent-menu-width="false"
-                  style="width: 80px"
-                  @update:value="(v: string) => (inputData.shp_unit_of_weight = v)"
-                />
-              </template>
-            </NInputNumber>
-          </NFormItemGi>
-          <NFormItemGi label="CBM">
-            <NInputNumber
-              :value="inputData.shp_actual_volume"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              class="input-with-select-suffix"
-              @update:value="(v: number | null) => (inputData.shp_actual_volume = v ?? 0)"
-            >
-              <template #suffix>
-                <NSelect
-                  :value="inputData.shp_unit_of_volume"
-                  :options="volumeUnitOptions"
-                  size="small"
-                  :consistent-menu-width="false"
-                  style="width: 80px"
-                  @update:value="(v: string) => (inputData.shp_unit_of_volume = v)"
-                />
-              </template>
-            </NInputNumber>
-          </NFormItemGi>
-          <NFormItemGi label="Volume Weight">
-            <NInput :value="String(inputData.shp_volume_weight || '')" readonly />
-          </NFormItemGi>
-          <NFormItemGi label="Chargeable Wt">
-            <NInput :value="String(inputData.shp_actual_chargeable || '')" readonly />
-          </NFormItemGi>
-          <NFormItemGi label="No. of Package">
-            <NInputNumber
-              :value="inputData.shp_total_package_count"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              class="input-with-select-suffix"
-              @update:value="(v: number | null) => (inputData.shp_total_package_count = v ?? 0)"
-            >
-              <template #suffix>
-                <NSelect
-                  :value="inputData.shp_pack_type"
-                  :options="packTypeOptions"
-                  size="small"
-                  :consistent-menu-width="false"
-                  style="width: 90px"
-                  @update:value="(v: string) => (inputData.shp_pack_type = v)"
-                />
-              </template>
-            </NInputNumber>
-          </NFormItemGi>
-          <NFormItemGi label="Inco Term*" path="shp_inco" :rule="rules.shp_inco">
-            <NSelect
-              :value="inputData.shp_inco || inputData.shp_inco_terms"
-              :options="incoTermOptions"
-              @update:value="
-                (v: string) => {
-                  inputData.shp_inco = v;
-                  inputData.shp_inco_terms = v;
-                }
-              "
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Est. Pickup">
-            <NDatePicker
-              :formatted-value="inputData.shp_est_pickup"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              clearable
-              @update:formatted-value="(v: string) => (inputData.shp_est_pickup = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Est. Delivery">
-            <NDatePicker
-              :formatted-value="inputData.shp_est_delivery"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              clearable
-              @update:formatted-value="(v: string) => (inputData.shp_est_delivery = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Transit Time">
-            <NInputNumber
-              :value="inputData.shp_transit_time"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              class="input-with-select-suffix"
-              @update:value="(v: number | null) => (inputData.shp_transit_time = v ?? 0)"
-            >
-              <template #suffix>
-                <NSelect
-                  :value="inputData.shp_transit_time_unit"
-                  :options="transitTimeUnitOptions"
-                  size="small"
-                  :consistent-menu-width="false"
-                  style="width: 90px"
-                  @update:value="(v: string) => (inputData.shp_transit_time_unit = v)"
-                />
-              </template>
-            </NInputNumber>
-          </NFormItemGi>
-        </NGi>
-
-        <!-- Col 3 -->
-        <NGi>
-          <NFormItemGi label="Carrier">
-            <NInput
-              :value="inputData.shp_preferred_carrier || inputData.shp_carrier"
-              @update:value="
-                (v: string) => {
-                  inputData.shp_preferred_carrier = v;
-                  inputData.shp_carrier = v;
-                }
-              "
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Contact No">
-            <NInput
-              :value="inputData.shp_carrier_contract_number"
-              @update:value="(v: string) => (inputData.shp_carrier_contract_number = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Service Level">
-            <NSelect
-              :value="inputData.shp_service_level"
-              :options="serviceLevelOptions"
-              @update:value="(v: string) => (inputData.shp_service_level = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Commodity">
-            <NInput :value="inputData.shp_commodity" @update:value="(v: string) => (inputData.shp_commodity = v)" />
-          </NFormItemGi>
-          <NFormItemGi label="Cargo Value">
-            <NInputNumber
-              :value="inputData.shp_goods_value || inputData.shp_cargo_value"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              @update:value="
-                (v: number | null) => {
-                  inputData.shp_goods_value = v ?? 0;
-                  inputData.shp_cargo_value = v ?? 0;
-                  if (v && !inputData.shp_goods_value_currency) inputData.shp_goods_value_currency = 'USD';
-                }
-              "
-            >
-              <template #suffix>
-                <NSelect
-                  :value="inputData.shp_goods_value_currency"
-                  :options="currencyOptions"
-                  size="small"
-                  style="width: 80px"
-                  @update:value="(v: string) => (inputData.shp_goods_value_currency = v)"
-                />
-              </template>
-            </NInputNumber>
-          </NFormItemGi>
-          <NFormItemGi label="Ins. Value">
-            <NInputNumber
-              :value="inputData.shp_insurance_value"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              @update:value="
-                (v: number | null) => {
-                  inputData.shp_insurance_value = v ?? 0;
-                  if (v && !inputData.shp_insurance_currency) inputData.shp_insurance_currency = 'USD';
-                }
-              "
-            >
-              <template #suffix>
-                <NSelect
-                  :value="inputData.shp_insurance_currency"
-                  :options="currencyOptions"
-                  size="small"
-                  style="width: 80px"
-                  @update:value="(v: string) => (inputData.shp_insurance_currency = v)"
-                />
-              </template>
-            </NInputNumber>
-          </NFormItemGi>
-          <NFormItemGi label="Good Desc.">
-            <NInput
-              :value="inputData.shp_goods_description"
-              type="textarea"
-              :rows="2"
-              @update:value="(v: string) => (inputData.shp_goods_description = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Marks & No.">
-            <NInput
-              :value="inputData.shp_marks_nos || inputData.shp_marks_numbers"
-              type="textarea"
-              :rows="2"
-              @update:value="
-                (v: string) => {
-                  inputData.shp_marks_nos = v;
-                  inputData.shp_marks_numbers = v;
-                }
-              "
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Volume Factor">
-            <NInputNumber
-              :value="inputData.shp_volume_factor"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              @update:value="(v: number | null) => (inputData.shp_volume_factor = v ?? 0)"
-            />
-          </NFormItemGi>
-        </NGi>
-
-        <!-- Col 4 -->
-        <NGi>
-          <NFormItemGi label="Booking Party">
-            <NInput
-              :value="inputData.shp_booking_party"
-              @update:value="(v: string) => (inputData.shp_booking_party = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Freight Terms*" path="shp_freight_terms" :rule="rules.shp_freight_terms">
-            <NSelect
-              :value="inputData.shp_freight_terms"
-              :options="freightTermsOptions"
-              @update:value="(v: string) => (inputData.shp_freight_terms = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Spot Quote No.">
-            <NInput
-              :value="inputData.shp_one_time_quote"
-              @update:value="(v: string) => (inputData.shp_one_time_quote = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Shipper Ref.">
-            <NInput
-              :value="inputData.shp_booking_reference"
-              @update:value="(v: string) => (inputData.shp_booking_reference = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Additional Terms">
-            <NInput
-              :value="inputData.shp_additional_terms"
-              @update:value="(v: string) => (inputData.shp_additional_terms = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Release Type*" path="shp_release_type" :rule="rules.shp_release_type">
-            <NSelect
-              :value="inputData.shp_release_type"
-              :options="releaseTypeOptions"
-              @update:value="(v: string) => (inputData.shp_release_type = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Sales Rep">
-            <NAutoComplete
-              :value="inputData.shp_job_rep_sales_name || inputData.shp_sales_rep"
-              :options="userOptions"
-              clearable
-              @search="(q: string) => searchUser(q)"
-              @select="(v: string) => onSelectUser('sales', v)"
-              @update:value="
-                (v: string) => {
-                  inputData.shp_job_rep_sales_name = v;
-                  inputData.shp_sales_rep = v;
-                }
-              "
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Operator">
-            <NAutoComplete
-              :value="inputData.shp_job_rep_ops_name || inputData.shp_operator"
-              :options="userOptions"
-              clearable
-              @search="(q: string) => searchUser(q)"
-              @select="(v: string) => onSelectUser('ops', v)"
-              @update:value="
-                (v: string) => {
-                  inputData.shp_job_rep_ops_name = v;
-                  inputData.shp_operator = v;
-                }
-              "
-            />
-          </NFormItemGi>
-          <NFormItemGi label="Cus. Rep">
-            <NAutoComplete
-              :value="inputData.shp_job_rep_cs_name || inputData.shp_customer_rep"
-              :options="userOptions"
-              clearable
-              @search="(q: string) => searchUser(q)"
-              @select="(v: string) => onSelectUser('cs', v)"
-              @update:value="
-                (v: string) => {
-                  inputData.shp_job_rep_cs_name = v;
-                  inputData.shp_customer_rep = v;
-                }
-              "
-            />
-          </NFormItemGi>
-        </NGi>
+        <NFormItemGi label="Transport" path="shp_transport_mode" :rule="rules.shp_transport_mode">
+          <NSelect
+            :value="inputData.shp_transport_mode"
+            :options="transportModeOptions"
+            @update:value="(v: string) => (inputData.shp_transport_mode = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Container" path="shp_packing_mode" :rule="rules.shp_packing_mode">
+          <NSelect
+            :value="inputData.shp_packing_mode || inputData.shp_container_type"
+            :options="containerTypeOptions"
+            @update:value="
+              (v: string) => {
+                inputData.shp_packing_mode = v;
+                inputData.shp_container_type = v;
+              }
+            "
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Origin" path="shp_origin" :rule="rules.shp_origin">
+          <NAutoComplete
+            :value="inputData.shp_origin"
+            :options="portOptions"
+            clearable
+            @search="(q: string) => queryPort(q)"
+            @select="(v: string) => (inputData.shp_origin = v)"
+            @update:value="(v: string) => (inputData.shp_origin = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Destination" path="shp_destination" :rule="rules.shp_destination">
+          <NAutoComplete
+            :value="inputData.shp_destination"
+            :options="portOptions"
+            clearable
+            @search="(q: string) => queryPort(q)"
+            @select="(v: string) => (inputData.shp_destination = v)"
+            @update:value="(v: string) => (inputData.shp_destination = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Load">
+          <NAutoComplete
+            :value="inputData.shp_load_port"
+            :options="portOptions"
+            clearable
+            @search="(q: string) => queryPort(q)"
+            @select="(v: string) => (inputData.shp_load_port = v)"
+            @update:value="(v: string) => (inputData.shp_load_port = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Discharge">
+          <NAutoComplete
+            :value="inputData.shp_discharge_port"
+            :options="portOptions"
+            clearable
+            @search="(q: string) => queryPort(q)"
+            @select="(v: string) => (inputData.shp_discharge_port = v)"
+            @update:value="(v: string) => (inputData.shp_discharge_port = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="ETD" path="shp_etd" :rule="rules.shp_etd">
+          <NDatePicker
+            :formatted-value="inputData.shp_etd"
+            type="date"
+            value-format="yyyy-MM-dd"
+            style="width: 100%"
+            @update:formatted-value="(v: string) => (inputData.shp_etd = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="ETA">
+          <NDatePicker
+            :formatted-value="inputData.shp_eta"
+            type="date"
+            value-format="yyyy-MM-dd"
+            style="width: 100%"
+            @update:formatted-value="(v: string) => (inputData.shp_eta = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Gross Weight">
+          <NInputNumber
+            :value="inputData.shp_actual_weight"
+            :min="0"
+            :show-button="false"
+            style="width: 100%"
+            class="input-with-select-suffix"
+            @update:value="(v: number | null) => (inputData.shp_actual_weight = v ?? 0)"
+          >
+            <template #suffix>
+              <NSelect
+                :value="inputData.shp_unit_of_weight"
+                :options="weightUnitOptions"
+                size="small"
+                :consistent-menu-width="false"
+                style="width: 80px"
+                @update:value="(v: string) => (inputData.shp_unit_of_weight = v)"
+              />
+            </template>
+          </NInputNumber>
+        </NFormItemGi>
+        <NFormItemGi label="CBM">
+          <NInputNumber
+            :value="inputData.shp_actual_volume"
+            :min="0"
+            :show-button="false"
+            style="width: 100%"
+            class="input-with-select-suffix"
+            @update:value="(v: number | null) => (inputData.shp_actual_volume = v ?? 0)"
+          >
+            <template #suffix>
+              <NSelect
+                :value="inputData.shp_unit_of_volume"
+                :options="volumeUnitOptions"
+                size="small"
+                :consistent-menu-width="false"
+                style="width: 80px"
+                @update:value="(v: string) => (inputData.shp_unit_of_volume = v)"
+              />
+            </template>
+          </NInputNumber>
+        </NFormItemGi>
+        <NFormItemGi label="Volume Weight">
+          <NInput :value="String(inputData.shp_volume_weight || '')" readonly />
+        </NFormItemGi>
+        <NFormItemGi label="Chargeable Wt">
+          <NInput :value="String(inputData.shp_actual_chargeable || '')" readonly />
+        </NFormItemGi>
+        <NFormItemGi label="No. of Package">
+          <NInputNumber
+            :value="inputData.shp_total_package_count"
+            :min="0"
+            :show-button="false"
+            style="width: 100%"
+            class="input-with-select-suffix"
+            @update:value="(v: number | null) => (inputData.shp_total_package_count = v ?? 0)"
+          >
+            <template #suffix>
+              <NSelect
+                :value="inputData.shp_pack_type"
+                :options="packTypeOptions"
+                size="small"
+                :consistent-menu-width="false"
+                style="width: 90px"
+                @update:value="(v: string) => (inputData.shp_pack_type = v)"
+              />
+            </template>
+          </NInputNumber>
+        </NFormItemGi>
+        <NFormItemGi label="Inco Term" path="shp_inco" :rule="rules.shp_inco">
+          <NSelect
+            :value="inputData.shp_inco || inputData.shp_inco_terms"
+            :options="incoTermOptions"
+            @update:value="
+              (v: string) => {
+                inputData.shp_inco = v;
+                inputData.shp_inco_terms = v;
+              }
+            "
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Est. Pickup">
+          <NDatePicker
+            :formatted-value="inputData.shp_est_pickup"
+            type="date"
+            value-format="yyyy-MM-dd"
+            style="width: 100%"
+            clearable
+            @update:formatted-value="(v: string) => (inputData.shp_est_pickup = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Est. Delivery">
+          <NDatePicker
+            :formatted-value="inputData.shp_est_delivery"
+            type="date"
+            value-format="yyyy-MM-dd"
+            style="width: 100%"
+            clearable
+            @update:formatted-value="(v: string) => (inputData.shp_est_delivery = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Carrier">
+          <NInput
+            :value="inputData.shp_preferred_carrier || inputData.shp_carrier"
+            @update:value="
+              (v: string) => {
+                inputData.shp_preferred_carrier = v;
+                inputData.shp_carrier = v;
+              }
+            "
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Contact No">
+          <NInput
+            :value="inputData.shp_carrier_contract_number"
+            @update:value="(v: string) => (inputData.shp_carrier_contract_number = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Service Level">
+          <NSelect
+            :value="inputData.shp_service_level"
+            :options="serviceLevelOptions"
+            @update:value="(v: string) => (inputData.shp_service_level = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Commodity">
+          <NInput :value="inputData.shp_commodity" @update:value="(v: string) => (inputData.shp_commodity = v)" />
+        </NFormItemGi>
+        <NFormItemGi label="Cargo Value">
+          <NInputNumber
+            :value="inputData.shp_goods_value || inputData.shp_cargo_value"
+            :min="0"
+            :show-button="false"
+            style="width: 100%"
+            @update:value="
+              (v: number | null) => {
+                inputData.shp_goods_value = v ?? 0;
+                inputData.shp_cargo_value = v ?? 0;
+                if (v && !inputData.shp_goods_value_currency) inputData.shp_goods_value_currency = 'USD';
+              }
+            "
+          >
+            <template #suffix>
+              <NSelect
+                :value="inputData.shp_goods_value_currency"
+                :options="currencyOptions"
+                size="small"
+                style="width: 80px"
+                @update:value="(v: string) => (inputData.shp_goods_value_currency = v)"
+              />
+            </template>
+          </NInputNumber>
+        </NFormItemGi>
+        <NFormItemGi label="Ins. Value">
+          <NInputNumber
+            :value="inputData.shp_insurance_value"
+            :min="0"
+            :show-button="false"
+            style="width: 100%"
+            @update:value="
+              (v: number | null) => {
+                inputData.shp_insurance_value = v ?? 0;
+                if (v && !inputData.shp_insurance_currency) inputData.shp_insurance_currency = 'USD';
+              }
+            "
+          >
+            <template #suffix>
+              <NSelect
+                :value="inputData.shp_insurance_currency"
+                :options="currencyOptions"
+                size="small"
+                style="width: 80px"
+                @update:value="(v: string) => (inputData.shp_insurance_currency = v)"
+              />
+            </template>
+          </NInputNumber>
+        </NFormItemGi>
+        <NFormItemGi label="Good Desc.">
+          <NInput
+            :value="inputData.shp_goods_description"
+            type="textarea"
+            :rows="2"
+            @update:value="(v: string) => (inputData.shp_goods_description = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Marks & No.">
+          <NInput
+            :value="inputData.shp_marks_nos || inputData.shp_marks_numbers"
+            type="textarea"
+            :rows="2"
+            @update:value="
+              (v: string) => {
+                inputData.shp_marks_nos = v;
+                inputData.shp_marks_numbers = v;
+              }
+            "
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Booking Party">
+          <NInput
+            :value="inputData.shp_booking_party"
+            @update:value="(v: string) => (inputData.shp_booking_party = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Spot Quote No.">
+          <NInput
+            :value="inputData.shp_one_time_quote"
+            @update:value="(v: string) => (inputData.shp_one_time_quote = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Shipper Ref.">
+          <NInput
+            :value="inputData.shp_booking_reference"
+            @update:value="(v: string) => (inputData.shp_booking_reference = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Additional Terms">
+          <NInput
+            :value="inputData.shp_additional_terms"
+            @update:value="(v: string) => (inputData.shp_additional_terms = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Release Type" path="shp_release_type" :rule="rules.shp_release_type">
+          <NSelect
+            :value="inputData.shp_release_type"
+            :options="releaseTypeOptions"
+            @update:value="(v: string) => (inputData.shp_release_type = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Cargo Ready" path="shp_cargo_ready" :rule="rules.shp_cargo_ready">
+          <NDatePicker
+            :formatted-value="inputData.shp_cargo_ready"
+            type="date"
+            value-format="yyyy-MM-dd"
+            style="width: 100%"
+            @update:formatted-value="(v: string) => (inputData.shp_cargo_ready = v)"
+          />
+        </NFormItemGi>
+        <NFormItemGi label="Transit Time">
+          <NInputNumber
+            :value="inputData.shp_transit_time"
+            :min="0"
+            :show-button="false"
+            style="width: 100%"
+            class="input-with-select-suffix"
+            @update:value="(v: number | null) => (inputData.shp_transit_time = v ?? 0)"
+          >
+            <template #suffix>
+              <NSelect
+                :value="inputData.shp_transit_time_unit"
+                :options="transitTimeUnitOptions"
+                size="small"
+                :consistent-menu-width="false"
+                style="width: 90px"
+                @update:value="(v: string) => (inputData.shp_transit_time_unit = v)"
+              />
+            </template>
+          </NInputNumber>
+        </NFormItemGi>
       </NGrid>
 
       <!-- Container Table (SEA FCL) -->
@@ -1082,6 +965,7 @@ const addrDialogTitle = computed(() => {
           <NButton type="primary" size="small" @click="addContainer">Container</NButton>
         </div>
         <NDataTable
+          empty-padding="8px 0 "
           :columns="containerColumns"
           :data="inputData.containers_list || []"
           :bordered="true"

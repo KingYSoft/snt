@@ -49,7 +49,7 @@ const bgColor = computed(() => {
       <div class="w-400px lt-sm:w-300px">
         <header class="flex-y-center justify-between">
           <div class="flex-1 flex items-center justify-center">
-            <SystemLogo class="w-80px lt-sm:w-64px" />
+            <SystemLogo />
           </div>
           <div class="i-flex-col">
             <ThemeSchemaSwitch
