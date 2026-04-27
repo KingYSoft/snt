@@ -219,7 +219,7 @@ async function handleBatchExport() {
         </NSpace>
 
         <NDataTable
-          :columns="(columns as any)"
+          :columns="columns as any"
           :data="data"
           :loading="loading"
           :pagination="pagination"

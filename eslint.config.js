@@ -8,5 +8,6 @@ export default defineConfig({
       registeredComponentsOnly: false,
       ignores: ['/^icon-/']
     }
-  ]
+  ],
+  '@typescript-eslint/no-unused-vars': 'off'
 });

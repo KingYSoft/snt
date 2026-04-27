@@ -813,7 +813,8 @@ const local: App.I18n.Schema = {
           title: 'Write-off Detail',
           back: 'Back',
           comingSoon: 'Write-off detail feature coming soon'
-        }
+        },
+        transactionType: 'Transaction Type'
       }
     },
     maintain: {
