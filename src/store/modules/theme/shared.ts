@@ -1,16 +1,11 @@
-import type { GlobalThemeOverrides } from "naive-ui";
-import { defu } from "defu";
-import {
-  addColorAlpha,
-  getColorPalette,
-  getPaletteColorByNumber,
-  getRgb,
-} from "@sa/color";
-import { DARK_CLASS } from "@/constants/app";
-import { toggleHtmlClass } from "@/utils/common";
-import { localStg } from "@/utils/storage";
-import { overrideThemeSettings, themeSettings } from "@/theme/settings";
-import { themeVars } from "@/theme/vars";
+import type { GlobalThemeOverrides } from 'naive-ui';
+import { defu } from 'defu';
+import { addColorAlpha, getColorPalette, getPaletteColorByNumber, getRgb } from '@sa/color';
+import { DARK_CLASS } from '@/constants/app';
+import { toggleHtmlClass } from '@/utils/common';
+import { localStg } from '@/utils/storage';
+import { overrideThemeSettings, themeSettings } from '@/theme/settings';
+import { themeVars } from '@/theme/vars';
 
 /** Init theme settings */
 export function initThemeSettings() {
@@ -22,16 +17,16 @@ export function initThemeSettings() {
   // if it is production mode, the theme settings will be cached in localStorage
   // if want to update theme settings when publish new version, please update `overrideThemeSettings` in `src/theme/settings.ts`
 
-  const localSettings = localStg.get("themeSettings");
+  const localSettings = localStg.get('themeSettings');
 
   let settings = defu(localSettings, themeSettings);
 
-  const isOverride = localStg.get("overrideThemeFlag") === BUILD_TIME;
+  const isOverride = localStg.get('overrideThemeFlag') === BUILD_TIME;
 
   if (!isOverride) {
     settings = defu(overrideThemeSettings, settings);
 
-    localStg.set("overrideThemeFlag", BUILD_TIME);
+    localStg.set('overrideThemeFlag', BUILD_TIME);
   }
 
   return settings;
@@ -46,8 +41,8 @@ export function initThemeSettings() {
  */
 export function createThemeToken(
   colors: App.Theme.ThemeColor,
-  tokens?: App.Theme.ThemeSetting["tokens"],
-  recommended = false,
+  tokens?: App.Theme.ThemeSetting['tokens'],
+  recommended = false
 ) {
   const paletteColors = createThemePaletteColors(colors, recommended);
 
@@ -57,27 +52,27 @@ export function createThemeToken(
     colors: {
       ...paletteColors,
       nprogress: paletteColors.primary,
-      ...light.colors,
+      ...light.colors
     },
     boxShadow: {
-      ...light.boxShadow,
-    },
+      ...light.boxShadow
+    }
   };
 
   const darkThemeTokens: App.Theme.ThemeTokenCSSVars = {
     colors: {
       ...themeTokens.colors,
-      ...dark?.colors,
+      ...dark?.colors
     },
     boxShadow: {
       ...themeTokens.boxShadow,
-      ...dark?.boxShadow,
-    },
+      ...dark?.boxShadow
+    }
   };
 
   return {
     themeTokens,
-    darkThemeTokens,
+    darkThemeTokens
   };
 }
 
@@ -87,14 +82,11 @@ export function createThemeToken(
  * @param colors Theme colors
  * @param [recommended=false] Use recommended color. Default is `false`
  */
-function createThemePaletteColors(
-  colors: App.Theme.ThemeColor,
-  recommended = false,
-) {
+function createThemePaletteColors(colors: App.Theme.ThemeColor, recommended = false) {
   const colorKeys = Object.keys(colors) as App.Theme.ThemeColorKey[];
   const colorPaletteVar = {} as App.Theme.ThemePaletteColor;
 
-  colorKeys.forEach((key) => {
+  colorKeys.forEach(key => {
     const colorMap = getColorPalette(colors[key], recommended);
 
     colorPaletteVar[key] = colorMap.get(500)!;
@@ -116,11 +108,11 @@ function getCssVarByTokens(tokens: App.Theme.BaseToken) {
   const styles: string[] = [];
 
   function removeVarPrefix(value: string) {
-    return value.replace("var(", "").replace(")", "");
+    return value.replace('var(', '').replace(')', '');
   }
 
   function removeRgbPrefix(value: string) {
-    return value.replace("rgb(", "").replace(")", "");
+    return value.replace('rgb(', '').replace(')', '');
   }
 
   for (const [key, tokenValues] of Object.entries(themeVars)) {
@@ -128,7 +120,7 @@ function getCssVarByTokens(tokens: App.Theme.BaseToken) {
       let cssVarsKey = removeVarPrefix(tokenValue);
       let cssValue = tokens[key][tokenKey];
 
-      if (key === "colors") {
+      if (key === 'colors') {
         cssVarsKey = removeRgbPrefix(cssVarsKey);
         const { r, g, b } = getRgb(cssValue);
         cssValue = `${r} ${g} ${b}`;
@@ -138,7 +130,7 @@ function getCssVarByTokens(tokens: App.Theme.BaseToken) {
     }
   }
 
-  const styleStr = styles.join(";");
+  const styleStr = styles.join(';');
 
   return styleStr;
 }
@@ -148,10 +140,7 @@ function getCssVarByTokens(tokens: App.Theme.BaseToken) {
  *
  * @param tokens
  */
-export function addThemeVarsToGlobal(
-  tokens: App.Theme.BaseToken,
-  darkTokens: App.Theme.BaseToken,
-) {
+export function addThemeVarsToGlobal(tokens: App.Theme.BaseToken, darkTokens: App.Theme.BaseToken) {
   const cssVarStr = getCssVarByTokens(tokens);
   const darkCssVarStr = getCssVarByTokens(darkTokens);
 
@@ -167,10 +156,9 @@ export function addThemeVarsToGlobal(
     }
   `;
 
-  const styleId = "theme-vars";
+  const styleId = 'theme-vars';
 
-  const style =
-    document.querySelector(`#${styleId}`) || document.createElement("style");
+  const style = document.querySelector(`#${styleId}`) || document.createElement('style');
 
   style.id = styleId;
 
@@ -200,20 +188,14 @@ export function toggleCssDarkMode(darkMode = false) {
  * @param grayscaleMode
  * @param colourWeakness
  */
-export function toggleAuxiliaryColorModes(
-  grayscaleMode = false,
-  colourWeakness = false,
-) {
+export function toggleAuxiliaryColorModes(grayscaleMode = false, colourWeakness = false) {
   const htmlElement = document.documentElement;
-  htmlElement.style.filter = [
-    grayscaleMode ? "grayscale(100%)" : "",
-    colourWeakness ? "invert(80%)" : "",
-  ]
+  htmlElement.style.filter = [grayscaleMode ? 'grayscale(100%)' : '', colourWeakness ? 'invert(80%)' : '']
     .filter(Boolean)
-    .join(" ");
+    .join(' ');
 }
 
-type NaiveColorScene = "" | "Suppl" | "Hover" | "Pressed" | "Active";
+type NaiveColorScene = '' | 'Suppl' | 'Hover' | 'Pressed' | 'Active';
 type NaiveColorKey = `${App.Theme.ThemeColorKey}Color${NaiveColorScene}`;
 type NaiveThemeColor = Partial<Record<NaiveColorKey, string>>;
 interface NaiveColorAction {
@@ -227,33 +209,27 @@ interface NaiveColorAction {
  * @param colors Theme colors
  * @param [recommended=false] Use recommended color. Default is `false`
  */
-function getNaiveThemeColors(
-  colors: App.Theme.ThemeColor,
-  recommended = false,
-) {
+function getNaiveThemeColors(colors: App.Theme.ThemeColor, recommended = false) {
   const colorActions: NaiveColorAction[] = [
-    { scene: "", handler: (color) => color },
-    { scene: "Suppl", handler: (color) => color },
+    { scene: '', handler: color => color },
+    { scene: 'Suppl', handler: color => color },
     {
-      scene: "Hover",
-      handler: (color) => getPaletteColorByNumber(color, 500, recommended),
+      scene: 'Hover',
+      handler: color => getPaletteColorByNumber(color, 500, recommended)
     },
     {
-      scene: "Pressed",
-      handler: (color) => getPaletteColorByNumber(color, 700, recommended),
+      scene: 'Pressed',
+      handler: color => getPaletteColorByNumber(color, 700, recommended)
     },
-    { scene: "Active", handler: (color) => addColorAlpha(color, 0.1) },
+    { scene: 'Active', handler: color => addColorAlpha(color, 0.1) }
   ];
 
   const themeColors: NaiveThemeColor = {};
 
-  const colorEntries = Object.entries(colors) as [
-    App.Theme.ThemeColorKey,
-    string,
-  ][];
+  const colorEntries = Object.entries(colors) as [App.Theme.ThemeColorKey, string][];
 
-  colorEntries.forEach((color) => {
-    colorActions.forEach((action) => {
+  colorEntries.forEach(color => {
+    colorActions.forEach(action => {
       const [colorType, colorValue] = color;
       const colorKey: NaiveColorKey = `${colorType}Color${action.scene}`;
       themeColors[colorKey] = action.handler(colorValue);
@@ -273,30 +249,30 @@ function getNaiveThemeColors(
 export function getNaiveTheme(
   colors: App.Theme.ThemeColor,
   settings: App.Theme.ThemeSetting,
-  overrides?: GlobalThemeOverrides,
+  overrides?: GlobalThemeOverrides
 ) {
   const { primary: colorLoading } = colors;
 
   const theme: GlobalThemeOverrides = {
     common: {
       ...getNaiveThemeColors(colors, settings.recommendColor),
-      borderRadius: `${settings.themeRadius}px`,
+      borderRadius: `${settings.themeRadius}px`
     },
     LoadingBar: {
-      colorLoading,
+      colorLoading
     },
     Descriptions: {
-      thPaddingBorderedMedium: "8px 12px",
-      tdPaddingBorderedMedium: "8px 12px",
+      thPaddingBorderedMedium: '8px 12px',
+      tdPaddingBorderedMedium: '8px 12px'
     },
-    Card: { size: "small" },
+    Card: { size: 'small' },
     DataTable: {
-      tdPaddingMedium: "4px",
-      emptyPadding: "8px 0",
+      tdPaddingMedium: '4px',
+      emptyPadding: '8px 0'
     },
     Tag: {
-      borderRadius: `${settings.themeRadius}px`,
-    },
+      borderRadius: `${settings.themeRadius}px`
+    }
   };
 
   // If there are overrides, merge them with priority

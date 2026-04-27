@@ -807,7 +807,11 @@ const local: App.I18n.Schema = {
           title: '销账详情',
           back: '返回',
           comingSoon: '销账详情功能待实现'
-        }
+        },
+        statusDraft: '',
+        statusSubmitted: '',
+        statusApproved: '',
+        statusRejected: ''
       }
     },
     maintain: {

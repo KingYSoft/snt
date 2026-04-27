@@ -347,7 +347,6 @@ declare namespace App {
         modify: string;
         modifySuccess: string;
         saveSuccess: string;
-        modifySuccess: string;
         noData: string;
         operate: string;
         pleaseCheckValue: string;
@@ -1072,6 +1071,7 @@ declare namespace App {
             addWriteoff: string;
             writeoffNo: string;
             companyName: string;
+            transactionType: string;
             amount: string;
             currency: string;
             writeoffDate: string;
