@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted } from 'vue';
+import { computed } from 'vue';
 import { NConfigProvider, darkTheme } from 'naive-ui';
 import type { WatermarkProps } from 'naive-ui';
 import { useAppStore } from './store/modules/app';
@@ -12,11 +12,6 @@ defineOptions({
 
 const appStore = useAppStore();
 const themeStore = useThemeStore();
-
-// Fetch app config on app start
-onMounted(() => {
-  appStore.fetchAppConfig();
-});
 
 const naiveDarkTheme = computed(() => (themeStore.darkMode ? darkTheme : undefined));
 

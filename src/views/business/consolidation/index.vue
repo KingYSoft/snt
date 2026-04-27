@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { $t } from '@/locales';
-import { useMaintainTable } from '@/hooks/common/maintain-table';
+import { useNaivePaginatedTable } from '@/hooks/common/table';
+import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
 import {
   consolidationQueryPage,
   consolidationExport,
@@ -15,14 +16,11 @@ defineOptions({
 });
 
 const router = useRouter();
-const showMore = ref(true);
-const searchKeyOptions = [{ label: $t('page.business.consolidation.search.masterBillNo'), value: 'jk_masterbillnum' }];
+const showMore = ref(false);
 
-const operatorOptions = [
-  { label: '=', value: '=' },
-  { label: $t('page.business.consolidation.search.contain'), value: 'Contain' }
-];
-
+// --- Search state ---
+const searchKey = ref('jk_masterbillnum');
+const searchVal = ref('');
 const transportModeOp = ref('=');
 const transportMode = ref('');
 const consolModeOp = ref('=');
@@ -30,24 +28,18 @@ const consolMode = ref('');
 const cancelledOp = ref('=');
 const cancelled = ref('');
 
-const buildFiltersRef = ref<() => ConsolidationFilter[]>(() => []);
+const searchKeyOptions = [{ label: $t('page.business.consolidation.search.masterBillNo'), value: 'jk_masterbillnum' }];
 
-const { data, loading, columns, pagination, getData, handleSearch, handleReset, searchKey, searchVal } =
-  useMaintainTable({
-    queryFn: async params => {
-      return consolidationQueryPage({
-        SkipCount: params.skipCount,
-        MaxResultCount: params.maxResultCount,
-        filters: params.filters
-      });
-    },
-    deleteFn: async () => Promise.resolve(),
-    getColumns: (_editCb, _deleteCb) => getConsolidationColumns(handleMenuAction, navigateToDetail),
-    filters: () => buildFiltersRef.value(),
-    defaultSearchKey: 'jk_masterbillnum'
-  });
+const operatorOptions = [
+  { label: '=', value: '=' },
+  { label: $t('page.business.consolidation.search.contain'), value: 'Contain' }
+];
 
-buildFiltersRef.value = () => {
+// --- Pagination refs synced with useNaivePaginatedTable ---
+const pageRef = ref(1);
+const pageSizeRef = ref(20);
+
+function buildFilters() {
   const filters: ConsolidationFilter[] = [];
 
   if (searchVal.value) {
@@ -67,13 +59,35 @@ buildFiltersRef.value = () => {
   }
 
   return filters;
-};
-
-function onSearch() {
-  handleSearch();
 }
 
-function onReset() {
+// --- Table hook ---
+const { data, loading, columns, pagination, getData, getDataByPage } = useNaivePaginatedTable<any, any>({
+  api: async () => {
+    const { skipCount, maxResultCount } = buildSjcPaginationParams(pageRef.value, pageSizeRef.value);
+    return consolidationQueryPage({
+      SkipCount: skipCount,
+      MaxResultCount: maxResultCount,
+      filters: buildFilters()
+    });
+  },
+  columns: () => getConsolidationColumns<any>(handleMenuAction, navigateToDetail),
+  transform: response => sjcTransform(response, { page: pageRef.value, pageSize: pageSizeRef.value }),
+  paginationProps: {
+    pageSize: 20,
+    pageSizes: [10, 20, 50, 100]
+  },
+  onPaginationParamsChange: params => {
+    pageRef.value = params.page ?? 1;
+    pageSizeRef.value = params.pageSize ?? 20;
+  }
+});
+
+function handleSearch() {
+  getDataByPage(1);
+}
+
+function handleReset() {
   searchKey.value = 'jk_masterbillnum';
   searchVal.value = '';
   transportModeOp.value = '=';
@@ -82,7 +96,7 @@ function onReset() {
   consolMode.value = '';
   cancelledOp.value = '=';
   cancelled.value = '';
-  handleReset();
+  getDataByPage(1);
 }
 
 function navigateToDetail(row: any) {
@@ -130,15 +144,11 @@ async function handleMenuAction(key: ConsolidationActionKey, row: any) {
 
 async function handleBatchExport() {
   try {
-    await handleExport(buildFiltersRef.value(), 'Consols.xlsx', pagination.pageSize || 100);
+    await handleExport(buildFilters(), 'Consols.xlsx', pagination.pageSize || 100);
   } catch {
     window.$message?.error($t('page.business.shipment.messages.exportFailed'));
   }
 }
-
-onMounted(() => {
-  getData();
-});
 </script>
 
 <template>
@@ -152,9 +162,9 @@ onMounted(() => {
             :placeholder="$t('page.business.consolidation.search.placeholder')"
             clearable
             style="width: 260px"
-            @keyup.enter="onSearch"
+            @keyup.enter="handleSearch"
           />
-          <NButton type="primary" @click="onSearch">
+          <NButton type="primary" :loading="loading" @click="handleSearch">
             {{ $t('common.search') }}
           </NButton>
           <NButton @click="showMore = !showMore">
@@ -192,7 +202,7 @@ onMounted(() => {
           </NGrid>
 
           <div>
-            <NButton ghost type="primary" @click="onReset">
+            <NButton ghost type="primary" @click="handleReset">
               {{ $t('page.business.consolidation.search.clear') }}
             </NButton>
           </div>
@@ -209,11 +219,13 @@ onMounted(() => {
         </NSpace>
 
         <NDataTable
-          :columns="columns"
+          :columns="(columns as any)"
           :data="data"
           :loading="loading"
           :pagination="pagination"
           :row-key="(row: any) => row.id"
+          remote
+          striped
         />
       </NSpace>
     </NCard>
