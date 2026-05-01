@@ -1,7 +1,7 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-mutating-props */
 import { h, watch } from 'vue';
-import { NDataTable, NButton, NInput, NInputNumber, NDatePicker, NCard, NFormItemGi, NGrid } from 'naive-ui';
+import { NDataTable, NButton, NInput, NDatePicker, NCard, NFormItemGi, NGrid } from 'naive-ui';
 import { $t } from '@/locales';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
@@ -127,16 +127,7 @@ function deleteConsolidationLine(index: number) {
   <div class="p-4">
     <NForm label-placement="left" label-width="120">
       <NCard :title="$t('page.business.shipment.section.additionalDetails')" size="small" class="mb-12px">
-        <NGrid :cols="3" :x-gap="12">
-          <NFormItemGi label="Gate In Date">
-            <NDatePicker
-              :formatted-value="inputData.shp_gate_in_date"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              @update:formatted-value="(v: string) => (inputData.shp_gate_in_date = v)"
-            />
-          </NFormItemGi>
+        <NGrid :cols="4" :x-gap="12">
           <NFormItemGi label="On Board Date">
             <NDatePicker
               :formatted-value="inputData.shp_on_board_date"
@@ -144,15 +135,6 @@ function deleteConsolidationLine(index: number) {
               value-format="yyyy-MM-dd"
               style="width: 100%"
               @update:formatted-value="(v: string) => (inputData.shp_on_board_date = v)"
-            />
-          </NFormItemGi>
-          <NFormItemGi label="VGM (KG)">
-            <NInputNumber
-              :value="inputData.shp_vgm"
-              :min="0"
-              :show-button="false"
-              style="width: 100%"
-              @update:value="(v: number | null) => (inputData.shp_vgm = v ?? 0)"
             />
           </NFormItemGi>
         </NGrid>
@@ -181,35 +163,7 @@ function deleteConsolidationLine(index: number) {
 
       <!-- Voyage Details -->
       <NCard :title="$t('page.business.shipment.section.voyageDetails')" size="small">
-        <NGrid :cols="3" :x-gap="12">
-          <NFormItemGi label="ETD">
-            <NDatePicker
-              :formatted-value="inputData.shp_etd || inputData.etd"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              @update:formatted-value="
-                (v: string) => {
-                  inputData.shp_etd = v;
-                  inputData.etd = v;
-                }
-              "
-            />
-          </NFormItemGi>
-          <NFormItemGi label="ETA">
-            <NDatePicker
-              :formatted-value="inputData.shp_eta || inputData.eta"
-              type="date"
-              value-format="yyyy-MM-dd"
-              style="width: 100%"
-              @update:formatted-value="
-                (v: string) => {
-                  inputData.shp_eta = v;
-                  inputData.eta = v;
-                }
-              "
-            />
-          </NFormItemGi>
+        <NGrid :cols="4" :x-gap="12">
           <NFormItemGi label="Vessel">
             <NInput
               :value="inputData.shp_vessel || inputData.vessel"
@@ -240,12 +194,6 @@ function deleteConsolidationLine(index: number) {
               :value="inputData.shp_discharge_port"
               @update:value="(v: string) => (inputData.shp_discharge_port = v)"
             />
-          </NFormItemGi>
-          <NFormItemGi label="Booking No.">
-            <NInput :value="inputData.shp_booking_no" @update:value="(v: string) => (inputData.shp_booking_no = v)" />
-          </NFormItemGi>
-          <NFormItemGi label="Contact No.">
-            <NInput :value="inputData.shp_contact_no" @update:value="(v: string) => (inputData.shp_contact_no = v)" />
           </NFormItemGi>
         </NGrid>
       </NCard>

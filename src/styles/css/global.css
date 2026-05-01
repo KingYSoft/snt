@@ -13,3 +13,12 @@ html {
   overflow-x: hidden;
   color: rgb(var(--base-text-color));
 }
+
+/* Compact form - tight vertical spacing for form items */
+.compact-form .n-form-item {
+  margin-bottom: 2px !important;
+}
+
+.compact-form .n-form-item-blank {
+  min-height: 28px !important;
+}

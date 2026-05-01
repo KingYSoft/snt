@@ -4,6 +4,7 @@
 // Read more: https://github.com/soybeanjs/elegant-router
 
 import type { GeneratedRoute } from '@elegant-router/types';
+import { hidden } from 'kolorist';
 
 export const generatedRoutes: GeneratedRoute[] = [
   {
@@ -60,12 +61,12 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
-        name: 'business_consolidation-detail',
-        path: '/business/consolidation-detail/:pk',
-        component: 'view.business_consolidation-detail',
+        name: 'business_consolidation-edite',
+        path: '/business/consolidation-edite/:pk',
+        component: 'view.business_consolidation-edite',
         meta: {
-          title: 'business_consolidation',
-          i18nKey: 'route.business_consolidation',
+          title: 'business_consolidation-edite',
+          i18nKey: 'route.business_consolidation-edite',
           hideInMenu: true
         }
       },
@@ -424,6 +425,16 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'settlement_payable-transactions-create',
+        path: '/settlement/payable-transactions-create',
+        component: 'view.settlement_payable-transactions-create',
+        meta: {
+          title: 'settlement_payable-transactions-create',
+          i18nKey: 'route.settlement_payable-transactions-create',
+          hideInMenu: true
+        }
+      },
+      {
         name: 'settlement_receivable-transactions',
         path: '/settlement/receivable-transactions',
         component: 'view.settlement_receivable-transactions',
@@ -431,6 +442,16 @@ export const generatedRoutes: GeneratedRoute[] = [
           title: 'settlement_receivable-transactions',
           i18nKey: 'route.settlement_receivable-transactions',
           order: 1
+        }
+      },
+      {
+        name: 'settlement_receivable-transactions-create',
+        path: '/settlement/receivable-transactions-create',
+        component: 'view.settlement_receivable-transactions-create',
+        meta: {
+          title: 'settlement_receivable-transactions-create',
+          i18nKey: 'route.settlement_receivable-transactions-create',
+          hideInMenu: true
         }
       },
       {
@@ -453,13 +474,14 @@ export const generatedRoutes: GeneratedRoute[] = [
           hideInMenu: true
         }
       },
+
       {
-        name: 'settlement_writeoff-detail',
-        path: '/settlement/writeoff-detail',
-        component: 'view.settlement_writeoff-detail',
+        name: 'settlement_writeoff-edit',
+        path: '/settlement/writeoff-edit',
+        component: 'view.settlement_writeoff-edit',
         meta: {
-          title: 'settlement_writeoff-detail',
-          i18nKey: 'route.settlement_writeoff-detail',
+          title: 'settlement_writeoff-edit',
+          i18nKey: 'route.settlement_writeoff-edit',
           hideInMenu: true
         }
       }

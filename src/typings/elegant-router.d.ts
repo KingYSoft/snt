@@ -22,7 +22,7 @@ declare module "@elegant-router/types" {
     "500": "/500";
     "business": "/business";
     "business_consolidation": "/business/consolidation";
-    "business_consolidation-detail": "/business/consolidation-detail/:pk";
+    "business_consolidation-edite": "/business/consolidation-edite/:pk";
     "business_shipment": "/business/shipment";
     "business_shipment-edit": "/business/shipment-edit/:pk";
     "business_shipment-new": "/business/shipment-new";
@@ -57,10 +57,12 @@ declare module "@elegant-router/types" {
     "settlement": "/settlement";
     "settlement_billing-detail": "/settlement/billing-detail";
     "settlement_payable-transactions": "/settlement/payable-transactions";
+    "settlement_payable-transactions-create": "/settlement/payable-transactions-create";
     "settlement_receivable-transactions": "/settlement/receivable-transactions";
+    "settlement_receivable-transactions-create": "/settlement/receivable-transactions-create";
     "settlement_writeoff": "/settlement/writeoff";
     "settlement_writeoff-create": "/settlement/writeoff-create";
-    "settlement_writeoff-detail": "/settlement/writeoff-detail";
+    "settlement_writeoff-edit": "/settlement/writeoff-edit";
     "system": "/system";
     "system_branch": "/system/branch";
     "system_company": "/system/company";
@@ -128,7 +130,7 @@ declare module "@elegant-router/types" {
     | "500"
     | "iframe-page"
     | "login"
-    | "business_consolidation-detail"
+    | "business_consolidation-edite"
     | "business_consolidation"
     | "business_shipment-edit"
     | "business_shipment-new"
@@ -159,10 +161,12 @@ declare module "@elegant-router/types" {
     | "maintain_vessel"
     | "maintain_warehouse"
     | "settlement_billing-detail"
+    | "settlement_payable-transactions-create"
     | "settlement_payable-transactions"
+    | "settlement_receivable-transactions-create"
     | "settlement_receivable-transactions"
     | "settlement_writeoff-create"
-    | "settlement_writeoff-detail"
+    | "settlement_writeoff-edit"
     | "settlement_writeoff"
     | "system_branch"
     | "system_company"

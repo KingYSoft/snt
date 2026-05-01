@@ -1,8 +1,10 @@
 <script setup lang="ts">
+import { ref } from 'vue';
 import { useAppStore } from '@/store/modules/app';
 import { useAuthStore } from '@/store/modules/auth';
 import { $t } from '@/locales';
 import SvgIcon from '@/components/custom/svg-icon.vue';
+import SwitchBranch from '@/components/business/switch-branch.vue';
 
 defineOptions({
   name: 'UserDropdown'
@@ -10,6 +12,8 @@ defineOptions({
 
 const appStore = useAppStore();
 const authStore = useAuthStore();
+
+const showSwitchDialog = ref(false);
 
 function logout() {
   window.$dialog?.info({
@@ -79,11 +83,12 @@ function changePassword() {
           </div>
         </div>
       </div>
-
-      <NDivider style="margin: 0" />
-
       <!-- Actions -->
       <div class="dropdown-actions">
+        <div class="dropdown-action-item" @click="showSwitchDialog = true">
+          <SvgIcon icon="ph:building" class="info-icon" />
+          <span>Switch Company / Branch</span>
+        </div>
         <div class="dropdown-action-item" @click="changePassword">
           <SvgIcon icon="ph:lock" class="info-icon" />
           <span>Change Password</span>
@@ -93,6 +98,8 @@ function changePassword() {
           <span>{{ $t('common.logout') }}</span>
         </div>
       </div>
+
+      <SwitchBranch v-model:show="showSwitchDialog" />
     </div>
   </NPopover>
 </template>

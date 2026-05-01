@@ -2,9 +2,11 @@
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { getBillingDetail } from '@/service/api/business/billing';
+import { useTabStore } from '@/store/modules/tab';
 
 defineOptions({ name: 'PageSettlementBillingDetail' });
 
+const tabStore = useTabStore();
 const route = useRoute();
 const loading = ref(false);
 const detailData = ref<Record<string, any> | null>(null);
@@ -47,6 +49,10 @@ async function loadBillingDetail() {
     const { data } = await getBillingDetail(id);
     if (data) {
       detailData.value = data;
+      // Update tab label with shipment_no
+      if (detailData.value && detailData?.value.ah_transactionnum) {
+        tabStore.setTabLabel(`账单详情 - ${detailData.value.ah_transactionnum ?? ''}`);
+      }
     }
   } catch {
     window.$message?.error('Failed to load billing detail');

@@ -9,7 +9,7 @@ import {
   NSelect,
   NDatePicker,
   NGrid,
-  NCard,
+  NDivider,
   NFormItemGi,
   NForm,
   NAutoComplete,
@@ -535,18 +535,18 @@ const addrDialogTitle = computed(() => {
 
 <!-- eslint-disable vue/no-mutating-props -->
 <template>
-  <div class="p-4">
-    <NForm ref="formRef" label-placement="left" label-width="120">
+  <div class="h-full overflow-auto pb-48px">
+    <NForm ref="formRef" label-placement="left" label-width="140" :show-feedback="false" class="compact-form p-16px">
       <!-- Row 1: Shipper | Consignee -->
       <NGrid :cols="2" :x-gap="12" class="mb-12px">
+        <!-- Shipper -->
         <NGi>
-          <NCard
-            :title="$t('page.business.shipment.section.notifyParty').replace('Notify Party', 'Shipper')"
-            size="small"
-            class="overflow-visible-card"
-          >
+          <NDivider class="!my-0">
+            <span class="text-12px font-bold uppercase opacity-70">Shipper</span>
+          </NDivider>
+          <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form mt-4px">
             <NGrid :cols="2" :x-gap="12">
-              <NFormItemGi label="Name" path="shipper_name" :rule="rules.shipper_name">
+              <NFormItemGi label="Name">
                 <RemoteTableMenu
                   :model-value="inputData.shipper?.add_address_name || ''"
                   :fetch-method="shipmentQueryOrgAddress"
@@ -574,15 +574,17 @@ const addrDialogTitle = computed(() => {
                 <NInput :value="inputData.shipper?.add_address3" readonly />
               </NFormItemGi>
             </NGrid>
-          </NCard>
+          </NForm>
         </NGi>
+
+        <!-- Consignee -->
         <NGi>
-          <NCard
-            :title="$t('page.business.shipment.section.notifyParty').replace('Notify Party', 'Consignee')"
-            size="small"
-          >
+          <NDivider class="!my-0">
+            <span class="text-12px font-bold uppercase opacity-70">Consignee</span>
+          </NDivider>
+          <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form mt-4px">
             <NGrid :cols="2" :x-gap="12">
-              <NFormItemGi label="Name" path="consignee_name" :rule="rules.consignee_name">
+              <NFormItemGi label="Name">
                 <RemoteTableMenu
                   :model-value="inputData.consignee?.add_address_name || ''"
                   :fetch-method="shipmentQueryOrgAddress"
@@ -610,10 +612,11 @@ const addrDialogTitle = computed(() => {
                 <NInput :value="inputData.consignee?.add_address3" readonly />
               </NFormItemGi>
             </NGrid>
-          </NCard>
+          </NForm>
         </NGi>
       </NGrid>
 
+      <NDivider class="!my-8px" />
       <!-- Row 2: Main fields - 4 columns -->
       <NGrid :cols="4" :x-gap="12" class="mb-12px">
         <NFormItemGi label="Transport" path="shp_transport_mode" :rule="rules.shp_transport_mode">
@@ -993,7 +996,7 @@ const addrDialogTitle = computed(() => {
 
     <!-- Address Dialog -->
     <NModal v-model:show="addrDialogVis" preset="card" :title="addrDialogTitle" style="width: 600px">
-      <NForm ref="addrFormRef" label-placement="left" label-width="120">
+      <NForm ref="addrFormRef" label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
         <NGrid :cols="2" :x-gap="12">
           <NFormItemGi label="Company Name" path="company_name">
             <NInput v-model:value="addrInput.company_name" />
@@ -1047,15 +1050,6 @@ const addrDialogTitle = computed(() => {
 </template>
 
 <style scoped>
-/* Allow dropdown menus to overflow from cards */
-.overflow-visible-card :deep(.n-card__content) {
-  overflow: visible !important;
-}
-
-.overflow-visible-card :deep(.n-card__content:first-child) {
-  overflow: visible !important;
-}
-
 /* Ensure form items don't clip dropdowns */
 :deep(.n-form-item) {
   overflow: visible;

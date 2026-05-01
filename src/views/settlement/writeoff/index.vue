@@ -1,151 +1,290 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, reactive, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
-import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
-import { queryWriteoffList } from '@/service/api/business/settlement';
-import { getWriteoffColumns } from './modules/columns';
-import type { WriteoffRecord } from '@/service/api/business/settlement';
+import { sjcTransform } from '@/utils/maintain/transform';
+import {
+  matchTransactionsQueryPage,
+  mapMatchTransactionItem,
+  type MatchTransactionRecord,
+  type MatchTransactionQueryParams
+} from '@/service/api/business/match-transactions';
+import { getMatchTransactionColumns, type MatchTransactionActionKey } from '../modules/match-transaction-columns';
 
-const router = useRouter();
 defineOptions({ name: 'PageSettlementWriteoff' });
 
+const router = useRouter();
 const { t } = useI18n();
 
-const searchKey = ref('ah_transactionnum');
-const searchOp = ref('Contain');
-const searchVal = ref('');
+const formatDate = (date: Date) =>
+  `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-const pageRef = ref(1);
-const pageSizeRef = ref(20);
+const today = new Date();
+const defaultStart = formatDate(new Date(new Date().setDate(today.getDate() - 40)));
+const defaultEnd = formatDate(today);
 
-function buildFilters() {
-  return searchVal.value ? [{ key: searchKey.value, op: searchOp.value, val: searchVal.value }] : [];
+interface FilterState {
+  field1: { key: string; start: string; end: string };
+  field2: { key: string; value: string };
+  ledger: string;
+  match_number: string;
+  billing_party: string;
 }
 
-const { data, loading, columns, pagination, getData, getDataByPage } = useNaivePaginatedTable<any, any>({
-  api: async () => {
-    return queryWriteoffList({
-      ...buildSjcPaginationParams(pageRef.value, pageSizeRef.value),
-      filters: buildFilters()
-    });
-  },
-  columns: () => getWriteoffColumns(handleViewDetail),
+function createDefaultFilters(): FilterState {
+  return {
+    field1: { key: 'etd', start: defaultStart, end: defaultEnd },
+    field2: { key: 'job_number', value: '' },
+    ledger: '',
+    match_number: '',
+    billing_party: ''
+  };
+}
+
+const filters = reactive<FilterState>(createDefaultFilters());
+const showMoreFilters = ref(true);
+
+const field1KeyOptions = computed(() => [
+  { label: 'ETD', value: 'etd' },
+  { label: 'Payment Date', value: 'payment_date' }
+]);
+const field2KeyOptions = computed(() => [
+  { label: 'Job Number', value: 'job_number' },
+  { label: 'Shipper', value: 'shipper' },
+  { label: 'Match Number', value: 'match_number' },
+  { label: 'Description', value: 'description' }
+]);
+
+const pageRef = ref(1);
+const pageSizeRef = ref(50);
+
+function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: number }): MatchTransactionQueryParams {
+  const f = filters;
+  const JobNumber = f.field2.key === 'job_number' ? f.field2.value.trim() : '';
+  const fromField2Shipper = f.field2.key === 'shipper' ? f.field2.value.trim() : '';
+  const fromField2Match = f.field2.key === 'match_number' ? f.field2.value.trim() : '';
+  const Shipper = f.billing_party.trim() || fromField2Shipper;
+  const MatchNumber = f.match_number.trim() || fromField2Match;
+  const Type = f.ledger.trim();
+  const pg = override ?? {
+    SkipCount: (pageRef.value - 1) * pageSizeRef.value,
+    MaxResultCount: pageSizeRef.value
+  };
+  const q: MatchTransactionQueryParams = {
+    SkipCount: Number(pg.SkipCount) || 0,
+    MaxResultCount: Number(pg.MaxResultCount) || 0
+  };
+  if (Shipper) q.Shipper = Shipper;
+  if (JobNumber) q.JobNumber = JobNumber;
+  if (MatchNumber) q.MatchNumber = MatchNumber;
+  if (Type) q.Type = Type;
+  return q;
+}
+
+const {
+  data: rows,
+  loading,
+  columns,
+  pagination,
+  getData,
+  getDataByPage
+} = useNaivePaginatedTable<any, MatchTransactionRecord>({
+  api: async () => matchTransactionsQueryPage(buildQueryParams()),
+  columns: () =>
+    getMatchTransactionColumns(
+      row =>
+        router.push({
+          name: 'settlement_writeoff-edit',
+          query: { pk: row.ap_pk }
+        }),
+      (key, row) => handleRowAction(key, row)
+    ) as any,
   transform: response =>
     sjcTransform(response, {
       page: pageRef.value,
       pageSize: pageSizeRef.value
     }),
-  paginationProps: {
-    pageSize: 20,
-    pageSizes: [10, 20, 50, 100]
-  },
+  paginationProps: { pageSize: 50, pageSizes: [10, 20, 50, 100, 200] },
   onPaginationParamsChange: params => {
     pageRef.value = params.page ?? 1;
-    pageSizeRef.value = params.pageSize ?? 20;
+    pageSizeRef.value = params.pageSize ?? 50;
   }
 });
 
-async function handleViewDetail(row: WriteoffRecord) {
-  router.push({
-    name: 'settlement_writeoff-detail',
-    query: { apPk: row.ap_pk }
-  });
-}
-
-function handleSearch() {
-  getDataByPage(1);
-}
-
-function handleReset() {
-  searchVal.value = '';
-  searchOp.value = 'Contain';
-  getDataByPage(1);
-}
-
-const searchKeyOptions = [
-  {
-    label: () => t('page.settlement.writeoff.transactionNum'),
-    value: 'ah_transactionnum'
-  },
-  {
-    label: () => t('page.settlement.writeoff.companyName'),
-    value: 'companyName'
-  },
-  {
-    label: () => t('page.settlement.writeoff.status'),
-    value: 'ah_matchstatus'
+function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRecord) {
+  if (key === 'export') {
+    const csv = buildCsv([row]);
+    downloadCsv(csv, `writeoff_${row.ah_transactionnum || 'row'}.csv`);
+    window.$message?.success(`Exported ${row.ah_transactionnum}`);
+    return;
   }
-];
-
-const opOptions = [
-  { label: () => t('common.op.equal'), value: 'Equal' },
-  { label: () => t('common.op.notEqual'), value: 'NotEqual' },
-  { label: () => t('common.op.contain'), value: 'Contain' },
-  { label: () => t('common.op.notContain'), value: 'NotContain' }
-];
-
-const matchColumns = [
-  { title: 'Amount', key: 'ap_amount', width: 120, align: 'right' as const },
-  { title: 'GST', key: 'ap_gstrealised', width: 100, align: 'right' as const },
-  {
-    title: 'Match Date',
-    key: 'ap_matchdate',
-    width: 120,
-    align: 'center' as const,
-    render: (row: any) => (row.ap_matchdate ? row.ap_matchdate.split('T')[0] : '-')
-  },
-  {
-    title: 'OS Amount',
-    key: 'ap_osamount',
-    width: 120,
-    align: 'right' as const
-  },
-  { title: 'Reason', key: 'ap_reason', minWidth: 120 },
-  { title: 'Created By', key: 'ap_systemcreateuser', width: 120 },
-  {
-    title: 'Created Time',
-    key: 'ap_systemcreatetimeutc',
-    width: 160,
-    render: (row: any) =>
-      row.ap_systemcreatetimeutc ? row.ap_systemcreatetimeutc.replace('T', ' ').split('.')[0] : '-'
+  if (key === 'print') {
+    window.$message?.info(`Print ${row.ah_transactionnum} (mock)`);
+    return;
   }
-];
+  router.push({ name: 'settlement_writeoff-edit', query: { pk: row.ap_pk } });
+}
+
+function getRowProps(row: MatchTransactionRecord) {
+  return {
+    style: 'cursor: pointer;',
+    onDblclick: (e: MouseEvent) => {
+      if (
+        e.target instanceof HTMLElement &&
+        e.target.closest('button, a, input, textarea, [role="button"], .n-checkbox, .n-base-selection')
+      )
+        return;
+      router.push({
+        name: 'settlement_writeoff-detail',
+        query: { pk: row.ap_pk }
+      });
+    }
+  };
+}
+
+function csvCell(v: unknown) {
+  if (v == null) return '';
+  const s = String(v);
+  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
+}
+function buildCsv(items: MatchTransactionRecord[]) {
+  const h = '#,Type,Transaction No.,Company,Currency,Amount,Match Date,Reason';
+  return (
+    h +
+    '\n' +
+    items
+      .map((r, i) =>
+        [
+          csvCell(i + 1),
+          csvCell(r.ah_transactiontype),
+          csvCell(r.ah_transactionnum),
+          csvCell(r.companyName),
+          csvCell(r.ah_rx_nktransactioncurrency),
+          csvCell(r.ap_amount),
+          csvCell(r.ap_matchdate ? r.ap_matchdate.split('T')[0] : ''),
+          csvCell(r.ap_reason)
+        ].join(',')
+      )
+      .join('\n')
+  );
+}
+function downloadCsv(csv: string, name: string) {
+  const b = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const u = URL.createObjectURL(b);
+  const a = Object.assign(document.createElement('a'), { href: u });
+  a.setAttribute('download', name);
+  document.body.append(a);
+  a.click();
+  a.remove();
+  URL.revokeObjectURL(u);
+}
+
+async function handleExportAll() {
+  try {
+    loading.value = true;
+    const res: any = await matchTransactionsQueryPage(buildQueryParams({ SkipCount: 0, MaxResultCount: 50000 }));
+    if (res?.success === false) {
+      window.$message?.error(res.msg || 'Export failed.');
+      return;
+    }
+    const total = res?.data?.totalCount ?? 0;
+    if (total > 50000) window.$message?.warning(`Exporting first 50,000 of ${total} rows.`);
+    const mapped = (res?.data?.items ?? []).map((item: any, i: number) => ({
+      ...mapMatchTransactionItem(item),
+      index: i + 1
+    }));
+    downloadCsv(buildCsv(mapped), 'matching_transactions.csv');
+    window.$message?.success('Export completed');
+  } catch {
+    window.$message?.error('Export failed.');
+  } finally {
+    loading.value = false;
+  }
+}
+
+getData();
 </script>
 
 <template>
   <div class="h-full flex-col-stretch gap-16px overflow-hidden">
-    <NCard :title="t('page.settlement.writeoff.title')" :bordered="false" class="flex-shrink-0">
-      <NSpace align="center" :wrap="false">
-        <NSelect v-model:value="searchKey" :options="searchKeyOptions" style="width: 150px" />
-        <NSelect v-model:value="searchOp" :options="opOptions" style="width: 120px" />
-        <NInput
-          v-model:value="searchVal"
-          :placeholder="t('common.keywordSearch')"
-          clearable
-          style="width: 200px"
-          @keyup.enter="handleSearch"
-        />
-        <NButton type="primary" :loading="loading" @click="handleSearch">
-          {{ t('common.search') }}
-        </NButton>
-        <NButton @click="handleReset">{{ t('common.reset') }}</NButton>
-      </NSpace>
+    <NCard :bordered="false" class="flex-shrink-0">
+      <NGrid :cols="24" :x-gap="12" :y-gap="12">
+        <NGi :span="8">
+          <div class="flex items-center gap-8px">
+            <NSelect v-model:value="filters.field1.key" :options="field1KeyOptions" class="w-140px shrink-0" />
+            <NDatePicker
+              v-model:formatted-value="filters.field1.start"
+              type="date"
+              value-format="yyyy-MM-dd"
+              clearable
+              class="min-w-0 flex-1"
+            />
+            <span class="text-14px text-#999">-</span>
+            <NDatePicker
+              v-model:formatted-value="filters.field1.end"
+              type="date"
+              value-format="yyyy-MM-dd"
+              clearable
+              class="min-w-0 flex-1"
+            />
+          </div>
+        </NGi>
+        <NGi :span="10">
+          <div class="flex items-center gap-8px">
+            <NSelect v-model:value="filters.field2.key" :options="field2KeyOptions" class="w-160px shrink-0" />
+            <NInput
+              v-model:value="filters.field2.value"
+              placeholder="Job No. / Shipper / Match No."
+              clearable
+              class="min-w-0 flex-1"
+              @keyup.enter="getDataByPage(1)"
+            />
+          </div>
+        </NGi>
+        <NGi :span="6">
+          <NSpace justify="end" class="w-full">
+            <NButton type="primary" :loading="loading" @click="getDataByPage(1)">
+              {{ t('common.search') }}
+            </NButton>
+            <NButton
+              @click="
+                Object.assign(filters, createDefaultFilters());
+                getDataByPage(1);
+              "
+            >
+              {{ t('common.reset') }}
+            </NButton>
+            <NButton quaternary @click="showMoreFilters = !showMoreFilters">
+              {{ showMoreFilters ? 'Hide' : 'More' }}
+            </NButton>
+          </NSpace>
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NInput v-model:value="filters.ledger" placeholder="Ledger" clearable />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NInput v-model:value="filters.match_number" placeholder="Match Number" clearable />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NInput v-model:value="filters.billing_party" placeholder="Billing Party" clearable />
+        </NGi>
+      </NGrid>
     </NCard>
-
     <NCard :bordered="false" class="flex-1-hidden overflow-auto">
       <NSpace vertical :size="12">
-        <NButton type="primary" @click="$router.push({ name: 'settlement_writeoff-create' })">
-          {{ t('page.settlement.writeoff.addWriteoff') }}
-        </NButton>
-
+        <NSpace>
+          <NButton type="primary" @click="$router.push({ name: 'settlement_writeoff-create' })">New Receipt</NButton>
+          <NButton @click="handleExportAll">Export</NButton>
+        </NSpace>
         <NDataTable
           :columns="columns as any"
-          :data="data"
+          :data="rows"
           :loading="loading"
           :pagination="pagination"
-          :row-key="(row: any) => row.ap_pk"
+          :row-key="(r: any) => r.ap_pk"
+          :row-props="getRowProps"
+          :scroll-x="1200"
           remote
           striped
         />

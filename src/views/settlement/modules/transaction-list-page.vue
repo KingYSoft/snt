@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from 'vue';
 import type { DataTableRowKey, SelectOption } from 'naive-ui';
+import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
-import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
+import { sjcTransform } from '@/utils/maintain/transform';
 import type { SettlementTransactionQueryParams, SettlementTransactionRecord } from '@/service/api/business/settlement';
 import { queryPayableTransactions, queryReceivableTransactions } from '@/service/api/business/settlement';
 import { getSettlementTransactionColumns, type SettlementTransactionActionKey } from './transaction-columns';
@@ -34,6 +35,7 @@ interface TransactionFilterState {
 const props = defineProps<Props>();
 
 const { t } = useI18n();
+const router = useRouter();
 
 const showMoreFilters = ref(true);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
@@ -136,7 +138,6 @@ const {
   loading,
   columns,
   pagination,
-  getData,
   getDataByPage
 } = useNaivePaginatedTable<any, SettlementTransactionRecord>({
   api: async () => {
@@ -271,7 +272,11 @@ async function handleExportAll() {
 }
 
 function handleCreate() {
-  window.$message?.info(t('page.settlement.transactions.createDeveloping'));
+  if (props.type === 'receivable') {
+    router.push({ name: 'settlement_receivable-transactions-create' });
+  } else {
+    router.push({ name: 'settlement_payable-transactions-create' });
+  }
 }
 
 function handleRowAction(key: SettlementTransactionActionKey, row: SettlementTransactionRecord) {
