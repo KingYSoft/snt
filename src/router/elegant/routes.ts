@@ -4,558 +4,548 @@
 // Read more: https://github.com/soybeanjs/elegant-router
 
 import type { GeneratedRoute } from '@elegant-router/types';
-import { hidden } from "kolorist";
+import { hidden } from 'kolorist';
 
 export const generatedRoutes: GeneratedRoute[] = [
   {
-    name: "403",
-    path: "/403",
-    component: "layout.blank$view.403",
+    name: '403',
+    path: '/403',
+    component: 'layout.blank$view.403',
     meta: {
-      title: "403",
-      i18nKey: "route.403",
+      title: '403',
+      i18nKey: 'route.403',
       constant: true,
-      hideInMenu: true,
-    },
+      hideInMenu: true
+    }
   },
   {
-    name: "404",
-    path: "/404",
-    component: "layout.blank$view.404",
+    name: '404',
+    path: '/404',
+    component: 'layout.blank$view.404',
     meta: {
-      title: "404",
-      i18nKey: "route.404",
+      title: '404',
+      i18nKey: 'route.404',
       constant: true,
-      hideInMenu: true,
-    },
+      hideInMenu: true
+    }
   },
   {
-    name: "500",
-    path: "/500",
-    component: "layout.blank$view.500",
+    name: '500',
+    path: '/500',
+    component: 'layout.blank$view.500',
     meta: {
-      title: "500",
-      i18nKey: "route.500",
+      title: '500',
+      i18nKey: 'route.500',
       constant: true,
-      hideInMenu: true,
-    },
+      hideInMenu: true
+    }
   },
   {
-    name: "business",
-    path: "/business",
-    component: "layout.base",
+    name: 'business',
+    path: '/business',
+    component: 'layout.base',
     meta: {
-      title: "business",
-      i18nKey: "route.business",
-      order: 2,
+      title: 'business',
+      i18nKey: 'route.business',
+      order: 2
     },
     children: [
       {
-        name: "business_consolidation",
-        path: "/business/consolidation",
-        component: "view.business_consolidation",
+        name: 'business_consolidation',
+        path: '/business/consolidation',
+        component: 'view.business_consolidation',
         meta: {
-          title: "business_consolidation",
-          i18nKey: "route.business_consolidation",
-          order: 3,
-        },
+          title: 'business_consolidation',
+          i18nKey: 'route.business_consolidation',
+          order: 3
+        }
       },
       {
-        name: "business_consolidation-detail",
-        path: "/business/consolidation-detail/:pk",
-        component: "view.business_consolidation-detail",
+        name: 'business_consolidation-edite',
+        path: '/business/consolidation-edite/:pk',
+        component: 'view.business_consolidation-edite',
         meta: {
-          title: "business_consolidation",
-          i18nKey: "route.business_consolidation",
-          hideInMenu: true,
-        },
+          title: 'business_consolidation-edite',
+          i18nKey: 'route.business_consolidation-edite',
+          hideInMenu: true
+        }
       },
       {
-        name: "business_consolidation-edite",
-        path: "/business/consolidation-edite/:pk",
-        component: "view.business_consolidation-edite",
+        name: 'business_shipment',
+        path: '/business/shipment',
+        component: 'view.business_shipment',
         meta: {
-          title: "business_consolidation-edite",
-          i18nKey: "route.business_consolidation-edite",
-          hideInMenu: true,
-        },
+          title: 'business_shipment',
+          i18nKey: 'route.business_shipment',
+          order: 2
+        }
       },
       {
-        name: "business_shipment",
-        path: "/business/shipment",
-        component: "view.business_shipment",
+        name: 'business_shipment-edit',
+        path: '/business/shipment-edit/:pk',
+        component: 'view.business_shipment-edit',
         meta: {
-          title: "business_shipment",
-          i18nKey: "route.business_shipment",
-          order: 2,
-        },
+          title: 'business_shipment-edit',
+          i18nKey: 'route.business_shipment-edit',
+          hideInMenu: true
+        }
       },
       {
-        name: "business_shipment-edit",
-        path: "/business/shipment-edit/:pk",
-        component: "view.business_shipment-edit",
+        name: 'business_shipment-new',
+        path: '/business/shipment-new',
+        component: 'view.business_shipment-new',
         meta: {
-          title: "business_shipment-edit",
-          i18nKey: "route.business_shipment-edit",
-          hideInMenu: true,
-        },
-      },
-      {
-        name: "business_shipment-new",
-        path: "/business/shipment-new",
-        component: "view.business_shipment-new",
-        meta: {
-          title: "business_shipment-new",
-          i18nKey: "route.business_shipment-new",
-          hideInMenu: true,
-        },
-      },
-    ],
+          title: 'business_shipment-new',
+          i18nKey: 'route.business_shipment-new',
+          hideInMenu: true
+        }
+      }
+    ]
   },
   {
-    name: "home",
-    path: "/home",
-    component: "layout.base$view.home",
+    name: 'home',
+    path: '/home',
+    component: 'layout.base$view.home',
     meta: {
-      title: "home",
-      i18nKey: "route.home",
-      icon: "mdi:monitor-dashboard",
-      order: 1,
-    },
+      title: 'home',
+      i18nKey: 'route.home',
+      icon: 'mdi:monitor-dashboard',
+      order: 1
+    }
   },
   {
-    name: "iframe-page",
-    path: "/iframe-page/:url",
-    component: "layout.base$view.iframe-page",
+    name: 'iframe-page',
+    path: '/iframe-page/:url',
+    component: 'layout.base$view.iframe-page',
     props: true,
     meta: {
-      title: "iframe-page",
-      i18nKey: "route.iframe-page",
+      title: 'iframe-page',
+      i18nKey: 'route.iframe-page',
       constant: true,
       hideInMenu: true,
-      keepAlive: true,
-    },
+      keepAlive: true
+    }
   },
   {
-    name: "login",
-    path: "/login/:module(pwd-login)?",
-    component: "layout.blank$view.login",
+    name: 'login',
+    path: '/login/:module(pwd-login)?',
+    component: 'layout.blank$view.login',
     props: true,
     meta: {
-      title: "login",
-      i18nKey: "route.login",
+      title: 'login',
+      i18nKey: 'route.login',
       constant: true,
-      hideInMenu: true,
-    },
+      hideInMenu: true
+    }
   },
   {
-    name: "maintain",
-    path: "/maintain",
-    component: "layout.base",
+    name: 'maintain',
+    path: '/maintain',
+    component: 'layout.base',
     meta: {
-      title: "maintain",
-      i18nKey: "route.maintain",
-      order: 8,
+      title: 'maintain',
+      i18nKey: 'route.maintain',
+      order: 8
     },
     children: [
       {
-        name: "maintain_airlines",
-        path: "/maintain/airlines",
-        component: "view.maintain_airlines",
+        name: 'maintain_airlines',
+        path: '/maintain/airlines',
+        component: 'view.maintain_airlines',
         meta: {
-          title: "maintain_airlines",
-          i18nKey: "route.maintain_airlines",
-          order: 1,
-        },
+          title: 'maintain_airlines',
+          i18nKey: 'route.maintain_airlines',
+          order: 1
+        }
       },
       {
-        name: "maintain_bank",
-        path: "/maintain/bank",
-        component: "view.maintain_bank",
+        name: 'maintain_bank',
+        path: '/maintain/bank',
+        component: 'view.maintain_bank',
         meta: {
-          title: "maintain_bank",
-          i18nKey: "route.maintain_bank",
-          order: 2,
-        },
+          title: 'maintain_bank',
+          i18nKey: 'route.maintain_bank',
+          order: 2
+        }
       },
       {
-        name: "maintain_carrier-contract",
-        path: "/maintain/carrier-contract",
-        component: "view.maintain_carrier-contract",
+        name: 'maintain_carrier-contract',
+        path: '/maintain/carrier-contract',
+        component: 'view.maintain_carrier-contract',
         meta: {
-          title: "maintain_carrier-contract",
-          i18nKey: "route.maintain_carrier-contract",
+          title: 'maintain_carrier-contract',
+          i18nKey: 'route.maintain_carrier-contract',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'maintain_charge-code',
+        path: '/maintain/charge-code',
+        component: 'view.maintain_charge-code',
+        meta: {
+          title: 'maintain_charge-code',
+          i18nKey: 'route.maintain_charge-code',
+          order: 3
+        }
+      },
+      {
+        name: 'maintain_charter-flight',
+        path: '/maintain/charter-flight',
+        component: 'view.maintain_charter-flight',
+        meta: {
+          title: 'maintain_charter-flight',
+          i18nKey: 'route.maintain_charter-flight',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'maintain_commodities',
+        path: '/maintain/commodities',
+        component: 'view.maintain_commodities',
+        meta: {
+          title: 'maintain_commodities',
+          i18nKey: 'route.maintain_commodities',
+          order: 5
+        }
+      },
+      {
+        name: 'maintain_consignee-contract',
+        path: '/maintain/consignee-contract',
+        component: 'view.maintain_consignee-contract',
+        meta: {
+          title: 'maintain_consignee-contract',
+          i18nKey: 'route.maintain_consignee-contract',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'maintain_containers',
+        path: '/maintain/containers',
+        component: 'view.maintain_containers',
+        meta: {
+          title: 'maintain_containers',
+          i18nKey: 'route.maintain_containers',
+          order: 6
+        }
+      },
+      {
+        name: 'maintain_currency',
+        path: '/maintain/currency',
+        component: 'view.maintain_currency',
+        meta: {
+          title: 'maintain_currency',
+          i18nKey: 'route.maintain_currency',
+          order: 7
+        }
+      },
+      {
+        name: 'maintain_equipment',
+        path: '/maintain/equipment',
+        component: 'view.maintain_equipment',
+        meta: {
+          title: 'maintain_equipment',
+          i18nKey: 'route.maintain_equipment',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'maintain_exchange-rate',
+        path: '/maintain/exchange-rate',
+        component: 'view.maintain_exchange-rate',
+        meta: {
+          title: 'maintain_exchange-rate',
+          i18nKey: 'route.maintain_exchange-rate',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'maintain_international-zone',
+        path: '/maintain/international-zone',
+        component: 'view.maintain_international-zone',
+        meta: {
+          title: 'maintain_international-zone',
+          i18nKey: 'route.maintain_international-zone',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'maintain_mawb-stock',
+        path: '/maintain/mawb-stock',
+        component: 'view.maintain_mawb-stock',
+        meta: {
+          title: 'maintain_mawb-stock',
+          i18nKey: 'route.maintain_mawb-stock',
+          hideInMenu: true
+        }
+      },
+      {
+        name: 'maintain_organization',
+        path: '/maintain/organization',
+        component: 'view.maintain_organization',
+        meta: {
+          title: 'maintain_organization',
+          i18nKey: 'route.maintain_organization',
+          order: 11
+        }
+      },
+      {
+        name: 'maintain_organization-detail',
+        path: '/maintain/organization-detail',
+        component: 'view.maintain_organization-detail',
+        meta: {
+          title: 'maintain_organization-detail',
+          i18nKey: 'route.maintain_organization-detail',
           hideInMenu: true,
-        },
+          order: 13
+        }
       },
       {
-        name: "maintain_charge-code",
-        path: "/maintain/charge-code",
-        component: "view.maintain_charge-code",
+        name: 'maintain_organization-edit',
+        path: '/maintain/organization-edit/:pk',
+        component: 'view.maintain_organization-edit',
         meta: {
-          title: "maintain_charge-code",
-          i18nKey: "route.maintain_charge-code",
-          order: 3,
-        },
-      },
-      {
-        name: "maintain_charter-flight",
-        path: "/maintain/charter-flight",
-        component: "view.maintain_charter-flight",
-        meta: {
-          title: "maintain_charter-flight",
-          i18nKey: "route.maintain_charter-flight",
+          title: 'maintain_organization-edit',
+          i18nKey: 'route.maintain_organization-edit',
           hideInMenu: true,
-        },
+          order: 14
+        }
       },
       {
-        name: "maintain_commodities",
-        path: "/maintain/commodities",
-        component: "view.maintain_commodities",
+        name: 'maintain_organization-new',
+        path: '/maintain/organization-new',
+        component: 'view.maintain_organization-new',
         meta: {
-          title: "maintain_commodities",
-          i18nKey: "route.maintain_commodities",
-          order: 5,
-        },
-      },
-      {
-        name: "maintain_consignee-contract",
-        path: "/maintain/consignee-contract",
-        component: "view.maintain_consignee-contract",
-        meta: {
-          title: "maintain_consignee-contract",
-          i18nKey: "route.maintain_consignee-contract",
+          title: 'maintain_organization-new',
+          i18nKey: 'route.maintain_organization-new',
           hideInMenu: true,
-        },
+          order: 15
+        }
       },
       {
-        name: "maintain_containers",
-        path: "/maintain/containers",
-        component: "view.maintain_containers",
+        name: 'maintain_package-types',
+        path: '/maintain/package-types',
+        component: 'view.maintain_package-types',
         meta: {
-          title: "maintain_containers",
-          i18nKey: "route.maintain_containers",
-          order: 6,
-        },
+          title: 'maintain_package-types',
+          i18nKey: 'route.maintain_package-types',
+          order: 7
+        }
       },
       {
-        name: "maintain_currency",
-        path: "/maintain/currency",
-        component: "view.maintain_currency",
+        name: 'maintain_port-code',
+        path: '/maintain/port-code',
+        component: 'view.maintain_port-code',
         meta: {
-          title: "maintain_currency",
-          i18nKey: "route.maintain_currency",
-          order: 7,
-        },
+          title: 'maintain_port-code',
+          i18nKey: 'route.maintain_port-code',
+          order: 8
+        }
       },
       {
-        name: "maintain_equipment",
-        path: "/maintain/equipment",
-        component: "view.maintain_equipment",
+        name: 'maintain_service-level',
+        path: '/maintain/service-level',
+        component: 'view.maintain_service-level',
         meta: {
-          title: "maintain_equipment",
-          i18nKey: "route.maintain_equipment",
-          hideInMenu: true,
-        },
+          title: 'maintain_service-level',
+          i18nKey: 'route.maintain_service-level',
+          order: 9
+        }
       },
       {
-        name: "maintain_exchange-rate",
-        path: "/maintain/exchange-rate",
-        component: "view.maintain_exchange-rate",
+        name: 'maintain_shipping-lines',
+        path: '/maintain/shipping-lines',
+        component: 'view.maintain_shipping-lines',
         meta: {
-          title: "maintain_exchange-rate",
-          i18nKey: "route.maintain_exchange-rate",
-          hideInMenu: true,
-        },
+          title: 'maintain_shipping-lines',
+          i18nKey: 'route.maintain_shipping-lines',
+          order: 10
+        }
       },
       {
-        name: "maintain_international-zone",
-        path: "/maintain/international-zone",
-        component: "view.maintain_international-zone",
+        name: 'maintain_shipping-schedule',
+        path: '/maintain/shipping-schedule',
+        component: 'view.maintain_shipping-schedule',
         meta: {
-          title: "maintain_international-zone",
-          i18nKey: "route.maintain_international-zone",
-          hideInMenu: true,
-        },
+          title: 'maintain_shipping-schedule',
+          i18nKey: 'route.maintain_shipping-schedule',
+          hideInMenu: true
+        }
       },
       {
-        name: "maintain_mawb-stock",
-        path: "/maintain/mawb-stock",
-        component: "view.maintain_mawb-stock",
+        name: 'maintain_vessel',
+        path: '/maintain/vessel',
+        component: 'view.maintain_vessel',
         meta: {
-          title: "maintain_mawb-stock",
-          i18nKey: "route.maintain_mawb-stock",
-          hideInMenu: true,
-        },
+          title: 'maintain_vessel',
+          i18nKey: 'route.maintain_vessel',
+          order: 19
+        }
       },
       {
-        name: "maintain_organization",
-        path: "/maintain/organization",
-        component: "view.maintain_organization",
+        name: 'maintain_warehouse',
+        path: '/maintain/warehouse',
+        component: 'view.maintain_warehouse',
         meta: {
-          title: "maintain_organization",
-          i18nKey: "route.maintain_organization",
-          order: 11,
-        },
-      },
-      {
-        name: "maintain_organization-detail",
-        path: "/maintain/organization-detail",
-        component: "view.maintain_organization-detail",
-        meta: {
-          title: "maintain_organization-detail",
-          i18nKey: "route.maintain_organization-detail",
-          hideInMenu: true,
-          order: 13,
-        },
-      },
-      {
-        name: "maintain_organization-edit",
-        path: "/maintain/organization-edit/:pk",
-        component: "view.maintain_organization-edit",
-        meta: {
-          title: "maintain_organization-edit",
-          i18nKey: "route.maintain_organization-edit",
-          hideInMenu: true,
-          order: 14,
-        },
-      },
-      {
-        name: "maintain_organization-new",
-        path: "/maintain/organization-new",
-        component: "view.maintain_organization-new",
-        meta: {
-          title: "maintain_organization-new",
-          i18nKey: "route.maintain_organization-new",
-          hideInMenu: true,
-          order: 15,
-        },
-      },
-      {
-        name: "maintain_package-types",
-        path: "/maintain/package-types",
-        component: "view.maintain_package-types",
-        meta: {
-          title: "maintain_package-types",
-          i18nKey: "route.maintain_package-types",
-          order: 7,
-        },
-      },
-      {
-        name: "maintain_port-code",
-        path: "/maintain/port-code",
-        component: "view.maintain_port-code",
-        meta: {
-          title: "maintain_port-code",
-          i18nKey: "route.maintain_port-code",
-          order: 8,
-        },
-      },
-      {
-        name: "maintain_service-level",
-        path: "/maintain/service-level",
-        component: "view.maintain_service-level",
-        meta: {
-          title: "maintain_service-level",
-          i18nKey: "route.maintain_service-level",
-          order: 9,
-        },
-      },
-      {
-        name: "maintain_shipping-lines",
-        path: "/maintain/shipping-lines",
-        component: "view.maintain_shipping-lines",
-        meta: {
-          title: "maintain_shipping-lines",
-          i18nKey: "route.maintain_shipping-lines",
-          order: 10,
-        },
-      },
-      {
-        name: "maintain_shipping-schedule",
-        path: "/maintain/shipping-schedule",
-        component: "view.maintain_shipping-schedule",
-        meta: {
-          title: "maintain_shipping-schedule",
-          i18nKey: "route.maintain_shipping-schedule",
-          hideInMenu: true,
-        },
-      },
-      {
-        name: "maintain_vessel",
-        path: "/maintain/vessel",
-        component: "view.maintain_vessel",
-        meta: {
-          title: "maintain_vessel",
-          i18nKey: "route.maintain_vessel",
-          order: 19,
-        },
-      },
-      {
-        name: "maintain_warehouse",
-        path: "/maintain/warehouse",
-        component: "view.maintain_warehouse",
-        meta: {
-          title: "maintain_warehouse",
-          i18nKey: "route.maintain_warehouse",
-          hideInMenu: true,
-        },
-      },
+          title: 'maintain_warehouse',
+          i18nKey: 'route.maintain_warehouse',
+          hideInMenu: true
+        }
+      }
     ],
-    props: true,
+    props: true
   },
   {
-    name: "settlement",
-    path: "/settlement",
-    component: "layout.base",
+    name: 'settlement',
+    path: '/settlement',
+    component: 'layout.base',
     meta: {
-      title: "settlement",
-      i18nKey: "route.settlement",
-      order: 3,
+      title: 'settlement',
+      i18nKey: 'route.settlement',
+      order: 3
     },
     children: [
       {
-        name: "settlement_billing-detail",
-        path: "/settlement/billing-detail",
-        component: "view.settlement_billing-detail",
+        name: 'settlement_billing-detail',
+        path: '/settlement/billing-detail',
+        component: 'view.settlement_billing-detail',
         meta: {
-          title: "settlement_billing-detail",
-          i18nKey: "route.settlement_billing-detail",
-          hideInMenu: true,
-        },
+          title: 'settlement_billing-detail',
+          i18nKey: 'route.settlement_billing-detail',
+          hideInMenu: true
+        }
       },
       {
-        name: "settlement_payable-transactions",
-        path: "/settlement/payable-transactions",
-        component: "view.settlement_payable-transactions",
+        name: 'settlement_payable-transactions',
+        path: '/settlement/payable-transactions',
+        component: 'view.settlement_payable-transactions',
         meta: {
-          title: "settlement_payable-transactions",
-          i18nKey: "route.settlement_payable-transactions",
-          order: 2,
-        },
+          title: 'settlement_payable-transactions',
+          i18nKey: 'route.settlement_payable-transactions',
+          order: 2
+        }
       },
       {
-        name: "settlement_payable-transactions-create",
-        path: "/settlement/payable-transactions-create",
-        component: "view.settlement_payable-transactions-create",
+        name: 'settlement_payable-transactions-create',
+        path: '/settlement/payable-transactions-create',
+        component: 'view.settlement_payable-transactions-create',
         meta: {
-          title: "settlement_payable-transactions-create",
-          i18nKey: "route.settlement_payable-transactions-create",
-          hideInMenu: true,
-        },
+          title: 'settlement_payable-transactions-create',
+          i18nKey: 'route.settlement_payable-transactions-create',
+          hideInMenu: true
+        }
       },
       {
-        name: "settlement_receivable-transactions",
-        path: "/settlement/receivable-transactions",
-        component: "view.settlement_receivable-transactions",
+        name: 'settlement_receivable-transactions',
+        path: '/settlement/receivable-transactions',
+        component: 'view.settlement_receivable-transactions',
         meta: {
-          title: "settlement_receivable-transactions",
-          i18nKey: "route.settlement_receivable-transactions",
-          order: 1,
-        },
+          title: 'settlement_receivable-transactions',
+          i18nKey: 'route.settlement_receivable-transactions',
+          order: 1
+        }
       },
       {
-        name: "settlement_receivable-transactions-create",
-        path: "/settlement/receivable-transactions-create",
-        component: "view.settlement_receivable-transactions-create",
+        name: 'settlement_receivable-transactions-create',
+        path: '/settlement/receivable-transactions-create',
+        component: 'view.settlement_receivable-transactions-create',
         meta: {
-          title: "settlement_receivable-transactions-create",
-          i18nKey: "route.settlement_receivable-transactions-create",
-          hideInMenu: true,
-        },
+          title: 'settlement_receivable-transactions-create',
+          i18nKey: 'route.settlement_receivable-transactions-create',
+          hideInMenu: true
+        }
       },
       {
-        name: "settlement_writeoff",
-        path: "/settlement/writeoff",
-        component: "view.settlement_writeoff",
+        name: 'settlement_writeoff',
+        path: '/settlement/writeoff',
+        component: 'view.settlement_writeoff',
         meta: {
-          title: "settlement_writeoff",
-          i18nKey: "route.settlement_writeoff",
-          order: 3,
-        },
+          title: 'settlement_writeoff',
+          i18nKey: 'route.settlement_writeoff',
+          order: 3
+        }
       },
       {
-        name: "settlement_writeoff-create",
-        path: "/settlement/writeoff-create",
-        component: "view.settlement_writeoff-create",
+        name: 'settlement_writeoff-create',
+        path: '/settlement/writeoff-create',
+        component: 'view.settlement_writeoff-create',
         meta: {
-          title: "settlement_writeoff-create",
-          i18nKey: "route.settlement_writeoff-create",
-          hideInMenu: true,
-        },
+          title: 'settlement_writeoff-create',
+          i18nKey: 'route.settlement_writeoff-create',
+          hideInMenu: true
+        }
       },
       {
-        name: "settlement_writeoff-detail",
-        path: "/settlement/writeoff-detail",
-        component: "view.settlement_writeoff-detail",
+        name: 'settlement_writeoff-detail',
+        path: '/settlement/writeoff-detail',
+        component: 'view.settlement_writeoff-detail',
         meta: {
-          title: "settlement_writeoff-detail",
-          i18nKey: "route.settlement_writeoff-detail",
-          hideInMenu: true,
-        },
+          title: 'settlement_writeoff-detail',
+          i18nKey: 'route.settlement_writeoff-detail',
+          hideInMenu: true
+        }
       },
       {
-        name: "settlement_writeoff-edit",
-        path: "/settlement/writeoff-edit",
-        component: "view.settlement_writeoff-edit",
+        name: 'settlement_writeoff-edit',
+        path: '/settlement/writeoff-edit',
+        component: 'view.settlement_writeoff-edit',
         meta: {
-          title: "settlement_writeoff-edit",
-          i18nKey: "route.settlement_writeoff-edit",
-          hideInMenu: true,
-        },
-      },
-    ],
+          title: 'settlement_writeoff-edit',
+          i18nKey: 'route.settlement_writeoff-edit',
+          hideInMenu: true
+        }
+      }
+    ]
   },
   {
-    name: "system",
-    path: "/system",
-    component: "layout.base",
+    name: 'system',
+    path: '/system',
+    component: 'layout.base',
     meta: {
-      title: "system",
-      i18nKey: "route.system",
-      order: 9,
+      title: 'system',
+      i18nKey: 'route.system',
+      order: 9
     },
     children: [
       {
-        name: "system_branch",
-        path: "/system/branch",
-        component: "view.system_branch",
+        name: 'system_branch',
+        path: '/system/branch',
+        component: 'view.system_branch',
         meta: {
-          title: "system_branch",
-          i18nKey: "route.system_branch",
-          order: 4,
-        },
+          title: 'system_branch',
+          i18nKey: 'route.system_branch',
+          order: 4
+        }
       },
       {
-        name: "system_company",
-        path: "/system/company",
-        component: "view.system_company",
+        name: 'system_company',
+        path: '/system/company',
+        component: 'view.system_company',
         meta: {
-          title: "system_company",
-          i18nKey: "route.system_company",
-          order: 3,
-        },
+          title: 'system_company',
+          i18nKey: 'route.system_company',
+          order: 3
+        }
       },
       {
-        name: "system_group",
-        path: "/system/group",
-        component: "view.system_group",
+        name: 'system_group',
+        path: '/system/group',
+        component: 'view.system_group',
         meta: {
-          title: "system_group",
-          i18nKey: "route.system_group",
-          order: 2,
-        },
+          title: 'system_group',
+          i18nKey: 'route.system_group',
+          order: 2
+        }
       },
       {
-        name: "system_user",
-        path: "/system/user",
-        component: "view.system_user",
+        name: 'system_user',
+        path: '/system/user',
+        component: 'view.system_user',
         meta: {
-          title: "system_user",
-          i18nKey: "route.system_user",
-          order: 1,
-        },
-      },
-    ],
-  },
+          title: 'system_user',
+          i18nKey: 'route.system_user',
+          order: 1
+        }
+      }
+    ]
+  }
 ];

@@ -2,10 +2,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import {
-  NButton, NCard, NDataTable, NDivider, NGrid, NGi,
-  NInput, NRadio, NRadioGroup, NSpace,
-} from 'naive-ui';
+import { NButton, NCard, NDataTable, NDivider, NGrid, NGi, NInput, NRadio, NRadioGroup, NSpace } from 'naive-ui';
 import { matchTransactionsQueryLines } from '@/service/api/business/match-transactions';
 
 defineOptions({ name: 'PageSettlementWriteoffDetail' });
@@ -30,7 +27,10 @@ const matchLink = ref<Record<string, any> | null>(null);
 const lineItems = ref<any[]>([]);
 
 onMounted(async () => {
-  if (!pk) { loading.value = false; return; }
+  if (!pk) {
+    loading.value = false;
+    return;
+  }
   try {
     const res: any = await matchTransactionsQueryLines({ apPk: pk });
     const data = res?.data ?? res;
@@ -40,7 +40,9 @@ onMounted(async () => {
   } catch (error) {
     console.error(error);
     window.$message?.error('Failed to load detail.');
-  } finally { loading.value = false; }
+  } finally {
+    loading.value = false;
+  }
 });
 
 // ==================== Summary ====================
@@ -51,7 +53,14 @@ const summaryRows = computed(() => {
     const exRate = Number(row.ex_rate ?? 1);
     if (Number.isNaN(exRate)) continue;
     const key = `${currency}__${exRate}`;
-    const cur = map.get(key) ?? { key, currency, exRate: Number.isFinite(exRate) ? exRate : 1, osAmount: 0, settledAmount: 0, homeAmount: 0 };
+    const cur = map.get(key) ?? {
+      key,
+      currency,
+      exRate: Number.isFinite(exRate) ? exRate : 1,
+      osAmount: 0,
+      settledAmount: 0,
+      homeAmount: 0
+    };
     cur.osAmount += Number(row.outstanding) || 0;
     cur.settledAmount += Number(row.settlement_amount_original) || 0;
     cur.homeAmount += Number(row.settlement_amount_home) || 0;
@@ -61,11 +70,13 @@ const summaryRows = computed(() => {
 });
 
 const summaryTotalHomeAmount = computed(() =>
-  summaryRows.value.reduce((acc: number, r: any) => acc + (Number(r.homeAmount) || 0), 0),
+  summaryRows.value.reduce((acc: number, r: any) => acc + (Number(r.homeAmount) || 0), 0)
 );
 
 const lineLedgerDisplay = computed(() => {
-  const u = String(header.value?.ah_ledger ?? 'AR').trim().toUpperCase();
+  const u = String(header.value?.ah_ledger ?? 'AR')
+    .trim()
+    .toUpperCase();
   return u === 'AP' ? 'AP' : 'AR';
 });
 
@@ -78,15 +89,43 @@ const lineColumns = [
   { key: 'invoice_number', title: 'Invoice Number', width: 140, ellipsis: { tooltip: true } },
   { key: 'billing_date', title: 'Billing Date', width: 120 },
   { key: 'charge_desc', title: 'Charge Desc.', width: 140, ellipsis: { tooltip: true } },
-  { key: 'outstanding', title: 'Outstanding', width: 120, align: 'right' as const, render: (r: any) => formatNum(r.outstanding) },
-  { key: 'settlement_amount_original', title: 'Settled (Original)', width: 200, align: 'right' as const, render: (r: any) => formatNum(r.settlement_amount_original) },
+  {
+    key: 'outstanding',
+    title: 'Outstanding',
+    width: 120,
+    align: 'right' as const,
+    render: (r: any) => formatNum(r.outstanding)
+  },
+  {
+    key: 'settlement_amount_original',
+    title: 'Settled (Original)',
+    width: 200,
+    align: 'right' as const,
+    render: (r: any) => formatNum(r.settlement_amount_original)
+  },
   { key: 'currency', title: 'Currency', width: 80, align: 'center' as const },
-  { key: 'ex_rate', title: 'Ex. Rate', width: 100, align: 'right' as const, render: (r: any) => formatNum(r.ex_rate, 6) },
-  { key: 'settlement_amount_home', title: 'Settled (Home)', width: 180, align: 'right' as const, render: (r: any) => formatNum(r.settlement_amount_home) },
+  {
+    key: 'ex_rate',
+    title: 'Ex. Rate',
+    width: 100,
+    align: 'right' as const,
+    render: (r: any) => formatNum(r.ex_rate, 6)
+  },
+  {
+    key: 'settlement_amount_home',
+    title: 'Settled (Home)',
+    width: 180,
+    align: 'right' as const,
+    render: (r: any) => formatNum(r.settlement_amount_home)
+  }
 ];
 
-function handleBack() { router.push({ name: 'settlement_writeoff' }); }
-function handleEdit() { router.push({ name: 'settlement_writeoff-edit', query: { pk } }); }
+function handleBack() {
+  router.push({ name: 'settlement_writeoff' });
+}
+function handleEdit() {
+  router.push({ name: 'settlement_writeoff-edit', query: { pk } });
+}
 </script>
 
 <template>
@@ -126,7 +165,11 @@ function handleEdit() { router.push({ name: 'settlement_writeoff-edit', query: {
                   </NInput>
                 </NGi>
                 <NGi>
-                  <NInput :value="matchLink?.ap_matchdate ? matchLink.ap_matchdate.split('T')[0] : '-'" readonly size="small">
+                  <NInput
+                    :value="matchLink?.ap_matchdate ? matchLink.ap_matchdate.split('T')[0] : '-'"
+                    readonly
+                    size="small"
+                  >
                     <template #prefix>{{ te('settleDate') }}:</template>
                   </NInput>
                 </NGi>
@@ -199,12 +242,22 @@ function handleEdit() { router.push({ name: 'settlement_writeoff-edit', query: {
 
         <NDivider style="margin: 8px 0" />
 
-        <NDataTable :columns="lineColumns" :data="lineItems" :bordered="false" striped :pagination="false" size="small" :scroll-x="1700" />
+        <NDataTable
+          :columns="lineColumns"
+          :data="lineItems"
+          :bordered="false"
+          striped
+          :pagination="false"
+          size="small"
+          :scroll-x="1700"
+        />
       </template>
     </NCard>
   </div>
 </template>
 
 <style scoped>
-table { border-collapse: collapse; }
+table {
+  border-collapse: collapse;
+}
 </style>

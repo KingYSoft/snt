@@ -633,11 +633,9 @@ const handlePrint = async () => {
   <div class="p-16px">
     <NCard :title="tabTitle">
       <template #header-extra>
-        <div class="flex gap-2">
-          <NButton type="primary" :disabled="cardLoading" @click.stop="onSaveHandle">
-            {{ $t('common.save') }}
-          </NButton>
-        </div>
+        <NButton type="primary" :loading="cardLoading" :disabled="cardLoading" @click.stop="onSaveHandle">
+          {{ $t('common.save') }}
+        </NButton>
       </template>
 
       <NTabs v-model:value="activedTab" type="line" @update:value="handleTabChange">

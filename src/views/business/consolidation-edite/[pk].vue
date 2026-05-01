@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onActivated, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { NButton, NCard, NSkeleton, NSpace, NTabPane, NTabs } from 'naive-ui';
+import { NButton, NCard, NSkeleton, NTabPane, NTabs } from 'naive-ui';
 import { $t } from '@/locales';
 import { useTabStore } from '@/store/modules/tab';
 import {
@@ -53,20 +53,15 @@ const tabTitle = computed(() => {
   return consolNo ? `${$t('route.business_consolidation')} - ${consolNo}` : $t('route.business_consolidation');
 });
 
-async function loadData(forceReload = false) {
-  const pk = String(route.params.pk || '');
-  const id = route.query.id as string;
-
-  if (!forceReload && loadedPk.value === pk && inputData.value.id > 0) {
-    return;
-  }
+async function loadData(_forceReload = false) {
+  const id = String(route.params.pk || '');
 
   try {
-    loadedPk.value = pk;
+    let detailData: Record<string, any> | null = null;
 
-    if (pk && id) {
-      const response = await consolidationGetById(id);
-      const detailData = response.data || null;
+    if (id) {
+      const response = await consolidationGetById(String(id));
+      detailData = response.data || null;
 
       if (detailData) {
         inputData.value = {
@@ -77,7 +72,7 @@ async function loadData(forceReload = false) {
           containers_list: detailData.containers_list || [],
           routing_list: detailData.routing_list || [],
           shipments: detailData.shipments || [],
-          pk: detailData.jk_pk || pk,
+          pk: detailData.jk_pk || id,
           jk_pk: detailData.jk_pk || '',
           jk_uniqueconsignref: detailData.jk_uniqueconsignref || '',
           local_agent: detailData.local_agent || {},
@@ -174,7 +169,10 @@ async function handleSave() {
         router.push({
           name: 'business_consolidation-edite',
           params: { pk: data.pk },
-          query: { id: data.id, con_unique_consign_ref: data.jk_uniqueconsignref }
+          query: {
+            id: data.id,
+            con_unique_consign_ref: data.jk_uniqueconsignref
+          }
         });
       }
     }

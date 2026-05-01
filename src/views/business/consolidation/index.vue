@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { ref } from 'vue';
 import { useRouter } from 'vue-router';
 import { $t } from '@/locales';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
@@ -28,7 +28,12 @@ const consolMode = ref('');
 const cancelledOp = ref('=');
 const cancelled = ref('');
 
-const searchKeyOptions = [{ label: $t('page.business.consolidation.search.masterBillNo'), value: 'jk_masterbillnum' }];
+const searchKeyOptions = [
+  {
+    label: $t('page.business.consolidation.search.masterBillNo'),
+    value: 'jk_masterbillnum'
+  }
+];
 
 const operatorOptions = [
   { label: '=', value: '=' },
@@ -47,22 +52,34 @@ function buildFilters() {
   }
 
   if (transportMode.value) {
-    filters.push({ key: 'jk_transportmode', op: transportModeOp.value, val: transportMode.value });
+    filters.push({
+      key: 'jk_transportmode',
+      op: transportModeOp.value,
+      val: transportMode.value
+    });
   }
 
   if (consolMode.value) {
-    filters.push({ key: 'jk_consolmode', op: consolModeOp.value, val: consolMode.value });
+    filters.push({
+      key: 'jk_consolmode',
+      op: consolModeOp.value,
+      val: consolMode.value
+    });
   }
 
   if (cancelled.value) {
-    filters.push({ key: 'jk_iscancelled', op: cancelledOp.value, val: cancelled.value });
+    filters.push({
+      key: 'jk_iscancelled',
+      op: cancelledOp.value,
+      val: cancelled.value
+    });
   }
 
   return filters;
 }
 
 // --- Table hook ---
-const { data, loading, columns, pagination, getData, getDataByPage } = useNaivePaginatedTable<any, any>({
+const { data, loading, columns, pagination, getDataByPage } = useNaivePaginatedTable<any, any>({
   api: async () => {
     const { skipCount, maxResultCount } = buildSjcPaginationParams(pageRef.value, pageSizeRef.value);
     return consolidationQueryPage({
@@ -72,7 +89,11 @@ const { data, loading, columns, pagination, getData, getDataByPage } = useNaiveP
     });
   },
   columns: () => getConsolidationColumns<any>(handleMenuAction, navigateToDetail),
-  transform: response => sjcTransform(response, { page: pageRef.value, pageSize: pageSizeRef.value }),
+  transform: response =>
+    sjcTransform(response, {
+      page: pageRef.value,
+      pageSize: pageSizeRef.value
+    }),
   paginationProps: {
     pageSize: 20,
     pageSizes: [10, 20, 50, 100]
@@ -101,7 +122,7 @@ function handleReset() {
 
 function navigateToDetail(row: any) {
   router.push({
-    name: 'business_consolidation-detail',
+    name: 'business_consolidation-edite',
     params: { pk: row.jk_pk },
     query: {
       id: row.id,
@@ -219,7 +240,7 @@ async function handleBatchExport() {
         </NSpace>
 
         <NDataTable
-          :columns="(columns as any)"
+          :columns="columns as any"
           :data="data"
           :loading="loading"
           :pagination="pagination"

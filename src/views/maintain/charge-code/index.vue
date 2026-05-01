@@ -28,9 +28,7 @@ const pageRef = ref(1);
 const pageSizeRef = ref(20);
 
 function buildFilters() {
-  return searchVal.value
-    ? [{ key: searchKey.value, op: searchOp.value, val: searchVal.value }]
-    : [];
+  return searchVal.value ? [{ key: searchKey.value, op: searchOp.value, val: searchVal.value }] : [];
 }
 
 const editRef = ref<(id: any) => void>(() => {});
@@ -43,7 +41,11 @@ const { data, loading, columns, pagination, getData, getDataByPage } = useNaiveP
       filters: buildFilters()
     });
   },
-  columns: () => getChargeCodeColumns((id: any) => editRef.value(id), (row: any) => deleteRef.value(row)),
+  columns: () =>
+    getChargeCodeColumns(
+      (id: any) => editRef.value(id),
+      (row: any) => deleteRef.value(row)
+    ),
   transform: response => sjcTransform(response, { page: pageRef.value, pageSize: pageSizeRef.value }),
   paginationProps: { pageSize: 20, pageSizes: [10, 20, 50, 100] },
   onPaginationParamsChange: params => {
@@ -115,7 +117,7 @@ function handleReset() {
         <NDataTable
           remote
           striped
-          :columns="(columns as any)"
+          :columns="columns as any"
           :data="data"
           :loading="loading || deleteLoading"
           :pagination="pagination"

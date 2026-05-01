@@ -2,7 +2,7 @@
  * 结算匹配 API 服务
  */
 
-import { request } from "@/service/request";
+import { request } from '@/service/request';
 
 // ==================== 类型定义 ====================
 
@@ -92,22 +92,20 @@ export interface WriteOffBankParams {
 // ==================== 工具函数 ====================
 
 /** API 响应 → 表格行（直接使用后端字段） */
-export function mapMatchTransactionItem(
-  raw: Record<string, any>,
-): Partial<MatchTransactionRecord> {
-  if (!raw || typeof raw !== "object") return {};
+export function mapMatchTransactionItem(raw: Record<string, any>): Partial<MatchTransactionRecord> {
+  if (!raw || typeof raw !== 'object') return {};
   return {
-    ap_pk: raw.ap_pk ?? "",
+    ap_pk: raw.ap_pk ?? '',
     ap_amount: Number(raw.ap_amount) || 0,
-    ap_matchdate: raw.ap_matchdate ?? "",
-    ap_systemcreatetimeutc: raw.ap_systemcreatetimeutc ?? "",
-    ap_reason: raw.ap_reason ?? "",
-    ap_ah: raw.ap_ah ?? "",
-    ah_transactionnum: raw.ah_transactionnum ?? "",
-    ah_rx_nktransactioncurrency: raw.ah_rx_nktransactioncurrency ?? "",
-    ah_matchstatus: raw.ah_matchstatus ?? "",
-    ah_transactiontype: raw.ah_transactiontype ?? "",
-    companyName: raw.companyName ?? "",
+    ap_matchdate: raw.ap_matchdate ?? '',
+    ap_systemcreatetimeutc: raw.ap_systemcreatetimeutc ?? '',
+    ap_reason: raw.ap_reason ?? '',
+    ap_ah: raw.ap_ah ?? '',
+    ah_transactionnum: raw.ah_transactionnum ?? '',
+    ah_rx_nktransactioncurrency: raw.ah_rx_nktransactioncurrency ?? '',
+    ah_matchstatus: raw.ah_matchstatus ?? '',
+    ah_transactiontype: raw.ah_transactiontype ?? '',
+    companyName: raw.companyName ?? ''
   };
 }
 
@@ -116,74 +114,63 @@ export function mapMatchTransactionItem(
 /** 分页查询匹配交易列表 */
 export function matchTransactionsQueryPage(data: MatchTransactionQueryParams) {
   return request<any>({
-    url: "/reconciliation/writeoff/tbl",
-    method: "post",
-    data,
+    url: '/reconciliation/writeoff/tbl',
+    method: 'post',
+    data
   });
 }
 
 /** 查询匹配明细 */
-export function matchTransactionsQueryLines(
-  params: MatchTransactionLinesParams,
-) {
+export function matchTransactionsQueryLines(params: MatchTransactionLinesParams) {
   return request<any>({
-    url: "/reconciliation/writeoff/detail",
-    method: "get",
-    params,
+    url: '/reconciliation/writeoff/detail',
+    method: 'get',
+    params
   });
 }
 
 /** 查询组织地址（结算公司） */
-export function matchTransactionsQueryOrgAddress(
-  params: OrgAddressQueryParams,
-  signal?: AbortSignal,
-) {
+export function matchTransactionsQueryOrgAddress(params: OrgAddressQueryParams, signal?: AbortSignal) {
   return request<any>({
-    url: "/match-transactions/query-org-address",
-    method: "get",
+    url: '/match-transactions/query-org-address',
+    method: 'get',
     params,
-    signal,
+    signal
   });
 }
 
 /** 查询未结清发票列表 */
-export function matchTransactionsQueryOutstandingInvoices(
-  data: OutstandingInvoicesParams,
-) {
+export function matchTransactionsQueryOutstandingInvoices(data: OutstandingInvoicesParams) {
   return request<any>({
-    url: "/match-transactions/query-outstandingInvoices",
-    method: "post",
-    data,
+    url: '/match-transactions/query-outstandingInvoices',
+    method: 'post',
+    data
   });
 }
 
 /** 保存匹配核销 */
-export function matchTransactionsSaveMatchWriteOff(
-  data: SaveMatchWriteOffParams,
-) {
+export function matchTransactionsSaveMatchWriteOff(data: SaveMatchWriteOffParams) {
   return request<any>({
-    url: "/match-transactions/save-matchWriteOff",
-    method: "post",
-    data,
+    url: '/match-transactions/save-matchWriteOff',
+    method: 'post',
+    data
   });
 }
 
 /** 查询核销银行 */
 export function matchTransactionsGetWriteOffBank(data: WriteOffBankParams) {
   return request<any>({
-    url: "/match-transactions/get-writeOff-bank",
-    method: "post",
-    data,
+    url: '/match-transactions/get-writeOff-bank',
+    method: 'post',
+    data
   });
 }
 
 /** 获取下一个匹配单号 */
-export function matchTransactionsQueryDraftMatchNumber(params: {
-  mode: string;
-}) {
+export function matchTransactionsQueryDraftMatchNumber(params: { mode: string }) {
   return request<any>({
-    url: "/match-transactions/query-draft-match-number",
-    method: "get",
-    params: { Mode: params.mode },
+    url: '/match-transactions/query-draft-match-number',
+    method: 'get',
+    params: { Mode: params.mode }
   });
 }
