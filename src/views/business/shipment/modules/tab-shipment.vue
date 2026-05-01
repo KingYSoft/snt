@@ -697,46 +697,41 @@ const addrDialogTitle = computed(() => {
           />
         </NFormItemGi>
         <NFormItemGi label="Gross Weight">
-          <NInputNumber
-            :value="inputData.shp_actual_weight"
-            :min="0"
-            :show-button="false"
-            style="width: 100%"
-            class="input-with-select-suffix"
-            @update:value="(v: number | null) => (inputData.shp_actual_weight = v ?? 0)"
-          >
-            <template #suffix>
-              <NSelect
-                :value="inputData.shp_unit_of_weight"
-                :options="weightUnitOptions"
-                size="small"
-                :consistent-menu-width="false"
-                style="width: 80px"
-                @update:value="(v: string) => (inputData.shp_unit_of_weight = v)"
-              />
-            </template>
-          </NInputNumber>
+          <NSpace :wrap="false" :size="4" class="w-full">
+            <NInputNumber
+              :value="inputData.shp_actual_weight"
+              :min="0"
+              :show-button="false"
+              style="width: 100%"
+              @update:value="(v: number | null) => (inputData.shp_actual_weight = v ?? 0)"
+            ></NInputNumber>
+            <NSelect
+              :value="inputData.shp_unit_of_weight"
+              :options="weightUnitOptions"
+              :consistent-menu-width="false"
+              style="width: 80px"
+              @update:value="(v: string) => (inputData.shp_unit_of_weight = v)"
+            />
+          </NSpace>
         </NFormItemGi>
         <NFormItemGi label="CBM">
-          <NInputNumber
-            :value="inputData.shp_actual_volume"
-            :min="0"
-            :show-button="false"
-            style="width: 100%"
-            class="input-with-select-suffix"
-            @update:value="(v: number | null) => (inputData.shp_actual_volume = v ?? 0)"
-          >
-            <template #suffix>
-              <NSelect
-                :value="inputData.shp_unit_of_volume"
-                :options="volumeUnitOptions"
-                size="small"
-                :consistent-menu-width="false"
-                style="width: 80px"
-                @update:value="(v: string) => (inputData.shp_unit_of_volume = v)"
-              />
-            </template>
-          </NInputNumber>
+          <NSpace :wrap="false" :size="4" class="w-full">
+            <NInputNumber
+              :value="inputData.shp_actual_volume"
+              :min="0"
+              :show-button="false"
+              style="width: 100%"
+              @update:value="(v: number | null) => (inputData.shp_actual_volume = v ?? 0)"
+            ></NInputNumber>
+
+            <NSelect
+              :value="inputData.shp_unit_of_volume"
+              :options="volumeUnitOptions"
+              :consistent-menu-width="false"
+              style="width: 80px"
+              @update:value="(v: string) => (inputData.shp_unit_of_volume = v)"
+            />
+          </NSpace>
         </NFormItemGi>
         <NFormItemGi label="Volume Weight">
           <NInput :value="String(inputData.shp_volume_weight || '')" readonly />
@@ -745,25 +740,22 @@ const addrDialogTitle = computed(() => {
           <NInput :value="String(inputData.shp_actual_chargeable || '')" readonly />
         </NFormItemGi>
         <NFormItemGi label="No. of Package">
-          <NInputNumber
-            :value="inputData.shp_total_package_count"
-            :min="0"
-            :show-button="false"
-            style="width: 100%"
-            class="input-with-select-suffix"
-            @update:value="(v: number | null) => (inputData.shp_total_package_count = v ?? 0)"
-          >
-            <template #suffix>
-              <NSelect
-                :value="inputData.shp_pack_type"
-                :options="packTypeOptions"
-                size="small"
-                :consistent-menu-width="false"
-                style="width: 90px"
-                @update:value="(v: string) => (inputData.shp_pack_type = v)"
-              />
-            </template>
-          </NInputNumber>
+          <NSpace :wrap="false" :size="4" class="w-full">
+            <NInputNumber
+              :value="inputData.shp_total_package_count"
+              :min="0"
+              :show-button="false"
+              style="width: 100%"
+              @update:value="(v: number | null) => (inputData.shp_total_package_count = v ?? 0)"
+            ></NInputNumber>
+            <NSelect
+              :value="inputData.shp_pack_type"
+              :options="packTypeOptions"
+              :consistent-menu-width="false"
+              style="width: 90px"
+              @update:value="(v: string) => (inputData.shp_pack_type = v)"
+            />
+          </NSpace>
         </NFormItemGi>
         <NFormItemGi label="Inco Term" path="shp_inco" :rule="rules.shp_inco">
           <NSelect
@@ -825,53 +817,49 @@ const addrDialogTitle = computed(() => {
           <NInput :value="inputData.shp_commodity" @update:value="(v: string) => (inputData.shp_commodity = v)" />
         </NFormItemGi>
         <NFormItemGi label="Cargo Value">
-          <NInputNumber
-            :value="inputData.shp_goods_value || inputData.shp_cargo_value"
-            :min="0"
-            :show-button="false"
-            style="width: 100%"
-            @update:value="
-              (v: number | null) => {
-                inputData.shp_goods_value = v ?? 0;
-                inputData.shp_cargo_value = v ?? 0;
-                if (v && !inputData.shp_goods_value_currency) inputData.shp_goods_value_currency = 'USD';
-              }
-            "
-          >
-            <template #suffix>
-              <NSelect
-                :value="inputData.shp_goods_value_currency"
-                :options="currencyOptions"
-                size="small"
-                style="width: 80px"
-                @update:value="(v: string) => (inputData.shp_goods_value_currency = v)"
-              />
-            </template>
-          </NInputNumber>
+          <NSpace :wrap="false" :size="4" class="w-full">
+            <NInputNumber
+              :value="inputData.shp_goods_value || inputData.shp_cargo_value"
+              :min="0"
+              :show-button="false"
+              style="width: 100%"
+              @update:value="
+                (v: number | null) => {
+                  inputData.shp_goods_value = v ?? 0;
+                  inputData.shp_cargo_value = v ?? 0;
+                  if (v && !inputData.shp_goods_value_currency) inputData.shp_goods_value_currency = 'USD';
+                }
+              "
+            ></NInputNumber>
+            <NSelect
+              :value="inputData.shp_goods_value_currency"
+              :options="currencyOptions"
+              style="width: 80px"
+              @update:value="(v: string) => (inputData.shp_goods_value_currency = v)"
+            />
+          </NSpace>
         </NFormItemGi>
         <NFormItemGi label="Ins. Value">
-          <NInputNumber
-            :value="inputData.shp_insurance_value"
-            :min="0"
-            :show-button="false"
-            style="width: 100%"
-            @update:value="
-              (v: number | null) => {
-                inputData.shp_insurance_value = v ?? 0;
-                if (v && !inputData.shp_insurance_currency) inputData.shp_insurance_currency = 'USD';
-              }
-            "
-          >
-            <template #suffix>
-              <NSelect
-                :value="inputData.shp_insurance_currency"
-                :options="currencyOptions"
-                size="small"
-                style="width: 80px"
-                @update:value="(v: string) => (inputData.shp_insurance_currency = v)"
-              />
-            </template>
-          </NInputNumber>
+          <NSpace :wrap="false" :size="4" class="w-full">
+            <NInputNumber
+              :value="inputData.shp_insurance_value"
+              :min="0"
+              :show-button="false"
+              style="width: 100%"
+              @update:value="
+                (v: number | null) => {
+                  inputData.shp_insurance_value = v ?? 0;
+                  if (v && !inputData.shp_insurance_currency) inputData.shp_insurance_currency = 'USD';
+                }
+              "
+            ></NInputNumber>
+            <NSelect
+              :value="inputData.shp_insurance_currency"
+              :options="currencyOptions"
+              style="width: 80px"
+              @update:value="(v: string) => (inputData.shp_insurance_currency = v)"
+            />
+          </NSpace>
         </NFormItemGi>
         <NFormItemGi label="Good Desc.">
           <NInput
@@ -935,25 +923,23 @@ const addrDialogTitle = computed(() => {
           />
         </NFormItemGi>
         <NFormItemGi label="Transit Time">
-          <NInputNumber
-            :value="inputData.shp_transit_time"
-            :min="0"
-            :show-button="false"
-            style="width: 100%"
-            class="input-with-select-suffix"
-            @update:value="(v: number | null) => (inputData.shp_transit_time = v ?? 0)"
-          >
-            <template #suffix>
-              <NSelect
-                :value="inputData.shp_transit_time_unit"
-                :options="transitTimeUnitOptions"
-                size="small"
-                :consistent-menu-width="false"
-                style="width: 90px"
-                @update:value="(v: string) => (inputData.shp_transit_time_unit = v)"
-              />
-            </template>
-          </NInputNumber>
+          <NSpace :wrap="false" :size="4" class="w-full">
+            <NInputNumber
+              :value="inputData.shp_transit_time"
+              :min="0"
+              :show-button="false"
+              style="width: 100%"
+              class="input-with-select-suffix"
+              @update:value="(v: number | null) => (inputData.shp_transit_time = v ?? 0)"
+            ></NInputNumber>
+            <NSelect
+              :value="inputData.shp_transit_time_unit"
+              :options="transitTimeUnitOptions"
+              :consistent-menu-width="false"
+              style="width: 90px"
+              @update:value="(v: string) => (inputData.shp_transit_time_unit = v)"
+            />
+          </NSpace>
         </NFormItemGi>
       </NGrid>
 
@@ -972,7 +958,6 @@ const addrDialogTitle = computed(() => {
           :columns="containerColumns"
           :data="inputData.containers_list || []"
           :bordered="true"
-          size="small"
           :row-key="(row: any) => String(row.id ?? Math.random())"
           :scroll-x="1400"
         />
@@ -987,7 +972,6 @@ const addrDialogTitle = computed(() => {
           :columns="looseColumns"
           :data="inputData.loose_list || []"
           :bordered="true"
-          size="small"
           :row-key="(row: any) => String(row.id ?? Math.random())"
           :scroll-x="1400"
         />
@@ -1048,37 +1032,3 @@ const addrDialogTitle = computed(() => {
     </NModal>
   </div>
 </template>
-
-<style scoped>
-/* Ensure form items don't clip dropdowns */
-:deep(.n-form-item) {
-  overflow: visible;
-}
-
-/* Ensure grid items don't clip dropdowns */
-:deep(.n-gi) {
-  overflow: visible;
-}
-
-/* Allow NInputNumber with select suffix to show dropdown */
-.input-with-select-suffix :deep(.n-input) {
-  overflow: visible;
-}
-
-.input-with-select-suffix :deep(.n-input__input-el) {
-  overflow: visible;
-}
-
-.input-with-select-suffix :deep(.n-input__wrapper) {
-  overflow: visible;
-}
-
-.input-with-select-suffix :deep(.n-input__suffix) {
-  overflow: visible;
-}
-
-/* Ensure form items with input-with-select-suffix allow overflow */
-:deep(.n-form-item:has(.input-with-select-suffix)) {
-  overflow: visible !important;
-}
-</style>
