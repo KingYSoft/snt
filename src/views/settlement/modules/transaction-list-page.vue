@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, reactive, ref } from "vue";
 import type { DataTableRowKey, SelectOption } from "naive-ui";
+import { useRouter } from "vue-router";
 import { useI18n } from "vue-i18n";
 import { useNaivePaginatedTable } from "@/hooks/common/table";
 import { sjcTransform, buildSjcPaginationParams } from "@/utils/maintain/transform";
@@ -43,6 +44,7 @@ interface TransactionFilterState {
 const props = defineProps<Props>();
 
 const { t } = useI18n();
+const router = useRouter();
 
 const showMoreFilters = ref(true);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
@@ -294,7 +296,11 @@ async function handleExportAll() {
 }
 
 function handleCreate() {
-  window.$message?.info(t("page.settlement.transactions.createDeveloping"));
+  if (props.type === "receivable") {
+    router.push({ name: "settlement_receivable-transactions-create" });
+  } else {
+    router.push({ name: "settlement_payable-transactions-create" });
+  }
 }
 
 function handleRowAction(

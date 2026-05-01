@@ -275,8 +275,9 @@ const local: App.I18n.Schema = {
     maintain_warehouse: "仓库",
     settlement: "结算管理",
     "settlement_receivable-transactions": "应收交易",
-
+    "settlement_receivable-transactions-create": "新增应收",
     "settlement_payable-transactions": "应付交易",
+    "settlement_payable-transactions-create": "新增应付",
     settlement_writeoff: "结算匹配",
     "settlement_writeoff-create": "新建收款",
     "settlement_writeoff-edit": "编辑",

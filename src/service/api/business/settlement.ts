@@ -817,3 +817,183 @@ export async function saveWriteoff(_data: WriteoffCreateRequest) {
   //   data
   // });
 }
+
+// ==================== AR Transaction (应收账款) API ====================
+
+/**
+ * AR 费用行
+ */
+export interface ArChargeLineRequest {
+  jch_sort_num: number;
+  Charge_Code: string;
+  Description: string;
+  Debtor: string;
+  Branch: string;
+  Currency: string;
+  Unit_Price: number;
+  jch_unit: string;
+  Qty: number;
+  Amount: number;
+  Tax_Code: string;
+  Tax_Amount: number;
+  Estimated_Cost: number;
+  Exchange_Rate: number;
+  Home_Amount: number;
+}
+
+/**
+ * AR 事务创建请求
+ */
+export interface ArTransactionCreateRequest {
+  lines: ArChargeLineRequest[];
+}
+
+/**
+ * AR 事务创建响应
+ */
+export interface ArTransactionCreateResponse {
+  success: boolean;
+  message: string;
+  transactionNum?: string;
+}
+
+/**
+ * 创建 AR 事务
+ * TODO: 待后端对接，替换为真实 API
+ */
+export async function createArTransaction(_data: ArTransactionCreateRequest) {
+  // Mock 实现
+  return new Promise<ArTransactionCreateResponse>((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: true,
+        message: 'AR transaction created successfully',
+        transactionNum: `AR${Date.now()}`,
+      });
+    }, 500);
+  });
+
+  // TODO: 真实 API 调用（待后端对接后启用）
+  // return request<ArTransactionCreateResponse>({
+  //   url: '/billing/ar/create',
+  //   method: 'post',
+  //   data
+  // });
+}
+
+/**
+ * 查询 Charge Code 列表
+ * TODO: 待后端对接，替换为真实 API
+ */
+export async function queryArChargeCodes(_query?: string) {
+  // Mock 实现
+  return new Promise<Array<{ code: string; description: string }>>((resolve) => {
+    setTimeout(() => {
+      resolve([
+        { code: 'DOC', description: 'Document Fee' },
+        { code: 'O/F', description: 'Ocean Freight' },
+        { code: 'THC', description: 'Terminal Handling Charge' },
+        { code: 'BAF', description: 'Bunker Adjustment Factor' },
+        { code: 'CAF', description: 'Currency Adjustment Factor' },
+        { code: 'WRS', description: 'War Risk Surcharge' },
+      ]);
+    }, 200);
+  });
+
+  // TODO: 真实 API 调用（待后端对接后启用）
+  // return request({
+  //   url: '/charge-code/options',
+  //   method: 'get',
+  //   params: { query }
+  // });
+}
+
+/**
+ * 查询币种列表
+ * TODO: 待后端对接，替换为真实 API
+ */
+export async function queryArCurrencies(_query?: string) {
+  // Mock 实现
+  return new Promise<Array<{ code: string; desc: string }>>((resolve) => {
+    setTimeout(() => {
+      resolve([
+        { code: 'CNY', desc: 'Chinese Yuan' },
+        { code: 'USD', desc: 'US Dollar' },
+        { code: 'HKD', desc: 'Hong Kong Dollar' },
+        { code: 'EUR', desc: 'Euro' },
+        { code: 'GBP', desc: 'British Pound' },
+        { code: 'JPY', desc: 'Japanese Yen' },
+      ]);
+    }, 200);
+  });
+
+  // TODO: 真实 API 调用（待后端对接后启用）
+  // return request({
+  //   url: '/currency/options',
+  //   method: 'get',
+  //   params: { query }
+  // });
+}
+
+// ==================== AP Transaction (应付账款) API ====================
+
+/**
+ * AP 费用行
+ */
+export interface ApChargeLineRequest {
+  jch_sort_num: number;
+  Charge_Code: string;
+  Description: string;
+  Creditor: string;
+  Branch: string;
+  Currency: string;
+  Unit_Price: number;
+  jch_unit: string;
+  Qty: number;
+  Amount: number;
+  Tax_Code: string;
+  Tax_Amount: number;
+  Estimated_Cost: number;
+  Exchange_Rate: number;
+  Home_Amount: number;
+}
+
+/**
+ * AP 事务创建请求
+ */
+export interface ApTransactionCreateRequest {
+  lines: ApChargeLineRequest[];
+}
+
+/**
+ * AP 事务创建响应
+ */
+export interface ApTransactionCreateResponse {
+  success: boolean;
+  message: string;
+  transactionNum?: string;
+}
+
+/**
+ * 创建 AP 事务
+ * TODO: 待后端对接，替换为真实 API
+ */
+export async function createApTransaction(_data: ApTransactionCreateRequest) {
+  // Mock 实现
+  return new Promise<ApTransactionCreateResponse>((resolve) => {
+    setTimeout(() => {
+      resolve({
+        success: true,
+        message: 'AP transaction created successfully',
+        transactionNum: `AP${Date.now()}`,
+      });
+    }, 500);
+  });
+
+  // TODO: 真实 API 调用（待后端对接后启用）
+  // return request<ApTransactionCreateResponse>({
+  //   url: '/billing/ap/create',
+  //   method: 'post',
+  //   data
+  // });
+}

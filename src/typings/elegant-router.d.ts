@@ -58,7 +58,9 @@ declare module "@elegant-router/types" {
     "settlement": "/settlement";
     "settlement_billing-detail": "/settlement/billing-detail";
     "settlement_payable-transactions": "/settlement/payable-transactions";
+    "settlement_payable-transactions-create": "/settlement/payable-transactions-create";
     "settlement_receivable-transactions": "/settlement/receivable-transactions";
+    "settlement_receivable-transactions-create": "/settlement/receivable-transactions-create";
     "settlement_writeoff": "/settlement/writeoff";
     "settlement_writeoff-create": "/settlement/writeoff-create";
     "settlement_writeoff-detail": "/settlement/writeoff-detail";
@@ -162,7 +164,9 @@ declare module "@elegant-router/types" {
     | "maintain_vessel"
     | "maintain_warehouse"
     | "settlement_billing-detail"
+    | "settlement_payable-transactions-create"
     | "settlement_payable-transactions"
+    | "settlement_receivable-transactions-create"
     | "settlement_receivable-transactions"
     | "settlement_writeoff-create"
     | "settlement_writeoff-detail"

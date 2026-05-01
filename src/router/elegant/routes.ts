@@ -435,6 +435,16 @@ export const generatedRoutes: GeneratedRoute[] = [
         },
       },
       {
+        name: "settlement_payable-transactions-create",
+        path: "/settlement/payable-transactions-create",
+        component: "view.settlement_payable-transactions-create",
+        meta: {
+          title: "settlement_payable-transactions-create",
+          i18nKey: "route.settlement_payable-transactions-create",
+          hideInMenu: true,
+        },
+      },
+      {
         name: "settlement_receivable-transactions",
         path: "/settlement/receivable-transactions",
         component: "view.settlement_receivable-transactions",
@@ -442,6 +452,16 @@ export const generatedRoutes: GeneratedRoute[] = [
           title: "settlement_receivable-transactions",
           i18nKey: "route.settlement_receivable-transactions",
           order: 1,
+        },
+      },
+      {
+        name: "settlement_receivable-transactions-create",
+        path: "/settlement/receivable-transactions-create",
+        component: "view.settlement_receivable-transactions-create",
+        meta: {
+          title: "settlement_receivable-transactions-create",
+          i18nKey: "route.settlement_receivable-transactions-create",
+          hideInMenu: true,
         },
       },
       {
