@@ -1,488 +1,292 @@
 <script setup lang="ts">
-import { ref, computed, watch } from 'vue';
+import { computed, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
-import { NButton, NCard, NForm, NFormItem, NInput, NInputNumber, NSelect } from 'naive-ui';
-import { queryBankPage } from '@/service/api/maintain/bank';
+import {
+  NButton, NCard, NDataTable, NDatePicker, NDivider, NGrid, NGi,
+  NInput, NInputNumber, NRadio, NRadioGroup, NSelect, NSpace,
+} from 'naive-ui';
 import { getCurrencyList } from '@/service/api/maintain/currency';
-import { saveWriteoff, type WriteoffCreateRequest } from '@/service/api/business/settlement';
-import { useOutstandingData } from './composables/useOutstandingData';
-import { useExchangeRate } from './composables/useExchangeRate';
-import { useFormRules } from './modules/validation';
-import CompanySelector from './components/CompanySelector.vue';
-import OutstandingBalance from './components/OutstandingBalance.vue';
-import OutstandingItemsTable from './components/OutstandingItemsTable.vue';
-import BankTransactionForm from './components/BankTransactionForm.vue';
-import ExchangeRateCalculator from './components/ExchangeRateCalculator.vue';
-import FileUploader from './components/FileUploader.vue';
+import {
+  matchTransactionsGetWriteOffBank,
+  matchTransactionsQueryOrgAddress,
+  matchTransactionsQueryOutstandingInvoices,
+  matchTransactionsSaveMatchWriteOff,
+  matchTransactionsQueryDraftMatchNumber,
+} from '@/service/api/business/match-transactions';
 
 defineOptions({ name: 'PageSettlementWriteoffCreate' });
 
 const router = useRouter();
 const { t } = useI18n();
-const formRef = ref();
+const te = (key: string) => t(`page.settlement.matchTransactions.editor.${key}`);
+
+const formatNum = (n: any, digits = 2) => {
+  const x = Number(n);
+  if (Number.isNaN(x)) return '—';
+  return new Intl.NumberFormat(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(x);
+};
+
+const formatDate = (date: Date) => `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+
 const saving = ref(false);
+const editorLocked = ref(false);
 
-// 表单数据
-const formData = ref<Omit<WriteoffCreateRequest, 'amount'>>({
-  companyId: '',
-  currency: 'CNY',
-  itemIds: [],
-  bankId: '',
-  bankName: '',
-  bankAccount: '',
-  isForeignCurrency: false,
-  exchangeRate: 1,
-  paymentMethod: '',
-  referenceNo: '',
-  remark: ''
+const buildEmptyForm = () => ({
+  matchNumber: '', settleCompany: null as any, settleCompanyName: '', description: '',
+  bankAccount: null as any, bankAccountName: '', refNo: '', settleAmount: 0, balance: 0,
+  settleDate: formatDate(new Date()), chequeNo: '', otherFees: 0, exRateMode: 'system',
 });
+const form = ref(buildEmptyForm());
 
-// 公司搜索
-const companySearchQuery = ref('');
+const lineLedgerScope = ref('AR');
+const lineSearch = ref('');
+const statementVal = ref('');
+const lineCurrency = ref<string | null>(null);
+const showMoreFilters = ref(false);
+const moreChargeDesc = ref('');
+const allLines = ref<any[]>([]);
+const checkedLineKeys = ref<Array<string | number>>([]);
 
-// 结欠数据
-const {
-  outstandingBalance,
-  balanceLoading,
-  outstandingItems,
-  itemsLoading,
-  checkedRowKeys,
-  searchKey,
-  searchVal,
-  feeCurrencyFilter,
-  showCheckedOnly,
-  selectedTotal,
-  convertedSettledAmount,
-  displayOutstandingItems,
-  loadOutstandingData,
-  resetSearch
-} = useOutstandingData();
-
-// 汇率计算
-const { exchangeRateOption, settledAmount, conversionOperation, referenceExRate, updateSettledAmount } =
-  useExchangeRate();
-
-// 银行交易记录数据
-const bankRecord = ref({
-  bankAccount: '',
-  paymentDate: null as number | null,
-  serialNumber: '',
-  chequeNo: '',
-  paymentAmount: 0,
-  otherFees: 0
-});
-
-// 处理银行交易记录更新
-function handleBankRecordUpdate(updatedRecord: typeof bankRecord.value) {
-  bankRecord.value = { ...updatedRecord };
-}
-
-// 附件列表
-const attachments = ref<string[]>([]);
-
-// 币种选项
-const currencyOptions = ref<Array<{ label: string; value: string }>>([]);
-const baseCurrency = ref('CNY');
-
-// 付款方式选项
-const paymentMethodOptions = computed(() => [
-  {
-    label: t('page.settlement.writeoff.create.wireTransfer'),
-    value: 'wire_transfer'
-  },
-  { label: t('page.settlement.writeoff.create.check'), value: 'check' },
-  { label: t('page.settlement.writeoff.create.cash'), value: 'cash' },
-  { label: t('page.settlement.writeoff.create.other'), value: 'other' }
-]);
-
-// 银行选项
-const bankOptions = ref<Array<{ label: string; value: any; data?: any }>>([]);
-const bankLoading = ref(false);
-
-// 表单验证规则
-const { rules } = useFormRules();
-
-// 加载币种列表
-async function loadCurrencies() {
+// Company
+const companyOptions = ref<Array<{ label: string; value: string; data: any }>>([]);
+const companyLoading = ref(false);
+async function handleSearchCompany(query: string) {
+  if (!query) { companyOptions.value = []; return; }
+  companyLoading.value = true;
   try {
-    const response = (await getCurrencyList()) as any;
-    const currencies = Array.isArray(response) ? response : response?.data || response?.result || [];
-    if (currencies.length > 0) {
-      currencyOptions.value = currencies.map((c: any) => ({
-        label: `${c.code} - ${c.desc}`,
-        value: c.code
-      }));
-    } else {
-      throw new Error('No currencies found');
-    }
-  } catch (error) {
-    console.error('Failed to load currencies, using defaults:', error);
-    currencyOptions.value = [
-      { label: 'CNY - Chinese Yuan', value: 'CNY' },
-      { label: 'USD - US Dollar', value: 'USD' },
-      { label: 'HKD - Hong Kong Dollar', value: 'HKD' },
-      { label: 'EUR - Euro', value: 'EUR' },
-      { label: 'JPY - Japanese Yen', value: 'JPY' }
-    ];
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query, SkipCount: 0, MaxResultCount: 50 });
+    companyOptions.value = (res?.data?.items ?? res?.items ?? []).map((item: any) => ({
+      label: `${item.name ?? item.company_name ?? ''} (${item.code ?? ''})`, value: item.pk ?? item.id ?? '', data: item,
+    }));
+  } finally { companyLoading.value = false; }
+}
+async function handleSelectCompany(value: string) {
+  if (editorLocked.value) return;
+  const sel = companyOptions.value.find(c => c.value === value);
+  if (sel?.data) {
+    form.value.settleCompany = sel.data;
+    form.value.settleCompanyName = sel.data.name ?? sel.data.company_name ?? '';
+    const cn = String(sel.data.company_name ?? '').trim();
+    if (cn) try { await queryLines(cn); } catch { allLines.value = []; checkedLineKeys.value = []; }
   }
 }
 
-// 搜索银行
-async function handleSearchBank(query: string) {
-  if (!query) {
-    bankOptions.value = [];
-    return;
-  }
+// Bank
+const bankOptions = ref<Array<{ label: string; value: string; data: any }>>([]);
+const bankLoading = ref(false);
+async function loadBanks() {
   bankLoading.value = true;
   try {
-    const result = (await queryBankPage({
-      skipCount: 0,
-      maxResultCount: 50,
-      filters: [{ key: 'bank_name', op: 'Contain', val: query }]
-    })) as any;
-    const items = result?.data?.items || result?.items || [];
-    bankOptions.value = items.map((item: any) => ({
-      label: `${item.account_num}(${item.currency}) | ${item.bank_name}`,
-      value: item.pk || String(item.id),
-      data: item
+    const res: any = await matchTransactionsGetWriteOffBank({});
+    bankOptions.value = (res?.data ?? []).map((item: any, i: number) => ({
+      label: item.bankAccount ?? `Bank ${i + 1}`, value: `${item.bankAccount ?? ''}-${i}`, data: item,
     }));
-  } finally {
-    bankLoading.value = false;
-  }
+  } finally { bankLoading.value = false; }
+}
+function handleSelectBank(value: string) {
+  if (editorLocked.value) return;
+  const sel = bankOptions.value.find(b => b.value === value);
+  if (sel?.data) { form.value.bankAccount = sel.data; form.value.bankAccountName = sel.data.bankAccount ?? ''; }
 }
 
-// 选择公司
-function handleSelectCompany(company: any) {
-  formData.value.companyId = company.value;
-  companySearchQuery.value = company.label;
-}
-
-function handleClearCompany() {
-  formData.value.companyId = '';
-  companySearchQuery.value = '';
-}
-
-// 监听公司选择变化
-watch(
-  () => formData.value.companyId,
-  async newCompanyId => {
-    // TODO: 待删除
-    const companyId = newCompanyId || '1';
-    await loadOutstandingData(companyId);
-  }
-);
-
-// 监听币种选择变化
-watch(
-  () => formData.value.currency,
-  newCurrency => {
-    formData.value.isForeignCurrency = newCurrency !== baseCurrency.value;
-    if (formData.value.isForeignCurrency) {
-      formData.value.exchangeRate = 1;
-    }
-  }
-);
-
-// 监听银行选择变化，自动填充银行信息
-watch(
-  () => formData.value.bankId,
-  newBankId => {
-    const selectedBank = bankOptions.value.find(b => b.value === newBankId);
-    if (selectedBank && selectedBank.data) {
-      formData.value.bankName = selectedBank.data.bank_name || '';
-      formData.value.bankAccount = selectedBank.data.account_num || '';
-      bankRecord.value.bankAccount = `${selectedBank.data.account_num}(${formData.value.currency}) | ${selectedBank.data.bank_name}`;
-    }
-  }
-);
-
-// 监听已选项目变化，自动更新已结算金额
-watch([() => checkedRowKeys.value, () => formData.value.isForeignCurrency], () => {
-  updateSettledAmount(convertedSettledAmount.value);
-});
-
-// 监听 settledAmount 变化，自动填充付款金额
-watch(
-  () => settledAmount.value,
-  newAmount => {
-    bankRecord.value.paymentAmount = newAmount;
-  }
-);
-
-// 处理复选框变化
-function handleCheck(rowKeys: Array<string | number>) {
-  checkedRowKeys.value = rowKeys.map(String);
-  formData.value.itemIds = rowKeys.map(String);
-}
-
-// 操作按钮处理
-function handleVerificationByFee() {
-  window.$message?.info(t('page.settlement.writeoff.create.verificationByFeeDetailsDeveloping'));
-}
-
-function handleAutoMatch() {
-  window.$message?.info(t('page.settlement.writeoff.create.autoMatchDeveloping'));
-}
-
-function handleSetValue() {
-  window.$message?.info(t('page.settlement.writeoff.create.setValueDeveloping'));
-}
-
-// 保存
-async function handleSave() {
+// Currency
+const currencyOptions = ref<Array<{ label: string; value: string }>>([]);
+async function loadCurrencies() {
   try {
-    await formRef.value?.validate();
+    const r: any = await getCurrencyList();
+    const c = Array.isArray(r) ? r : r?.data || r?.result || [];
+    currencyOptions.value = c.map((x: any) => ({ label: x.desc ? `${x.code} - ${x.desc}` : x.code, value: x.code }));
+  } catch { currencyOptions.value = [{ label: 'CNY', value: 'CNY' }, { label: 'USD', value: 'USD' }]; }
+}
 
-    if (formData.value.itemIds.length === 0) {
-      window.$message?.error(t('page.settlement.writeoff.create.pleaseSelectDetails'));
-      return;
-    }
+// Outstanding
+const mapLine = (raw: any, i: number) => {
+  if (!raw) return null;
+  return {
+    id: String(raw.id ?? raw.line_id ?? raw.lineId ?? raw.pk ?? `l-${i}`),
+    tth_pk: raw.tth_pk ?? raw.pk ?? '', ledger: String(raw.ledger ?? '').toUpperCase() || 'AR',
+    job_no: raw.job_no ?? raw.jobNo ?? '', tax_invoice_no: raw.tax_invoice_no ?? '',
+    invoice_number: raw.invoice_number ?? raw.invoiceNumber ?? '', billing_date: raw.billing_date ?? '',
+    currency: raw.currency ?? '', charge_desc: raw.charge_desc ?? '',
+    outstanding: Number(raw.outstanding ?? 0) || 0,
+    settlement_amount_original: Number(raw.settlement_amount_original ?? 0) || 0,
+    ex_rate: Number(raw.ex_rate ?? 1) || 1,
+    settlement_amount_home: Number(raw.settlement_amount_home ?? 0) || 0,
+  };
+};
+async function queryLines(company: string) {
+  const p: any = { billingParty: company };
+  if (lineLedgerScope.value) p.ledgerScope = lineLedgerScope.value;
+  if (lineSearch.value?.trim()) { p.lineSearch = lineSearch.value.trim(); p.query = lineSearch.value.trim(); }
+  if (statementVal.value?.trim()) p.statementNo = statementVal.value.trim();
+  if (lineCurrency.value) p.currency = lineCurrency.value;
+  if (moreChargeDesc.value?.trim()) p.chargeDesc = moreChargeDesc.value.trim();
+  const res: any = await matchTransactionsQueryOutstandingInvoices(p);
+  const items = Array.isArray(res?.data?.items) ? res.data.items : Array.isArray(res?.data?.list) ? res.data.list : [];
+  allLines.value = items.map(mapLine).filter(Boolean);
+  checkedLineKeys.value = [];
+}
+async function onSearchLines() {
+  if (editorLocked.value) return;
+  const cn = String(form.value.settleCompany?.company_name ?? '').trim();
+  if (!cn) { window.$message?.warning('Select company first.'); return; }
+  try { await queryLines(cn); } catch { window.$message?.error('Failed to load.'); }
+}
 
-    if (selectedTotal.value <= 0) {
-      window.$message?.error(t('page.settlement.writeoff.create.settlementAmountMustBePositive'));
-      return;
-    }
-
-    saving.value = true;
-    const result = await saveWriteoff({
-      ...formData.value,
-      amount: selectedTotal.value
-    } as WriteoffCreateRequest);
-
-    if (result.success) {
-      window.$message?.success(result.message || t('page.settlement.writeoff.create.saveSuccess'));
-      router.push({ name: 'settlement_writeoff' });
-    }
-  } catch (error: any) {
-    console.error('保存失败:', error);
-    if (error?.message) {
-      window.$message?.error(error.message);
-    }
-  } finally {
-    saving.value = false;
+// Summary
+const selectedLines = computed(() => {
+  const s = new Set(checkedLineKeys.value.map(String));
+  return allLines.value.filter((r: any) => s.has(String(r.id ?? '')));
+});
+const selectedOutstandingTotal = computed(() => selectedLines.value.reduce((a: number, r: any) => a + (Number(r.outstanding) || 0), 0));
+const summaryRows = computed(() => {
+  const map = new Map<string, any>();
+  for (const row of selectedLines.value as any[]) {
+    const cur = String(row.currency ?? ''), rate = Number(row.ex_rate ?? 1);
+    const key = `${cur}__${rate}`;
+    const c = map.get(key) ?? { key, currency: cur, exRate: rate, osAmount: 0, settledAmount: 0, homeAmount: 0 };
+    c.osAmount += Number(row.outstanding) || 0; c.settledAmount += Number(row.settlement_amount_original) || 0; c.homeAmount += Number(row.settlement_amount_home) || 0;
+    map.set(key, c);
   }
+  return Array.from(map.values());
+});
+const summaryTotalHomeAmount = computed(() => summaryRows.value.reduce((a: number, r: any) => a + (Number(r.homeAmount) || 0), 0));
+watch(() => [selectedOutstandingTotal.value, form.value.settleAmount], () => { form.value.balance = (Number(form.value.settleAmount) || 0) - selectedOutstandingTotal.value; }, { immediate: true });
+
+// Line columns
+const lineColumns = [
+  { type: 'selection' as const }, { key: 'index', title: '#', width: 50, align: 'center' as const, render: (_: any, i: number) => i + 1 },
+  { key: 'ledger', title: 'Ledger', width: 80, align: 'center' as const },
+  { key: 'job_no', title: 'Job No.', width: 120, ellipsis: { tooltip: true } },
+  { key: 'tax_invoice_no', title: 'Tax Invoice No.', width: 140, ellipsis: { tooltip: true } },
+  { key: 'invoice_number', title: 'Invoice Number', width: 140, ellipsis: { tooltip: true } },
+  { key: 'billing_date', title: 'Billing Date', width: 120 },
+  { key: 'charge_desc', title: 'Charge Desc.', width: 140, ellipsis: { tooltip: true } },
+  { key: 'outstanding', title: 'Outstanding', width: 120, align: 'right' as const, render: (r: any) => formatNum(r.outstanding) },
+  { key: 'settlement_amount_original', title: 'Settled (Original)', width: 200, align: 'right' as const, render: (r: any) => formatNum(r.settlement_amount_original) },
+  { key: 'currency', title: 'Currency', width: 80, align: 'center' as const },
+  { key: 'ex_rate', title: 'Ex. Rate', width: 100, align: 'right' as const, render: (r: any) => formatNum(r.ex_rate, 6) },
+  { key: 'settlement_amount_home', title: 'Settled (Home)', width: 180, align: 'right' as const, render: (r: any) => formatNum(r.settlement_amount_home) },
+];
+
+// Save
+function toIso(val: string) {
+  if (!val) return new Date().toISOString();
+  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return new Date(`${val}T00:00:00`).toISOString();
+  const d = new Date(val); return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
+}
+async function handleSave() {
+  if (editorLocked.value || saving.value) return;
+  if (!selectedLines.value.length) { window.$message?.warning('Select at least one line.'); return; }
+  const cn = String(form.value.settleCompany?.company_name ?? '').trim();
+  if (!cn) { window.$message?.warning('Select company.'); return; }
+  const amt = Number(form.value.settleAmount) || 0;
+  if (amt <= 0) { window.$message?.warning('Amount > 0 required.'); return; }
+
+  const sorted = [...selectedLines.value].sort((a: any, b: any) => (Number(a.outstanding) || 0) - (Number(b.outstanding) || 0));
+  let rem = amt; const wMap = new Map<number, number>();
+  for (const item of sorted) {
+    const os = Math.max(Number((item as any).outstanding) || 0, 0);
+    const w = Math.min(rem, os); wMap.set(allLines.value.indexOf(item), w); rem -= w; if (rem <= 0) rem = 0;
+  }
+  const lines = selectedLines.value.map((row: any) => {
+    const idx = allLines.value.indexOf(row), os = Math.max(Number(row.outstanding) || 0, 0), ex = Number(row.ex_rate) || 1, wo = wMap.get(idx) ?? 0;
+    return { tthPk: String(row.tth_pk ?? row.id ?? ''), ledger: row.ledger ?? '', jobNo: row.job_no ?? '', invoiceNumber: row.invoice_number ?? '',
+      writeOffAmountOriginal: wo, writeOffAmountHome: wo * ex, currentOutstandingOriginal: Math.max(os - wo, 0), currentOutstandingHome: Math.max(os - wo, 0) * ex };
+  });
+  saving.value = true;
+  try {
+    const res: any = await matchTransactionsSaveMatchWriteOff({
+      matchNumber: form.value.matchNumber, mode: lineLedgerScope.value === 'AR' ? 'receipt' : 'payment',
+      billingParty: cn, billingPartyName: form.value.settleCompanyName, description: form.value.description,
+      bankAccountId: String(form.value.bankAccount?.id ?? form.value.bankAccount?.pk ?? ''),
+      bankAccountName: form.value.bankAccountName, settleDate: toIso(form.value.settleDate),
+      refNo: form.value.refNo, chequeNo: form.value.chequeNo, settleAmount: amt, exRateMode: form.value.exRateMode, lines,
+    });
+    if (res?.success === false) { window.$message?.error(res.msg || 'Save failed.'); return; }
+    const mn = res?.data?.matchNumber ?? res?.data?.match_number ?? '';
+    if (mn) form.value.matchNumber = String(mn);
+    editorLocked.value = true; window.$message?.success('Saved.');
+  } catch { window.$message?.error('Failed to save.'); } finally { saving.value = false; }
 }
 
-// 取消
-function handleCancel() {
-  router.back();
+function handleBack() { router.push({ name: 'settlement_writeoff' }); }
+function handleReset() {
+  const sc = form.value.settleCompany, scn = form.value.settleCompanyName, ba = form.value.bankAccount, ban = form.value.bankAccountName;
+  form.value = buildEmptyForm(); form.value.settleCompany = sc; form.value.settleCompanyName = scn; form.value.bankAccount = ba; form.value.bankAccountName = ban;
+  lineLedgerScope.value = 'AR'; lineSearch.value = ''; statementVal.value = ''; lineCurrency.value = null;
+  showMoreFilters.value = false; moreChargeDesc.value = ''; allLines.value = []; checkedLineKeys.value = []; editorLocked.value = false;
+  matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' }).then((r: any) => { if (r?.data) form.value.matchNumber = String(r.data); }).catch(() => {});
+  const cn = String(sc?.company_name ?? '').trim();
+  if (cn) queryLines(cn).catch(() => {});
 }
 
-// 初始化
-loadCurrencies();
+loadBanks(); loadCurrencies();
+matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' }).then((r: any) => { if (r?.data) form.value.matchNumber = String(r.data); }).catch(() => {});
 </script>
 
 <template>
   <div class="h-full overflow-auto p-16px">
-    <NCard :title="t('page.settlement.writeoff.create.title')" :bordered="false">
+    <NCard title="New Receipt" :bordered="false">
       <template #header-extra>
-        <div class="flex gap-2">
-          <NButton @click="handleCancel">
-            {{ t('page.settlement.writeoff.create.cancel') }}
-          </NButton>
-          <NButton type="primary" :loading="saving" @click="handleSave">
-            {{ t('page.settlement.writeoff.create.save') }}
-          </NButton>
-        </div>
+        <NSpace>
+          <NButton @click="handleReset">{{ t('common.reset') }}</NButton>
+          <NButton type="primary" :loading="saving" :disabled="editorLocked" @click="handleSave">{{ t('common.save') }}</NButton>
+          <NButton @click="handleBack">{{ t('common.cancel') }}</NButton>
+        </NSpace>
       </template>
 
-      <NForm ref="formRef" :model="formData" :rules="rules" label-placement="left" label-width="120px">
-        <!-- 公司选择 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.settlementUnit')" path="companyId">
-          <CompanySelector v-model="companySearchQuery" @select="handleSelectCompany" @clear="handleClearCompany" />
-        </NFormItem>
-
-        <!-- 结欠余额展示 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.outstandingBalance')">
-          <OutstandingBalance :balance="outstandingBalance" :loading="balanceLoading" />
-        </NFormItem>
-
-        <!-- 明细选择表格 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.writeoffDetails')">
-          <div class="w-full">
-            <OutstandingItemsTable
-              :items="displayOutstandingItems"
-              :loading="itemsLoading"
-              :checked-keys="checkedRowKeys"
-              :search-key="searchKey"
-              :search-value="searchVal"
-              :fee-currency-filter="feeCurrencyFilter"
-              :currency-options="currencyOptions"
-              @update:checked-keys="handleCheck"
-              @update:search-key="val => (searchKey = val)"
-              @update:search-value="val => (searchVal = val)"
-              @update:fee-currency-filter="val => (feeCurrencyFilter = val)"
-              @reset="resetSearch"
-              @verification="handleVerificationByFee"
-              @auto-match="handleAutoMatch"
-              @set-value="handleSetValue"
-              @toggle-show-checked-only="() => (showCheckedOnly = !showCheckedOnly)"
-            />
-            <div v-if="outstandingItems.length > 0" class="mt-8px text-right">
-              <span class="text-gray">{{ t('page.settlement.writeoff.create.selectedTotal') }}:</span>
-              <span class="text-16px font-bold text-primary">{{ selectedTotal.toFixed(2) }}</span>
+      <NGrid :cols="24" :x-gap="12" :y-gap="12" class="mb-12px">
+        <NGi :span="6">
+          <NSpace vertical>
+            <div class="flex items-center gap-8px">
+              <span class="shrink-0 w-80px text-right text-12px">{{ te('settleCompany') }}:</span>
+              <NSelect :value="form.settleCompany?.pk ?? form.settleCompany?.id ?? ''" :options="companyOptions" :loading="companyLoading" filterable remote clearable :placeholder="te('pleaseSelect')" :disabled="editorLocked" class="flex-1" @search="handleSearchCompany" @update:value="handleSelectCompany" />
             </div>
-          </div>
-        </NFormItem>
-
-        <!-- 支付信息汇总 -->
-        <NFormItem v-if="outstandingBalance" :label="t('page.settlement.writeoff.create.paymentInfo') || '支付信息'">
-          <div class="w-full p-16px bg-gray-50 rounded">
-            <div class="space-y-8px">
-              <div class="flex justify-between">
-                <span class="text-gray">{{ t('page.settlement.writeoff.create.outstandingBalance') }}:</span>
-                <span class="font-semibold">
-                  {{ outstandingBalance.balance.toFixed(2) }}
-                  {{ outstandingBalance.currency }}
-                </span>
-              </div>
-              <div class="flex justify-between">
-                <span class="text-gray">{{ t('page.settlement.writeoff.create.selectedTotalCNY') }}:</span>
-                <span class="font-semibold text-primary">{{ selectedTotal.toFixed(2) }} CNY</span>
-              </div>
-              <div v-if="formData.isForeignCurrency" class="flex justify-between">
-                <span class="text-gray">
-                  {{
-                    t('page.settlement.writeoff.create.selectedTotalCurrency', {
-                      currency: formData.currency
-                    })
-                  }}:
-                </span>
-                <span class="font-semibold text-primary">
-                  {{ convertedSettledAmount.toFixed(2) }}
-                  {{ formData.currency }}
-                </span>
-              </div>
-              <div v-if="formData.isForeignCurrency" class="text-12px text-gray">
-                {{
-                  t('page.settlement.writeoff.create.rateInfo', {
-                    currency: formData.currency,
-                    rate: formData.exchangeRate || 0
-                  })
-                }}
-              </div>
+            <NInput v-model:value="form.description" type="textarea" :rows="6" :disabled="editorLocked" :placeholder="te('pleaseInput')"><template #prefix>{{ te('description') }}:</template></NInput>
+          </NSpace>
+        </NGi>
+        <NGi :span="12">
+          <NCard size="small" :bordered="true">
+            <template #header>{{ te('bankTransactionRecord') }}</template>
+            <NGrid :cols="2" :x-gap="12" :y-gap="8">
+              <NGi><div class="flex items-center gap-8px"><span class="shrink-0 w-80px text-right text-12px">{{ te('bankAccount') }}:</span><NSelect :value="form.bankAccount?.id ?? form.bankAccount?.pk ?? ''" :options="bankOptions" :loading="bankLoading" filterable clearable :placeholder="te('pleaseSelect')" :disabled="editorLocked" class="flex-1" @update:value="handleSelectBank" /></div></NGi>
+              <NGi><div class="flex items-center gap-8px"><span class="shrink-0 w-80px text-right text-12px">{{ te('settleDate') }}:</span><NDatePicker v-model:formatted-value="form.settleDate" type="date" value-format="yyyy-MM-dd" :disabled="editorLocked" clearable class="flex-1" /></div></NGi>
+              <NGi><NInput v-model:value="form.refNo" :disabled="editorLocked" :placeholder="te('pleaseInput')"><template #prefix>{{ te('refNo') }}:</template></NInput></NGi>
+              <NGi><NInput v-model:value="form.chequeNo" :disabled="editorLocked" :placeholder="te('pleaseInput')"><template #prefix>{{ te('chequeNo') }}:</template></NInput></NGi>
+              <NGi><NInputNumber v-model:value="form.settleAmount" :disabled="editorLocked" class="w-full" :show-button="false"><template #prefix>{{ te('settleAmount') }}:</template></NInputNumber></NGi>
+              <NGi><NInput :value="formatNum(form.balance)" readonly @click="() => { if (!editorLocked) form.settleAmount = selectedOutstandingTotal }"><template #prefix>{{ te('balance') }}:</template></NInput></NGi>
+            </NGrid>
+          </NCard>
+        </NGi>
+        <NGi :span="6">
+          <NCard size="small" :bordered="true">
+            <NRadioGroup v-model:value="form.exRateMode" :disabled="editorLocked" size="small"><NRadio value="system" size="small">{{ te('systemExRate') }}</NRadio></NRadioGroup>
+            <div class="mt-8px">
+              <table class="w-full text-12px"><thead><tr><th class="text-right pa-4px">{{ te('osAmount') }}</th><th class="text-right pa-4px">{{ te('settledAmount') }}</th><th class="text-right pa-4px">{{ te('exRate') }}</th><th class="text-right pa-4px">{{ te('homeAmount') }}</th></tr></thead>
+              <tbody>
+                <tr v-for="r in summaryRows" :key="r.key"><td class="text-right pa-4px">{{ formatNum(r.osAmount) }}</td><td class="text-right pa-4px">{{ formatNum(r.settledAmount) }}</td><td class="text-right pa-4px">{{ r.currency }} {{ formatNum(r.exRate, 6) }}</td><td class="text-right pa-4px">{{ formatNum(r.homeAmount) }}</td></tr>
+                <tr class="font-bold"><td class="text-right pa-4px" colspan="3">{{ te('total') }}</td><td class="text-right pa-4px">{{ formatNum(summaryTotalHomeAmount) }}</td></tr>
+              </tbody></table>
             </div>
-          </div>
-        </NFormItem>
+          </NCard>
+        </NGi>
+      </NGrid>
 
-        <!-- 银行选择 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.bank')" path="bankId">
-          <NSelect
-            v-model:value="formData.bankId"
-            :options="bankOptions"
-            :loading="bankLoading"
-            filterable
-            remote
-            clearable
-            :placeholder="t('page.settlement.writeoff.create.selectBank')"
-            @search="handleSearchBank"
-          />
-        </NFormItem>
-
-        <!-- 银行交易记录 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.bankTransactionRecord')">
-          <div class="w-full">
-            <BankTransactionForm
-              v-model:payment-amount="bankRecord.paymentAmount"
-              v-model:other-fees="bankRecord.otherFees"
-              :bank-record="bankRecord"
-              @update:bank-record="handleBankRecordUpdate"
-            />
-          </div>
-        </NFormItem>
-
-        <!-- 汇率和金额计算 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.exchangeRateAndAmount')">
-          <div class="w-full">
-            <ExchangeRateCalculator
-              v-model:exchange-rate-option="exchangeRateOption"
-              v-model:settled-amount="settledAmount"
-              v-model:conversion-operation="conversionOperation"
-              v-model:reference-ex-rate="referenceExRate"
-              :currency="formData.currency"
-              :is-foreign-currency="formData.isForeignCurrency"
-            />
-          </div>
-        </NFormItem>
-
-        <!-- 附件上传 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.attachmentUpload')">
-          <div class="w-full">
-            <FileUploader v-model="attachments" />
-          </div>
-        </NFormItem>
-
-        <!-- 币种选择 -->
-        <NFormItem :label="t('page.settlement.writeoff.currency')" path="currency">
-          <NSelect
-            v-model:value="formData.currency"
-            :options="currencyOptions"
-            :placeholder="t('page.settlement.writeoff.create.selectCurrency')"
-          />
-        </NFormItem>
-
-        <!-- 汇率输入（外币时显示） -->
-        <NFormItem v-if="formData.isForeignCurrency" :label="t('page.settlement.writeoff.create.exchangeRate')">
-          <NInputNumber
-            v-model:value="formData.exchangeRate"
-            :min="0"
-            :precision="4"
-            :placeholder="t('page.settlement.writeoff.create.exchangeRate')"
-            :show-button="false"
-            class="w-full"
-          >
-            <template #suffix>{{ formData.currency }} → {{ baseCurrency }}</template>
-          </NInputNumber>
-          <div v-if="selectedTotal > 0" class="ml-16px text-gray">
-            {{ t('page.settlement.writeoff.create.convertedAmount') }}:
-            {{ (selectedTotal * (formData.exchangeRate || 1)).toFixed(2) }}
-            {{ baseCurrency }}
-          </div>
-        </NFormItem>
-
-        <!-- 付款方式 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.paymentMethod')" path="paymentMethod">
-          <NSelect
-            v-model:value="formData.paymentMethod"
-            :options="paymentMethodOptions"
-            :placeholder="t('page.settlement.writeoff.create.pleaseSelectPaymentMethod')"
-          />
-        </NFormItem>
-
-        <!-- 参考号 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.referenceNo')">
-          <NInput
-            v-model:value="formData.referenceNo"
-            :placeholder="t('page.settlement.writeoff.create.referenceNoPlaceholder')"
-          />
-        </NFormItem>
-
-        <!-- 备注 -->
-        <NFormItem :label="t('page.settlement.writeoff.create.remark')">
-          <NInput
-            v-model:value="formData.remark"
-            type="textarea"
-            :rows="3"
-            :placeholder="t('page.settlement.writeoff.create.remarkPlaceholder')"
-          />
-        </NFormItem>
-      </NForm>
+      <NDivider style="margin: 8px 0" />
+      <NSpace align="center" class="mb-8px py-8px" :wrap="true">
+        <NRadioGroup v-model:value="lineLedgerScope" :disabled="editorLocked" size="small"><NRadio value="AR" size="small">AR</NRadio><NRadio value="AP" size="small">AP</NRadio></NRadioGroup>
+        <NInput v-model:value="lineSearch" :disabled="editorLocked" clearable :placeholder="te('pleaseInput')" style="width: 200px" />
+        <NInput v-model:value="statementVal" :disabled="editorLocked" clearable :placeholder="te('pleaseInput')" style="width: 180px"><template #prefix>{{ te('statementNo') }}:</template></NInput>
+        <NSelect v-model:value="lineCurrency" :options="currencyOptions" clearable :disabled="editorLocked" :placeholder="te('currency')" style="width: 140px" />
+        <NButton type="primary" :disabled="editorLocked" size="small" @click="onSearchLines">{{ t('common.search') }}</NButton>
+        <NButton size="small" @click="showMoreFilters = !showMoreFilters">{{ showMoreFilters ? 'Hide' : 'More' }}</NButton>
+      </NSpace>
+      <NSpace v-if="showMoreFilters" class="mb-8px"><NInput v-model:value="moreChargeDesc" :disabled="editorLocked" style="width: 240px"><template #prefix>{{ te('chargeDescFilter') }}:</template></NInput></NSpace>
+      <NDivider style="margin: 8px 0" />
+      <NDataTable v-model:checked-row-keys="checkedLineKeys" :columns="(lineColumns as any)" :data="(allLines as any)" :bordered="false" striped :pagination="false" size="small" :scroll-x="1700" :row-key="(r: any) => r.id" :disabled="editorLocked" />
     </NCard>
   </div>
 </template>
-
-<style scoped>
-.space-y-8px > * + * {
-  margin-top: 8px;
-}
-
-.space-y-4px > * + * {
-  margin-top: 4px;
-}
-
-.company-dropdown {
-  max-height: 400px;
-  overflow-y: auto;
-}
-</style>
+<style scoped>table { border-collapse: collapse; }</style>
