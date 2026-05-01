@@ -474,7 +474,6 @@ export const generatedRoutes: GeneratedRoute[] = [
           hideInMenu: true
         }
       },
-
       {
         name: 'settlement_writeoff-edit',
         path: '/settlement/writeoff-edit',

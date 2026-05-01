@@ -454,33 +454,26 @@ onMounted(async () => {
     return;
   }
 
-  await Promise.all([loadBankAccounts(), loadCurrencies()]);
-
   try {
     const res: any = await matchTransactionsQueryLines({ apPk: pk });
-    const items = Array.isArray(res?.data?.items) ? res.data.items : [];
-    allLines.value = items.map((item: any, idx: number) => mapLine(item, idx)).filter(Boolean);
-    checkedLineKeys.value = allLines.value.map((r: any) => r.id);
+    const matchLink = res?.matchLink ?? {};
+    const header = res?.header ?? {};
+    const transactionLines = Array.isArray(res?.transactionLines) ? res.transactionLines : [];
 
-    // Pre-fill form from first line item
-    if (items.length > 0) {
-      const first = items[0];
-      form.value.matchNumber = String(first.matchNumber ?? first.match_number ?? '');
-      form.value.settleCompanyName = String(first.tth_billing_party ?? first.billingParty ?? '');
-      form.value.description = String(first.tth_desc ?? '');
-      form.value.bankAccountName = String(first.tth_bank ?? '');
-      form.value.refNo = String(first.tth_reference ?? '');
-      form.value.chequeNo = String(first.tth_invoice_payment_reference_code ?? '');
-      const dateRaw = first.tth_post_date ?? first.tth_invoice_date ?? '';
-      if (dateRaw) {
-        const d = new Date(dateRaw);
-        form.value.settleDate = Number.isNaN(d.getTime()) ? '' : formatDate(d);
-      }
-      form.value.settleAmount = items.reduce(
-        (s: number, x: any) => s + (Number(x.tth_ts_total ?? x.settlementAmountOriginal ?? 0) || 0),
-        0
-      );
+    form.value.matchNumber = String(matchLink.ap_matchgroupnum ?? header.ah_transactionnum ?? '');
+    form.value.settleCompanyName = String(header.companyName ?? '');
+    form.value.description = String(header.ah_desc ?? '');
+    form.value.settleAmount = Number(header.ah_invoiceamount ?? header.ah_ostotal ?? 0);
+    lineLedgerScope.value = String(header.ah_ledger ?? 'AR').toUpperCase();
+
+    const dateRaw = matchLink.ap_matchdate ?? header.ah_fullypaiddate ?? '';
+    if (dateRaw) {
+      const d = new Date(dateRaw);
+      form.value.settleDate = Number.isNaN(d.getTime()) ? formatDate(new Date()) : formatDate(d);
     }
+
+    allLines.value = transactionLines.map((item: any, idx: number) => mapLine(item, idx)).filter(Boolean);
+    checkedLineKeys.value = allLines.value.map((r: any) => r.id);
   } catch (error) {
     console.error(error);
     window.$message?.error('Failed to load match data.');
