@@ -3,6 +3,7 @@ import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { getBillingDetail } from '@/service/api/business/billing';
 import { useTabStore } from '@/store/modules/tab';
+
 defineOptions({ name: 'PageSettlementBillingDetail' });
 
 const tabStore = useTabStore();

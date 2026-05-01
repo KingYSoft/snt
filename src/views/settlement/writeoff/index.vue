@@ -67,7 +67,10 @@ function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: numb
   const Shipper = f.billing_party.trim() || fromField2Shipper;
   const MatchNumber = f.match_number.trim() || fromField2Match;
   const Type = f.ledger.trim();
-  const pg = override ?? { SkipCount: (pageRef.value - 1) * pageSizeRef.value, MaxResultCount: pageSizeRef.value };
+  const pg = override ?? {
+    SkipCount: (pageRef.value - 1) * pageSizeRef.value,
+    MaxResultCount: pageSizeRef.value
+  };
   const q: MatchTransactionQueryParams = {
     SkipCount: Number(pg.SkipCount) || 0,
     MaxResultCount: Number(pg.MaxResultCount) || 0
@@ -90,10 +93,18 @@ const {
   api: async () => matchTransactionsQueryPage(buildQueryParams()),
   columns: () =>
     getMatchTransactionColumns(
-      row => router.push({ name: 'settlement_writeoff-detail', query: { pk: row.ap_pk } }),
+      row =>
+        router.push({
+          name: 'settlement_writeoff-edit',
+          query: { pk: row.ap_pk }
+        }),
       (key, row) => handleRowAction(key, row)
     ) as any,
-  transform: response => sjcTransform(response, { page: pageRef.value, pageSize: pageSizeRef.value }),
+  transform: response =>
+    sjcTransform(response, {
+      page: pageRef.value,
+      pageSize: pageSizeRef.value
+    }),
   paginationProps: { pageSize: 50, pageSizes: [10, 20, 50, 100, 200] },
   onPaginationParamsChange: params => {
     pageRef.value = params.page ?? 1;
@@ -112,7 +123,7 @@ function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRe
     window.$message?.info(`Print ${row.ah_transactionnum} (mock)`);
     return;
   }
-  router.push({ name: 'settlement_writeoff-detail', query: { pk: row.ap_pk } });
+  router.push({ name: 'settlement_writeoff-edit', query: { pk: row.ap_pk } });
 }
 
 function getRowProps(row: MatchTransactionRecord) {
@@ -124,7 +135,10 @@ function getRowProps(row: MatchTransactionRecord) {
         e.target.closest('button, a, input, textarea, [role="button"], .n-checkbox, .n-base-selection')
       )
         return;
-      router.push({ name: 'settlement_writeoff-detail', query: { pk: row.ap_pk } });
+      router.push({
+        name: 'settlement_writeoff-detail',
+        query: { pk: row.ap_pk }
+      });
     }
   };
 }
@@ -230,7 +244,9 @@ getData();
         </NGi>
         <NGi :span="6">
           <NSpace justify="end" class="w-full">
-            <NButton type="primary" :loading="loading" @click="getDataByPage(1)">{{ t('common.search') }}</NButton>
+            <NButton type="primary" :loading="loading" @click="getDataByPage(1)">
+              {{ t('common.search') }}
+            </NButton>
             <NButton
               @click="
                 Object.assign(filters, createDefaultFilters());

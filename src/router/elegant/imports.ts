@@ -56,7 +56,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   "settlement_receivable-transactions-create": () => import("@/views/settlement/receivable-transactions-create/index.vue"),
   "settlement_receivable-transactions": () => import("@/views/settlement/receivable-transactions/index.vue"),
   "settlement_writeoff-create": () => import("@/views/settlement/writeoff-create/index.vue"),
-  "settlement_writeoff-detail": () => import("@/views/settlement/writeoff-detail/index.vue"),
+
   "settlement_writeoff-edit": () => import("@/views/settlement/writeoff-edit/index.vue"),
   settlement_writeoff: () => import("@/views/settlement/writeoff/index.vue"),
   system_branch: () => import("@/views/system/branch/index.vue"),

@@ -208,7 +208,6 @@ const routeMap: RouteMap = {
   "settlement_receivable-transactions-create": "/settlement/receivable-transactions-create",
   "settlement_writeoff": "/settlement/writeoff",
   "settlement_writeoff-create": "/settlement/writeoff-create",
-  "settlement_writeoff-detail": "/settlement/writeoff-detail",
   "settlement_writeoff-edit": "/settlement/writeoff-edit",
   "system": "/system",
   "system_branch": "/system/branch",

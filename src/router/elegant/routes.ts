@@ -474,16 +474,7 @@ export const generatedRoutes: GeneratedRoute[] = [
           hideInMenu: true
         }
       },
-      {
-        name: 'settlement_writeoff-detail',
-        path: '/settlement/writeoff-detail',
-        component: 'view.settlement_writeoff-detail',
-        meta: {
-          title: 'settlement_writeoff-detail',
-          i18nKey: 'route.settlement_writeoff-detail',
-          hideInMenu: true
-        }
-      },
+
       {
         name: 'settlement_writeoff-edit',
         path: '/settlement/writeoff-edit',

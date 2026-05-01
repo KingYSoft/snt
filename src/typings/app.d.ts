@@ -1071,6 +1071,7 @@ declare namespace App {
             addWriteoff: string;
             writeoffNo: string;
             companyName: string;
+            transactionType: string;
             amount: string;
             currency: string;
             writeoffDate: string;

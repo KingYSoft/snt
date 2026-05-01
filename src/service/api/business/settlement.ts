@@ -210,66 +210,6 @@ export interface SettlementTransactionQueryParams {
 // ==================== Mock 数据 ====================
 
 /**
- * Mock 销账列表数据
- */
-const _mockWriteoffList = [
-  {
-    writeoffNo: 'WFF20250101001',
-    companyId: '1',
-    companyName: 'ABC 贸易公司',
-    amount: 15000.0,
-    currency: 'CNY',
-    writeoffDate: '2025-01-15',
-    status: 'approved',
-    createdAt: '2025-01-15T10:30:00',
-    remark: '月度结算'
-  },
-  {
-    writeoffNo: 'WFF20250102001',
-    companyId: '2',
-    companyName: 'XYZ 物流有限公司',
-    amount: 8500.5,
-    currency: 'USD',
-    writeoffDate: '2025-01-16',
-    status: 'submitted',
-    createdAt: '2025-01-16T14:20:00',
-    remark: ''
-  },
-  {
-    writeoffNo: 'WFF20250103001',
-    companyId: '3',
-    companyName: '全球供应链公司',
-    amount: 25000.0,
-    currency: 'CNY',
-    writeoffDate: '2025-01-17',
-    status: 'draft',
-    createdAt: '2025-01-17T09:15:00',
-    remark: '待审核'
-  },
-  {
-    writeoffNo: 'WFF20250104001',
-    companyId: '1',
-    companyName: 'ABC 贸易公司',
-    amount: 5000.0,
-    currency: 'CNY',
-    writeoffDate: '2025-01-18',
-    status: 'approved',
-    createdAt: '2025-01-18T16:45:00'
-  },
-  {
-    writeoffNo: 'WFF20250105001',
-    companyId: '4',
-    companyName: '太平洋货运代理',
-    amount: 12500.0,
-    currency: 'HKD',
-    writeoffDate: '2025-01-19',
-    status: 'submitted',
-    createdAt: '2025-01-19T11:30:00',
-    remark: '港币结算'
-  }
-];
-
-/**
  * Mock 结欠余额数据（按公司 ID 索引）
  */
 const mockOutstandingBalances: Record<string, OutstandingBalance> = {

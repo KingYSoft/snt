@@ -62,7 +62,6 @@ declare module "@elegant-router/types" {
     "settlement_receivable-transactions-create": "/settlement/receivable-transactions-create";
     "settlement_writeoff": "/settlement/writeoff";
     "settlement_writeoff-create": "/settlement/writeoff-create";
-    "settlement_writeoff-detail": "/settlement/writeoff-detail";
     "settlement_writeoff-edit": "/settlement/writeoff-edit";
     "system": "/system";
     "system_branch": "/system/branch";
@@ -167,7 +166,6 @@ declare module "@elegant-router/types" {
     | "settlement_receivable-transactions-create"
     | "settlement_receivable-transactions"
     | "settlement_writeoff-create"
-    | "settlement_writeoff-detail"
     | "settlement_writeoff-edit"
     | "settlement_writeoff"
     | "system_branch"

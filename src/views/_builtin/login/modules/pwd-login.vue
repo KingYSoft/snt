@@ -16,7 +16,7 @@ interface FormModel {
 
 const model: FormModel = reactive({
   email: 'admin',
-  password: '123456'
+  password: ''
 });
 
 // Load saved email from localStorage if available
