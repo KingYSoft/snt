@@ -6,7 +6,7 @@ import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform } from '@/utils/maintain/transform';
 import {
   matchTransactionsQueryPage,
-  mapMatchTransactionItem,
+  normalizeMatchTransactionRecord,
   type MatchTransactionRecord,
   type MatchTransactionQueryParams
 } from '@/service/api/business/match-transactions';
@@ -27,7 +27,6 @@ const defaultEnd = formatDate(today);
 interface FilterState {
   field1: { key: string; start: string; end: string };
   field2: { key: string; value: string };
-  ledger: string;
   match_number: string;
   billing_party: string;
 }
@@ -36,7 +35,6 @@ function createDefaultFilters(): FilterState {
   return {
     field1: { key: 'etd', start: defaultStart, end: defaultEnd },
     field2: { key: 'job_number', value: '' },
-    ledger: '',
     match_number: '',
     billing_party: ''
   };
@@ -66,7 +64,6 @@ function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: numb
   const fromField2Match = f.field2.key === 'match_number' ? f.field2.value.trim() : '';
   const Shipper = f.billing_party.trim() || fromField2Shipper;
   const MatchNumber = f.match_number.trim() || fromField2Match;
-  const Type = f.ledger.trim();
   const pg = override ?? {
     SkipCount: (pageRef.value - 1) * pageSizeRef.value,
     MaxResultCount: pageSizeRef.value
@@ -78,7 +75,6 @@ function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: numb
   if (Shipper) q.Shipper = Shipper;
   if (JobNumber) q.JobNumber = JobNumber;
   if (MatchNumber) q.MatchNumber = MatchNumber;
-  if (Type) q.Type = Type;
   return q;
 }
 
@@ -96,15 +92,20 @@ const {
       row =>
         router.push({
           name: 'settlement_writeoff-edit',
-          query: { pk: row.ap_pk }
+          query: { pk: row.pk }
         }),
       (key, row) => handleRowAction(key, row)
     ) as any,
-  transform: response =>
-    sjcTransform(response, {
+  transform: response => {
+    const paginated = sjcTransform(response, {
       page: pageRef.value,
       pageSize: pageSizeRef.value
-    }),
+    });
+    return {
+      ...paginated,
+      data: paginated.data.map((item: any, i: number) => normalizeMatchTransactionRecord(item, i + 1))
+    };
+  },
   paginationProps: { pageSize: 50, pageSizes: [10, 20, 50, 100, 200] },
   onPaginationParamsChange: params => {
     pageRef.value = params.page ?? 1;
@@ -115,15 +116,15 @@ const {
 function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRecord) {
   if (key === 'export') {
     const csv = buildCsv([row]);
-    downloadCsv(csv, `writeoff_${row.ah_transactionnum || 'row'}.csv`);
-    window.$message?.success(`Exported ${row.ah_transactionnum}`);
+    downloadCsv(csv, `writeoff_${row.matchNumber || 'row'}.csv`);
+    window.$message?.success(`Exported ${row.matchNumber}`);
     return;
   }
   if (key === 'print') {
-    window.$message?.info(`Print ${row.ah_transactionnum} (mock)`);
+    window.$message?.info(`Print ${row.matchNumber} (mock)`);
     return;
   }
-  router.push({ name: 'settlement_writeoff-edit', query: { pk: row.ap_pk } });
+  router.push({ name: 'settlement_writeoff-edit', query: { pk: row.pk } });
 }
 
 function getRowProps(row: MatchTransactionRecord) {
@@ -136,8 +137,8 @@ function getRowProps(row: MatchTransactionRecord) {
       )
         return;
       router.push({
-        name: 'settlement_writeoff-detail',
-        query: { pk: row.ap_pk }
+        name: 'settlement_writeoff-edit',
+        query: { pk: row.pk }
       });
     }
   };
@@ -149,7 +150,7 @@ function csvCell(v: unknown) {
   return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
 }
 function buildCsv(items: MatchTransactionRecord[]) {
-  const h = '#,Type,Transaction No.,Company,Currency,Amount,Match Date,Reason';
+  const h = '#,Ledger,Transaction No.,Company,Currency,Amount,Payment Date,Description';
   return (
     h +
     '\n' +
@@ -157,13 +158,13 @@ function buildCsv(items: MatchTransactionRecord[]) {
       .map((r, i) =>
         [
           csvCell(i + 1),
-          csvCell(r.ah_transactiontype),
-          csvCell(r.ah_transactionnum),
-          csvCell(r.companyName),
-          csvCell(r.ah_rx_nktransactioncurrency),
-          csvCell(r.ap_amount),
-          csvCell(r.ap_matchdate ? r.ap_matchdate.split('T')[0] : ''),
-          csvCell(r.ap_reason)
+          csvCell(r.ledger),
+          csvCell(r.matchNumber),
+          csvCell(r.billingPartyName?.trim() || r.billingParty),
+          csvCell(r.currency),
+          csvCell(r.settledAmount),
+          csvCell(r.paymentDate ? String(r.paymentDate).split('T')[0] : ''),
+          csvCell(r.description)
         ].join(',')
       )
       .join('\n')
@@ -190,10 +191,7 @@ async function handleExportAll() {
     }
     const total = res?.data?.totalCount ?? 0;
     if (total > 50000) window.$message?.warning(`Exporting first 50,000 of ${total} rows.`);
-    const mapped = (res?.data?.items ?? []).map((item: any, i: number) => ({
-      ...mapMatchTransactionItem(item),
-      index: i + 1
-    }));
+    const mapped = (res?.data?.items ?? []).map((item: any, i: number) => normalizeMatchTransactionRecord(item, i + 1));
     downloadCsv(buildCsv(mapped), 'matching_transactions.csv');
     window.$message?.success('Export completed');
   } catch {
@@ -261,9 +259,6 @@ getData();
           </NSpace>
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
-          <NInput v-model:value="filters.ledger" placeholder="Ledger" clearable />
-        </NGi>
-        <NGi v-if="showMoreFilters" :span="4">
           <NInput v-model:value="filters.match_number" placeholder="Match Number" clearable />
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
@@ -282,7 +277,7 @@ getData();
           :data="rows"
           :loading="loading"
           :pagination="pagination"
-          :row-key="(r: any) => r.ap_pk"
+          :row-key="(r: any) => r.pk"
           :row-props="getRowProps"
           :scroll-x="1200"
           remote
