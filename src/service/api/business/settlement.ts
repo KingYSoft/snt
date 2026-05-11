@@ -599,7 +599,7 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
 
   // Map organization fields - check for joined data or use PK fallback
   const creditorDebtorCode = item.oh_e2_oa_address || item.oh_oa_code || item.ah_oh || '';
-  const creditorDebtorName = item.oh_e2_companyname || item.oh_oa_name || item.ab_e2_companyname || '';
+  const creditorDebtorName = item.oh_e2_companyname || item.oh_fullname || item.ab_e2_companyname || '';
 
   // Job invoice number: priority based on field availability
   // AR uses consolidatedinvoiceref, AP uses chequeorreference, fallback to jobnumber or transactionnum

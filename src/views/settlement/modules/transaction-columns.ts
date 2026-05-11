@@ -100,13 +100,15 @@ export function getSettlementTransactionColumns(
     {
       key: 'creditor_debtor',
       title: $t('page.settlement.transactions.creditorDebtor'),
-      minWidth: 120,
+      minWidth: 220,
+      width: 220,
       ellipsis: { tooltip: true }
     },
     {
       key: 'creditor_debtor_full_name',
       title: $t('page.settlement.transactions.creditorDebtorFullName'),
-      minWidth: 220,
+      minWidth: 320,
+      width: 320,
       ellipsis: { tooltip: true }
     },
     {
