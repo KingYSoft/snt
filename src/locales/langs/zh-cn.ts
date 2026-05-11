@@ -690,6 +690,9 @@ const local: App.I18n.Schema = {
         keywordPlaceholder: '客户/供应商 / 工作单号 / 交易号 / 发票号',
         exportRow: '导出当前行',
         exportSuccess: '导出完成',
+        exportSelectFirst: '请先勾选要导出的行',
+        exportPartialSkipped:
+          '已勾选 {selected} 条，本次仅导出 {exported} 条（其余页勾选的数据请先翻到对应页加载后再导出）',
         exportFailed: '导出失败，请稍后重试',
         exportRowSuccess: '已导出 {no}',
         createDeveloping: '新建交易页面开发中',

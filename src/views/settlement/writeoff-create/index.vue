@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
@@ -23,8 +23,10 @@ import {
   matchTransactionsQueryOrgAddress,
   matchTransactionsQueryOutstandingInvoices,
   matchTransactionsSaveMatchWriteOff,
-  matchTransactionsQueryDraftMatchNumber
+  matchTransactionsQueryDraftMatchNumber,
+  type OutstandingInvoicesParams
 } from '@/service/api/business/match-transactions';
+import type { PaginationProps } from 'naive-ui';
 
 defineOptions({ name: 'PageSettlementWriteoffCreate' });
 
@@ -69,6 +71,25 @@ const showMoreFilters = ref(false);
 const moreChargeDesc = ref('');
 const allLines = ref<any[]>([]);
 const checkedLineKeys = ref<Array<string | number>>([]);
+const linesLoading = ref(false);
+
+const linePagination = reactive({
+  page: 1,
+  pageSize: 50,
+  itemCount: 0,
+  showSizePicker: true,
+  pageSizes: [10, 20, 50, 100],
+  prefix: (info: { itemCount: number | undefined }) => `Total: ${info.itemCount ?? 0}`,
+  ['onUpdate:page'](page: number) {
+    linePagination.page = page;
+    void fetchOutstandingLines();
+  },
+  ['onUpdate:pageSize'](pageSize: number) {
+    linePagination.pageSize = pageSize;
+    linePagination.page = 1;
+    void fetchOutstandingLines();
+  }
+}) as PaginationProps;
 
 // Company
 const companyOptions = ref<Array<{ label: string; value: string; data: any }>>([]);
@@ -96,14 +117,26 @@ async function handleSelectCompany(value: string) {
   if (sel?.data) {
     form.value.settleCompany = sel.data;
     form.value.settleCompanyName = sel.data.name ?? sel.data.company_name ?? '';
-    const cn = String(sel.data.company_name ?? '').trim();
-    if (cn)
+    if (form.value.bankAccount) {
+      linePagination.page = 1;
       try {
-        await queryLines(cn);
+        await fetchOutstandingLines();
       } catch {
         allLines.value = [];
         checkedLineKeys.value = [];
+        linePagination.itemCount = 0;
       }
+    } else {
+      allLines.value = [];
+      checkedLineKeys.value = [];
+      linePagination.itemCount = 0;
+    }
+  } else if (!value) {
+    form.value.settleCompany = null;
+    form.value.settleCompanyName = '';
+    allLines.value = [];
+    checkedLineKeys.value = [];
+    linePagination.itemCount = 0;
   }
 }
 
@@ -129,6 +162,17 @@ function handleSelectBank(value: string) {
   if (sel?.data) {
     form.value.bankAccount = sel.data;
     form.value.bankAccountName = sel.data.bankAccount ?? '';
+    const cn = String(form.value.settleCompany?.company_name ?? '').trim();
+    if (cn) {
+      linePagination.page = 1;
+      void fetchOutstandingLines();
+    }
+  } else {
+    form.value.bankAccount = null;
+    form.value.bankAccountName = '';
+    allLines.value = [];
+    checkedLineKeys.value = [];
+    linePagination.itemCount = 0;
   }
 }
 
@@ -166,30 +210,80 @@ const mapLine = (raw: any, i: number) => {
     settlement_amount_home: Number(raw.settlement_amount_home ?? 0) || 0
   };
 };
-async function queryLines(company: string) {
-  const p: any = { billingParty: company };
-  if (lineLedgerScope.value) p.ledgerScope = lineLedgerScope.value;
-  if (lineSearch.value?.trim()) {
-    p.lineSearch = lineSearch.value.trim();
-    p.query = lineSearch.value.trim();
-  }
-  if (statementVal.value?.trim()) p.statementNo = statementVal.value.trim();
-  if (lineCurrency.value) p.currency = lineCurrency.value;
-  if (moreChargeDesc.value?.trim()) p.chargeDesc = moreChargeDesc.value.trim();
-  const res: any = await matchTransactionsQueryOutstandingInvoices(p);
-  const items = Array.isArray(res?.data?.items) ? res.data.items : Array.isArray(res?.data?.list) ? res.data.list : [];
-  allLines.value = items.map(mapLine).filter(Boolean);
-  checkedLineKeys.value = [];
+function buildOutstandingPayload(billingParty: string): OutstandingInvoicesParams {
+  const page = linePagination.page ?? 1;
+  const pageSize = linePagination.pageSize ?? 50;
+  const payload: OutstandingInvoicesParams = {
+    billingParty,
+    pageIndex: Math.max(0, page - 1),
+    pageSize
+  };
+  if (lineLedgerScope.value) payload.ledgerScope = lineLedgerScope.value;
+  if (lineSearch.value?.trim()) payload.query = lineSearch.value.trim();
+  if (statementVal.value?.trim()) payload.statementNo = statementVal.value.trim();
+  if (lineCurrency.value) payload.currency = lineCurrency.value;
+  if (moreChargeDesc.value?.trim()) payload.chargeDesc = moreChargeDesc.value.trim();
+  return payload;
 }
+
+async function fetchOutstandingLines() {
+  if (editorLocked.value) return;
+  if (!form.value.bankAccount) {
+    window.$message?.warning('Select bank first.');
+    return;
+  }
+  const cn = String(form.value.settleCompany?.company_name ?? '').trim();
+  if (!cn) {
+    window.$message?.warning('Select company first.');
+    allLines.value = [];
+    checkedLineKeys.value = [];
+    linePagination.itemCount = 0;
+    return;
+  }
+  linesLoading.value = true;
+  try {
+    const payload = buildOutstandingPayload(cn);
+    const res: any = await matchTransactionsQueryOutstandingInvoices(payload);
+    if (res && res.success === false) {
+      allLines.value = [];
+      checkedLineKeys.value = [];
+      linePagination.itemCount = 0;
+      window.$message?.error(res.msg || 'Failed to load.');
+      return;
+    }
+    const items = Array.isArray(res?.data?.items)
+      ? res.data.items
+      : Array.isArray(res?.data?.list)
+        ? res.data.list
+        : [];
+    const total = Number(res?.data?.totalCount ?? res?.data?.total ?? res?.totalCount) || items.length;
+    allLines.value = items.map(mapLine).filter(Boolean);
+    checkedLineKeys.value = [];
+    linePagination.itemCount = Number.isFinite(total) ? total : items.length;
+  } catch {
+    window.$message?.error('Failed to load.');
+    allLines.value = [];
+    checkedLineKeys.value = [];
+    linePagination.itemCount = 0;
+  } finally {
+    linesLoading.value = false;
+  }
+}
+
 async function onSearchLines() {
   if (editorLocked.value) return;
+  if (!form.value.bankAccount) {
+    window.$message?.warning('Select bank first.');
+    return;
+  }
   const cn = String(form.value.settleCompany?.company_name ?? '').trim();
   if (!cn) {
     window.$message?.warning('Select company first.');
     return;
   }
+  linePagination.page = 1;
   try {
-    await queryLines(cn);
+    await fetchOutstandingLines();
   } catch {
     window.$message?.error('Failed to load.');
   }
@@ -381,7 +475,10 @@ function handleReset() {
     })
     .catch(() => {});
   const cn = String(sc?.company_name ?? '').trim();
-  if (cn) queryLines(cn).catch(() => {});
+  if (cn && ba) {
+    linePagination.page = 1;
+    fetchOutstandingLines().catch(() => {});
+  }
 }
 
 loadBanks();
@@ -540,20 +637,20 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
 
       <NDivider style="margin: 8px 0" />
       <NSpace align="center" class="mb-8px py-8px" :wrap="true">
-        <NRadioGroup v-model:value="lineLedgerScope" :disabled="editorLocked" size="small">
+        <NRadioGroup v-model:value="lineLedgerScope" :disabled="editorLocked || !form.bankAccount" size="small">
           <NRadio value="AR" size="small">AR</NRadio>
           <NRadio value="AP" size="small">AP</NRadio>
         </NRadioGroup>
         <NInput
           v-model:value="lineSearch"
-          :disabled="editorLocked"
+          :disabled="editorLocked || !form.bankAccount"
           clearable
           :placeholder="te('pleaseInput')"
           style="width: 200px"
         />
         <NInput
           v-model:value="statementVal"
-          :disabled="editorLocked"
+          :disabled="editorLocked || !form.bankAccount"
           clearable
           :placeholder="te('pleaseInput')"
           style="width: 180px"
@@ -564,19 +661,19 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
           v-model:value="lineCurrency"
           :options="currencyOptions"
           clearable
-          :disabled="editorLocked"
+          :disabled="editorLocked || !form.bankAccount"
           :placeholder="te('currency')"
           style="width: 140px"
         />
-        <NButton type="primary" :disabled="editorLocked" size="small" @click="onSearchLines">
+        <NButton type="primary" :disabled="editorLocked || !form.bankAccount" size="small" @click="onSearchLines">
           {{ t('common.search') }}
         </NButton>
-        <NButton size="small" @click="showMoreFilters = !showMoreFilters">
+        <NButton size="small" :disabled="editorLocked" @click="showMoreFilters = !showMoreFilters">
           {{ showMoreFilters ? 'Hide' : 'More' }}
         </NButton>
       </NSpace>
       <NSpace v-if="showMoreFilters" class="mb-8px">
-        <NInput v-model:value="moreChargeDesc" :disabled="editorLocked" style="width: 240px">
+        <NInput v-model:value="moreChargeDesc" :disabled="editorLocked || !form.bankAccount" style="width: 240px">
           <template #prefix>{{ te('chargeDescFilter') }}:</template>
         </NInput>
       </NSpace>
@@ -587,7 +684,8 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
         :data="allLines as any"
         :bordered="false"
         striped
-        :pagination="false"
+        :pagination="form.bankAccount ? linePagination : false"
+        :loading="linesLoading"
         size="small"
         :scroll-x="1700"
         :row-key="(r: any) => r.id"
