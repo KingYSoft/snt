@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { ref, watch } from 'vue';
+import type { DataTableRowKey } from 'naive-ui';
 import { useRouter } from 'vue-router';
 import { $t } from '@/locales';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
-import {
-  consolidationQueryPage,
-  consolidationExport,
-  type ConsolidationFilter
-} from '@/service/api/business/consolidation';
+import { consolidationQueryPage, type ConsolidationFilter } from '@/service/api/business/consolidation';
 import { getConsolidationColumns, type ConsolidationActionKey } from './modules/columns';
+
+type ConsolidationRow = Record<string, any>;
 
 defineOptions({
   name: 'BusinessConsolidation'
@@ -17,6 +16,31 @@ defineOptions({
 
 const router = useRouter();
 const showMore = ref(false);
+const checkedRowKeys = ref<DataTableRowKey[]>([]);
+const selectedRowsByPk = ref(new Map<string, ConsolidationRow>());
+
+// --- ETD date range（与货运列表一致，默认 2026-01-01～今天） ---
+function formatDate(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+function defaultEtdRange(): [number, number] {
+  const start = new Date('2026-01-01');
+  const end = new Date();
+  return [start.getTime(), end.getTime()];
+}
+
+const etdRange = ref<[number, number]>(defaultEtdRange());
+
+function etdRangeToStr(): { start: string; end: string } {
+  return {
+    start: formatDate(new Date(etdRange.value[0])),
+    end: formatDate(new Date(etdRange.value[1]))
+  };
+}
 
 // --- Search state ---
 const searchKey = ref('jk_masterbillnum');
@@ -46,6 +70,8 @@ const pageSizeRef = ref(20);
 
 function buildFilters() {
   const filters: ConsolidationFilter[] = [];
+  const { start, end } = etdRangeToStr();
+  // filters.push({ key: 'jk_e_dep', op: 'between', val: '', start, end });
 
   if (searchVal.value) {
     filters.push({ key: searchKey.value, op: 'Contain', val: searchVal.value });
@@ -79,7 +105,13 @@ function buildFilters() {
 }
 
 // --- Table hook ---
-const { data, loading, columns, pagination, getDataByPage } = useNaivePaginatedTable<any, any>({
+const {
+  data: tableRows,
+  loading,
+  columns,
+  pagination,
+  getDataByPage
+} = useNaivePaginatedTable<any, any>({
   api: async () => {
     const { skipCount, maxResultCount } = buildSjcPaginationParams(pageRef.value, pageSizeRef.value);
     return consolidationQueryPage({
@@ -104,6 +136,107 @@ const { data, loading, columns, pagination, getDataByPage } = useNaivePaginatedT
   }
 });
 
+function handleCheckedRowKeysUpdate(keys: DataTableRowKey[], rowsPayload?: object[]) {
+  checkedRowKeys.value = keys;
+  const keySet = new Set(keys.map(k => String(k)));
+  const map = selectedRowsByPk.value;
+  for (const pk of map.keys()) {
+    if (!keySet.has(pk)) {
+      map.delete(pk);
+    }
+  }
+  if (rowsPayload?.length) {
+    keys.forEach((key, i) => {
+      const row = rowsPayload[i] as ConsolidationRow | undefined;
+      if (row != null && typeof row === 'object') {
+        map.set(String(key), row);
+      }
+    });
+  }
+}
+
+watch(tableRows, newRows => {
+  const keySet = new Set(checkedRowKeys.value.map(k => String(k)));
+  const map = selectedRowsByPk.value;
+  for (const row of newRows) {
+    const id = String(row.jk_pk);
+    if (keySet.has(id)) {
+      map.set(id, row);
+    }
+  }
+});
+
+function csvCell(value: unknown) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  const s = String(value);
+  if (/[",\n\r]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function formatShippedOnBoard(row: ConsolidationRow) {
+  const date = row.jk_shippedonboarddate as string | null | undefined;
+  if (!date) return '';
+  const dateObj = new Date(date);
+  if (Number.isNaN(dateObj.getTime())) return '';
+  return dateObj.toISOString().split('T')[0];
+}
+
+function formatCancelledCell(row: ConsolidationRow) {
+  const normalized = String(row.jk_iscancelled ?? '').toLowerCase();
+  const isCancelledRow = normalized === '1' || normalized === 'true' || normalized === 'y' || normalized === 'yes';
+  return isCancelledRow ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no');
+}
+
+function buildConsolidationCsv(items: ConsolidationRow[]) {
+  const header = [
+    $t('page.business.consolidation.table.consolidationNo'),
+    $t('page.business.consolidation.table.masterBillNo'),
+    $t('page.business.consolidation.table.bookingReference'),
+    $t('page.business.consolidation.table.consolStatus'),
+    $t('page.business.consolidation.table.phase'),
+    $t('page.business.consolidation.table.transportMode'),
+    $t('page.business.consolidation.table.loadPort'),
+    $t('page.business.consolidation.table.dischargePort'),
+    $t('page.business.consolidation.table.shippedOnBoardDate'),
+    $t('page.business.consolidation.table.consolChargeable'),
+    $t('page.business.consolidation.table.cancelled')
+  ].join(',');
+
+  const lines = items.map(item =>
+    [
+      csvCell(item.jk_uniqueconsignref),
+      csvCell(item.jk_masterbillnum),
+      csvCell(item.jk_bookingreference),
+      csvCell(item.jk_consolstatus),
+      csvCell(item.jk_phase),
+      csvCell(item.jk_transportmode),
+      csvCell(item.jk_rl_nkloadport),
+      csvCell(item.jk_rl_nkdischargeport),
+      csvCell(formatShippedOnBoard(item)),
+      csvCell(item.jk_consolchargeable),
+      csvCell(formatCancelledCell(item))
+    ].join(',')
+  );
+
+  return `${header}\n${lines.join('\n')}`;
+}
+
+function downloadCsv(csv: string, fileName: string) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', fileName);
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 function handleSearch() {
   getDataByPage(1);
 }
@@ -117,6 +250,9 @@ function handleReset() {
   consolMode.value = '';
   cancelledOp.value = '=';
   cancelled.value = '';
+  etdRange.value = defaultEtdRange();
+  checkedRowKeys.value = [];
+  selectedRowsByPk.value = new Map();
   getDataByPage(1);
 }
 
@@ -131,44 +267,35 @@ function navigateToDetail(row: any) {
   });
 }
 
-async function handleExport(filters: ConsolidationFilter[], fileName: string, maxResultCount?: number) {
-  const response = await consolidationExport({
-    SkipCount: 0,
-    MaxResultCount: maxResultCount ?? (pagination.pageSize || 100),
-    filters
-  });
-
-  if (response.data) {
-    const url = window.URL.createObjectURL(new Blob([response.data]));
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
-    document.body.append(link);
-    link.click();
-    link.remove();
-  }
-}
-
-async function handleMenuAction(key: ConsolidationActionKey, row: any) {
+function handleMenuAction(key: ConsolidationActionKey, row: ConsolidationRow) {
   if (key !== 'export') return;
 
-  try {
-    await handleExport(
-      [{ key: 'jk_pk', op: '=', val: row.jk_pk }],
-      `Consol_${row.jk_uniqueconsignref || row.jk_pk}.xlsx`,
-      1
-    );
-  } catch {
-    window.$message?.error($t('page.business.shipment.messages.exportFailed'));
-  }
+  downloadCsv(buildConsolidationCsv([row]), `Consol_${row.jk_uniqueconsignref || row.jk_pk}.csv`);
+  window.$message?.success($t('page.settlement.transactions.exportSuccess'));
 }
 
-async function handleBatchExport() {
-  try {
-    await handleExport(buildFilters(), 'Consols.xlsx', pagination.pageSize || 100);
-  } catch {
-    window.$message?.error($t('page.business.shipment.messages.exportFailed'));
+function handleBatchExport() {
+  if (checkedRowKeys.value.length === 0) {
+    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
+    return;
   }
+  const items = checkedRowKeys.value
+    .map(k => selectedRowsByPk.value.get(String(k)))
+    .filter((r): r is ConsolidationRow => r != null);
+  if (items.length === 0) {
+    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
+    return;
+  }
+  if (items.length < checkedRowKeys.value.length) {
+    window.$message?.warning(
+      $t('page.settlement.transactions.exportPartialSkipped', {
+        exported: items.length,
+        selected: checkedRowKeys.value.length
+      })
+    );
+  }
+  downloadCsv(buildConsolidationCsv(items), 'Consols.csv');
+  window.$message?.success($t('page.settlement.transactions.exportSuccess'));
 }
 </script>
 
@@ -177,6 +304,13 @@ async function handleBatchExport() {
     <NCard :bordered="false" class="flex-shrink-0">
       <div class="flex-col-stretch gap-16px">
         <NSpace align="center" :wrap="false">
+          <NDatePicker
+            v-model:value="etdRange"
+            type="daterange"
+            clearable
+            :placeholder="$t('page.business.shipment.table.etd')"
+            style="width: 260px"
+          />
           <NSelect v-model:value="searchKey" :options="searchKeyOptions" style="width: 180px" />
           <NInput
             v-model:value="searchVal"
@@ -240,13 +374,15 @@ async function handleBatchExport() {
         </NSpace>
 
         <NDataTable
+          :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
-          :data="data"
+          :data="tableRows"
           :loading="loading"
           :pagination="pagination"
-          :row-key="(row: any) => row.id"
+          :row-key="(row: any) => row.jk_pk"
           remote
           striped
+          @update:checked-row-keys="handleCheckedRowKeysUpdate"
         />
       </NSpace>
     </NCard>

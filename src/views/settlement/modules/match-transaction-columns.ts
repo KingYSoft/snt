@@ -35,6 +35,10 @@ export function getMatchTransactionColumns(
 
   return [
     {
+      type: 'selection' as const,
+      fixed: 'left' as const
+    },
+    {
       key: 'index',
       title: '#',
       width: 60,

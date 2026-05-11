@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive, ref, watch } from 'vue';
 import type { DataTableRowKey, SelectOption } from 'naive-ui';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
@@ -39,6 +39,8 @@ const router = useRouter();
 
 const showMoreFilters = ref(true);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
+/** 勾选行的完整数据：Naive 在远程分页下只对内存中的节点解析得到 row，翻页时用当前页 rows 补全 */
+const selectedRowsByPk = ref(new Map<string, SettlementTransactionRecord>());
 
 function formatDate(date: Date) {
   const year = date.getFullYear();
@@ -50,9 +52,7 @@ function formatDate(date: Date) {
 
 const today = new Date();
 const defaultEnd = formatDate(today);
-const defaultStartDate = new Date(today);
-defaultStartDate.setDate(defaultStartDate.getDate() - 1000);
-const defaultStart = formatDate(defaultStartDate);
+const defaultStart = formatDate(new Date('2026-01-01'));
 
 function createDefaultFilters(): TransactionFilterState {
   return {
@@ -162,6 +162,40 @@ const {
   }
 });
 
+/**
+ * Naive UI：`@update:checked-row-keys` 第二个参数为与 keys 同序的完整行数据（见 naive-ui use-check doUpdateCheckedRowKeys）。
+ * 远程分页时仅当前页及 tree 内节点能解析出 row，其余下标可能为空，需配合 watch(rows) 补缓存。
+ */
+function handleCheckedRowKeysUpdate(keys: DataTableRowKey[], rowsPayload?: object[]) {
+  checkedRowKeys.value = keys;
+  const keySet = new Set(keys.map(k => String(k)));
+  const map = selectedRowsByPk.value;
+  for (const pk of map.keys()) {
+    if (!keySet.has(pk)) {
+      map.delete(pk);
+    }
+  }
+  if (rowsPayload?.length) {
+    keys.forEach((key, i) => {
+      const row = rowsPayload[i] as SettlementTransactionRecord | undefined;
+      if (row != null && typeof row === 'object') {
+        map.set(String(key), row);
+      }
+    });
+  }
+}
+
+watch(rows, newRows => {
+  const keySet = new Set(checkedRowKeys.value.map(k => String(k)));
+  const map = selectedRowsByPk.value;
+  for (const row of newRows) {
+    const id = String(row.pk);
+    if (keySet.has(id)) {
+      map.set(id, row);
+    }
+  }
+});
+
 function handleSearch() {
   getDataByPage(1);
 }
@@ -169,6 +203,7 @@ function handleSearch() {
 function handleReset() {
   Object.assign(filters, createDefaultFilters());
   checkedRowKeys.value = [];
+  selectedRowsByPk.value = new Map();
   getDataByPage(1);
 }
 
@@ -258,17 +293,29 @@ function downloadCsv(items: SettlementTransactionRecord[], fileName: string) {
   window.URL.revokeObjectURL(url);
 }
 
-async function handleExportAll() {
-  try {
-    const res = await queryFn(buildParams({ skipCount: 0, maxResultCount: 100000 }));
-    const items = res?.data?.items || [];
-    const fileName = props.type === 'receivable' ? 'receivable_transactions.csv' : 'payable_transactions.csv';
-
-    downloadCsv(items, fileName);
-    window.$message?.success(t('page.settlement.transactions.exportSuccess'));
-  } catch {
-    window.$message?.error(t('page.settlement.transactions.exportFailed'));
+function handleExportSelected() {
+  if (checkedRowKeys.value.length === 0) {
+    window.$message?.warning(t('page.settlement.transactions.exportSelectFirst'));
+    return;
   }
+  const items = checkedRowKeys.value
+    .map(k => selectedRowsByPk.value.get(String(k)))
+    .filter((r): r is SettlementTransactionRecord => r != null);
+  if (items.length === 0) {
+    window.$message?.warning(t('page.settlement.transactions.exportSelectFirst'));
+    return;
+  }
+  if (items.length < checkedRowKeys.value.length) {
+    window.$message?.warning(
+      t('page.settlement.transactions.exportPartialSkipped', {
+        exported: items.length,
+        selected: checkedRowKeys.value.length
+      })
+    );
+  }
+  const fileName = props.type === 'receivable' ? 'receivable_transactions.csv' : 'payable_transactions.csv';
+  downloadCsv(items, fileName);
+  window.$message?.success(t('page.settlement.transactions.exportSuccess'));
 }
 
 function handleCreate() {
@@ -421,14 +468,14 @@ function getRowProps(row: SettlementTransactionRecord) {
             <NButton type="primary" @click="handleCreate">
               {{ t('common.add') }}
             </NButton>
-            <NButton @click="handleExportAll">
+            <NButton @click="handleExportSelected">
               {{ t('page.settlement.transactions.export') }}
             </NButton>
           </NSpace>
         </NSpace>
 
         <NDataTable
-          v-model:checked-row-keys="checkedRowKeys"
+          :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="rows"
           :loading="loading"
@@ -438,6 +485,7 @@ function getRowProps(row: SettlementTransactionRecord) {
           :scroll-x="2520"
           remote
           striped
+          @update:checked-row-keys="handleCheckedRowKeysUpdate"
         />
       </NSpace>
     </NCard>

@@ -29,6 +29,10 @@ export interface MatchTransactionQueryParams {
   Shipper?: string;
   JobNumber?: string;
   MatchNumber?: string;
+  EtdStart?: string;
+  EtdEnd?: string;
+  PaymentDateStart?: string;
+  PaymentDateEnd?: string;
 }
 
 /** 匹配明细查询参数 */
