@@ -71,7 +71,7 @@ const pageSizeRef = ref(20);
 function buildFilters() {
   const filters: ConsolidationFilter[] = [];
   const { start, end } = etdRangeToStr();
-  // filters.push({ key: 'jk_e_dep', op: 'between', val: '', start, end });
+  filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
 
   if (searchVal.value) {
     filters.push({ key: searchKey.value, op: 'Contain', val: searchVal.value });
