@@ -1060,6 +1060,8 @@ declare namespace App {
             keywordPlaceholder: string;
             exportRow: string;
             exportSuccess: string;
+            exportSelectFirst: string;
+            exportPartialSkipped: string;
             exportFailed: string;
             exportRowSuccess: string;
             createDeveloping: string;

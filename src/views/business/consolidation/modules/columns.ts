@@ -30,6 +30,10 @@ export function getConsolidationColumns<T>(
 
   return [
     {
+      type: 'selection' as const,
+      fixed: 'left' as const
+    },
+    {
       title: $t('page.business.consolidation.table.consolidationNo'),
       key: 'jk_uniqueconsignref',
       minWidth: 160,

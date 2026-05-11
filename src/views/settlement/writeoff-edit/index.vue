@@ -19,11 +19,12 @@ import {
 } from 'naive-ui';
 import { getCurrencyList } from '@/service/api/maintain/currency';
 import {
+  matchTransactionsGetDetail,
   matchTransactionsGetWriteOffBank,
-  matchTransactionsQueryLines,
   matchTransactionsQueryOrgAddress,
   matchTransactionsQueryOutstandingInvoices,
-  matchTransactionsSaveMatchWriteOff
+  matchTransactionsSaveMatchWriteOff,
+  normalizeWriteoffDetailResponse
 } from '@/service/api/business/match-transactions';
 
 defineOptions({ name: 'PageSettlementWriteoffEdit' });
@@ -206,12 +207,13 @@ async function queryOutstandingInvoiceLines(companyName: string) {
     checkedLineKeys.value = [];
     return;
   }
-  const payload: any = { billingParty };
+  const payload: any = {
+    billingParty,
+    pageIndex: 0,
+    pageSize: 50000
+  };
   if (lineLedgerScope.value) payload.ledgerScope = lineLedgerScope.value;
-  if (lineSearch.value?.trim()) {
-    payload.lineSearch = lineSearch.value.trim();
-    payload.query = lineSearch.value.trim();
-  }
+  if (lineSearch.value?.trim()) payload.query = lineSearch.value.trim();
   if (statementVal.value?.trim()) payload.statementNo = statementVal.value.trim();
   if (lineCurrency.value) payload.currency = lineCurrency.value;
   if (moreChargeDesc.value?.trim()) payload.chargeDesc = moreChargeDesc.value.trim();
@@ -455,10 +457,12 @@ onMounted(async () => {
   }
 
   try {
-    const res: any = await matchTransactionsQueryLines({ apPk: pk });
-    const matchLink = res?.matchLink ?? {};
-    const header = res?.header ?? {};
-    const transactionLines = Array.isArray(res?.transactionLines) ? res.transactionLines : [];
+    const { data: rawDetail, error } = await matchTransactionsGetDetail({ Pk: pk });
+    if (error) {
+      window.$message?.error('Failed to load match data.');
+      return;
+    }
+    const { matchLink, header, transactionLines } = normalizeWriteoffDetailResponse(rawDetail as Record<string, any>);
 
     form.value.matchNumber = String(matchLink.ap_matchgroupnum ?? header.ah_transactionnum ?? '');
     form.value.settleCompanyName = String(header.companyName ?? '');

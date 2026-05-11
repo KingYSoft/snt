@@ -1,23 +1,34 @@
 <script setup lang="ts">
-import { computed, ref } from 'vue';
+import { computed, ref, watch } from 'vue';
+import type { DataTableRowKey } from 'naive-ui';
 import { useRouter } from 'vue-router';
 import { $t } from '@/locales';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
 import {
   shipmentTbl,
-  shipmentExport,
   shipmentDeactivate,
   shipmentReopen,
   shipmentCopy,
   shipmentPdfGenerate
 } from '@/service/api/business/shipment';
+import type { ShipmentListItem } from '@/service/api/business/shipment';
 import { getShipmentColumns } from './modules/columns';
 import type { ShipmentActionKey } from './modules/columns';
 
 const router = useRouter();
 
-const checkedRowKeys = ref<Array<number | string>>([]);
+const checkedRowKeys = ref<DataTableRowKey[]>([]);
+const selectedRowsById = ref(new Map<string, ShipmentListItem>());
+
+/** 接口部分行 `id` 为空；row-key 不能为 null，否则 naive-ui 勾选报错 */
+function shipmentRowKey(row: ShipmentListItem) {
+  const k = row.id ?? row.js_pk ?? row.js_uniqueconsignref;
+  if (k != null && String(k).trim() !== '') {
+    return String(k);
+  }
+  return `__shipment_${String(row.js_pk ?? '')}_${String(row.js_uniqueconsignref ?? '')}`.replace(/_{2,}/g, '_');
+}
 
 // --- ETD date range ---
 function formatDate(date: Date): string {
@@ -27,14 +38,10 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function addDays(date: Date, days: number): Date {
-  const result = new Date(date);
-  result.setDate(result.getDate() + days);
-  return result;
-}
-
 function defaultEtdRange(): [number, number] {
-  return [addDays(new Date(), -20).getTime(), addDays(new Date(), 20).getTime()];
+  const start = new Date('2026-01-01');
+  const end = new Date();
+  return [start.getTime(), end.getTime()];
 }
 
 const etdRange = ref<[number, number]>(defaultEtdRange());
@@ -94,7 +101,14 @@ function buildFilters() {
 }
 
 // --- Table hook ---
-const { data, loading, columns, pagination, getData, getDataByPage } = useNaivePaginatedTable<any, any>({
+const {
+  data: tableRows,
+  loading,
+  columns,
+  pagination,
+  getData,
+  getDataByPage
+} = useNaivePaginatedTable<any, any>({
   api: async () => {
     return shipmentTbl({
       ...buildSjcPaginationParams(pageRef.value, pageSizeRef.value),
@@ -123,6 +137,108 @@ const { data, loading, columns, pagination, getData, getDataByPage } = useNaiveP
   }
 });
 
+function handleCheckedRowKeysUpdate(keys: DataTableRowKey[], rowsPayload?: object[]) {
+  checkedRowKeys.value = keys;
+  const keySet = new Set(keys.map(k => String(k)));
+  const map = selectedRowsById.value;
+  for (const id of map.keys()) {
+    if (!keySet.has(id)) {
+      map.delete(id);
+    }
+  }
+  if (rowsPayload?.length) {
+    keys.forEach((key, i) => {
+      const row = rowsPayload[i] as ShipmentListItem | undefined;
+      if (row != null && typeof row === 'object') {
+        map.set(String(key), row);
+      }
+    });
+  }
+}
+
+watch(tableRows, newRows => {
+  const keySet = new Set(checkedRowKeys.value.map(k => String(k)));
+  const map = selectedRowsById.value;
+  for (const row of newRows) {
+    const id = shipmentRowKey(row);
+    if (keySet.has(id)) {
+      map.set(id, row);
+    }
+  }
+});
+
+function csvCell(value: unknown) {
+  if (value === null || value === undefined) {
+    return '';
+  }
+  const s = String(value);
+  if (/[",\n\r]/.test(s)) {
+    return `"${s.replace(/"/g, '""')}"`;
+  }
+  return s;
+}
+
+function formatIsoDate(val: unknown) {
+  if (!val) return '';
+  const date = new Date(val as string);
+  if (Number.isNaN(date.getTime())) return '';
+  return date.toISOString().split('T')[0];
+}
+
+function formatGrossWeight(row: ShipmentListItem) {
+  return row.js_actualweight ? `${row.js_actualweight} ${row.js_unitofweight || 'KG'}` : '';
+}
+
+function formatCbm(row: ShipmentListItem) {
+  return row.js_actualvolume ? `${row.js_actualvolume} ${row.js_unitofvolume || 'M3'}` : '';
+}
+
+function buildShipmentCsv(items: ShipmentListItem[]) {
+  const header = [
+    $t('page.business.shipment.table.shipmentNo'),
+    $t('page.business.shipment.table.housebill'),
+    $t('page.business.shipment.table.destination'),
+    $t('page.business.shipment.table.origin'),
+    $t('page.business.shipment.table.goodsDescription'),
+    $t('page.business.shipment.table.status'),
+    $t('page.business.shipment.table.etd'),
+    $t('page.business.shipment.table.eta'),
+    $t('page.business.shipment.table.grossWeight'),
+    $t('page.business.shipment.table.cbm'),
+    $t('page.business.shipment.table.ctns')
+  ].join(',');
+
+  const lines = items.map(item =>
+    [
+      csvCell(item.js_uniqueconsignref),
+      csvCell(item.js_housebill),
+      csvCell(item.js_rl_nkdestination),
+      csvCell(item.js_rl_nkorigin),
+      csvCell(item.js_goodsdescription),
+      csvCell(item.js_shipmentstatus),
+      csvCell(formatIsoDate(item.js_e_dep)),
+      csvCell(formatIsoDate(item.js_e_arv)),
+      csvCell(formatGrossWeight(item)),
+      csvCell(formatCbm(item)),
+      csvCell(item.js_outerpacks)
+    ].join(',')
+  );
+
+  return `${header}\n${lines.join('\n')}`;
+}
+
+function downloadCsv(csv: string, fileName: string) {
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+  const url = window.URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = url;
+  link.setAttribute('download', fileName);
+  document.body.append(link);
+  link.click();
+  link.remove();
+  window.URL.revokeObjectURL(url);
+}
+
 const scrollX = computed(() => {
   return columns.value.reduce((acc: number, col: any) => acc + Number(col.width ?? col.minWidth ?? 120), 0);
 });
@@ -135,6 +251,8 @@ function handleReset() {
   searchVal.value = '';
   searchOp.value = 'Contain';
   etdRange.value = defaultEtdRange();
+  checkedRowKeys.value = [];
+  selectedRowsById.value = new Map();
   getDataByPage(1);
 }
 
@@ -209,30 +327,8 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
       break;
     }
     case 'export': {
-      try {
-        const response = await shipmentExport({
-          skipCount: 0,
-          maxResultCount: 1,
-          filters: [
-            {
-              key: 'js_uniqueconsignref',
-              op: 'Equal',
-              val: row.js_uniqueconsignref
-            }
-          ]
-        });
-        if (response.data) {
-          const url = window.URL.createObjectURL(new Blob([response.data]));
-          const link = document.createElement('a');
-          link.href = url;
-          link.setAttribute('download', `${row.js_uniqueconsignref}.xlsx`);
-          document.body.append(link);
-          link.click();
-          link.remove();
-        }
-      } catch {
-        window.$message?.error($t('page.business.shipment.messages.exportFailed'));
-      }
+      downloadCsv(buildShipmentCsv([row]), `${row.js_uniqueconsignref || row.id}.csv`);
+      window.$message?.success($t('page.settlement.transactions.exportSuccess'));
       break;
     }
     case 'batchprint': {
@@ -261,38 +357,28 @@ function handleRowClick(row: any) {
   navigateToEdit(row);
 }
 
-async function handleBatchExport() {
-  try {
-    let filters = buildFilters();
-
-    // If rows are selected, export only selected rows
-    if (checkedRowKeys.value.length > 0) {
-      const selectedFilters = checkedRowKeys.value.map(id => ({
-        key: 'id',
-        op: 'Equal',
-        val: String(id)
-      }));
-      filters = [{ key: 'js_e_dep', op: 'Or', val: '', or: selectedFilters }];
-    }
-
-    const response = await shipmentExport({
-      skipCount: 0,
-      maxResultCount: checkedRowKeys.value.length || pagination.pageSize || 100,
-      filters
-    });
-
-    if (response.data) {
-      const url = window.URL.createObjectURL(new Blob([response.data]));
-      const link = document.createElement('a');
-      link.href = url;
-      link.setAttribute('download', 'Shipments.xlsx');
-      document.body.append(link);
-      link.click();
-      link.remove();
-    }
-  } catch {
-    window.$message?.error($t('page.business.shipment.messages.exportFailed'));
+function handleBatchExport() {
+  if (checkedRowKeys.value.length === 0) {
+    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
+    return;
   }
+  const items = checkedRowKeys.value
+    .map(k => selectedRowsById.value.get(String(k)))
+    .filter((r): r is ShipmentListItem => r != null);
+  if (items.length === 0) {
+    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
+    return;
+  }
+  if (items.length < checkedRowKeys.value.length) {
+    window.$message?.warning(
+      $t('page.settlement.transactions.exportPartialSkipped', {
+        exported: items.length,
+        selected: checkedRowKeys.value.length
+      })
+    );
+  }
+  downloadCsv(buildShipmentCsv(items), 'Shipments.csv');
+  window.$message?.success($t('page.settlement.transactions.exportSuccess'));
 }
 </script>
 
@@ -335,16 +421,17 @@ async function handleBatchExport() {
         </NSpace>
 
         <NDataTable
-          v-model:checked-row-keys="checkedRowKeys"
+          :checked-row-keys="checkedRowKeys"
           size="small"
           :columns="columns as any"
-          :data="data"
+          :data="tableRows"
           :loading="loading"
           :pagination="pagination"
-          :row-key="(row: any) => row.id"
+          :row-key="(row: ShipmentListItem) => shipmentRowKey(row)"
           :scroll-x="scrollX"
           remote
           striped
+          @update:checked-row-keys="handleCheckedRowKeysUpdate"
           @row-click="handleRowClick"
         />
       </NSpace>

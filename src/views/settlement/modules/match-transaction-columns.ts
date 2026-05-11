@@ -9,6 +9,10 @@ export type MatchTransactionActionKey = 'view' | 'print' | 'export';
 /** Type-safe alias for i18n keys */
 const t = (key: string) => $t(key as any);
 
+function companyCell(row: MatchTransactionRecord) {
+  return row.billingPartyName?.trim() || row.billingParty || '-';
+}
+
 function formatSettledAmount(amount: string | number | null | undefined) {
   const n = Number(amount);
   if (Number.isNaN(n)) return '—';
@@ -31,6 +35,10 @@ export function getMatchTransactionColumns(
 
   return [
     {
+      type: 'selection' as const,
+      fixed: 'left' as const
+    },
+    {
       key: 'index',
       title: '#',
       width: 60,
@@ -38,14 +46,14 @@ export function getMatchTransactionColumns(
       render: (_row, index) => index + 1
     },
     {
-      key: 'ah_transactiontype',
-      title: 'Type',
+      key: 'ledger',
+      title: 'Ledger',
       width: 80,
       align: 'center',
       ellipsis: { tooltip: true }
     },
     {
-      key: 'ah_transactionnum',
+      key: 'matchNumber',
       title: 'Transaction No.',
       width: 160,
       ellipsis: { tooltip: true },
@@ -59,39 +67,40 @@ export function getMatchTransactionColumns(
               onMatchNumberClick(row);
             }
           },
-          row.ah_transactionnum || '-'
+          row.matchNumber || '-'
         )
     },
     {
-      key: 'companyName',
+      key: 'billingParty',
       title: 'Company',
       width: 240,
-      ellipsis: { tooltip: true }
+      ellipsis: { tooltip: true },
+      render: row => companyCell(row)
     },
     {
-      key: 'ah_rx_nktransactioncurrency',
+      key: 'currency',
       title: 'Currency',
       width: 80,
       align: 'center',
       ellipsis: { tooltip: true }
     },
     {
-      key: 'ap_amount',
+      key: 'settledAmount',
       title: 'Amount',
       width: 130,
       align: 'right',
-      render: row => h('span', { class: 'font-600' }, formatSettledAmount(row.ap_amount))
+      render: row => h('span', {}, formatSettledAmount(row.settledAmount))
     },
     {
-      key: 'ap_matchdate',
-      title: 'Match Date',
+      key: 'paymentDate',
+      title: 'Payment Date',
       width: 120,
       ellipsis: { tooltip: true },
-      render: row => (row.ap_matchdate ? row.ap_matchdate.split('T')[0] : '-')
+      render: row => (row.paymentDate ? String(row.paymentDate).split('T')[0] : '-')
     },
     {
-      key: 'ap_reason',
-      title: 'Reason',
+      key: 'description',
+      title: 'Description',
       minWidth: 160,
       ellipsis: { tooltip: true }
     },

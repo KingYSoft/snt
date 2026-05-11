@@ -63,8 +63,8 @@ export function getSettlementTransactionColumns(
             class: 'cursor-pointer text-primary',
             onClick: () =>
               router.push({
-                path: '/settlement/billing-detail',
-                query: { id: row.pk }
+                name: 'settlement_writeoff-edit',
+                query: { pk: row.pk }
               })
           },
           row.job_invoice_number || '-'

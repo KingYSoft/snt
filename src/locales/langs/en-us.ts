@@ -694,6 +694,9 @@ const local: App.I18n.Schema = {
         keywordPlaceholder: 'Creditor/Debtor / Job / Trans. No. / Job Inv. No.',
         exportRow: 'Export row',
         exportSuccess: 'Export completed',
+        exportSelectFirst: 'Please select rows to export first',
+        exportPartialSkipped:
+          '{selected} row(s) selected; exported {exported}. Visit each page that contains selected rows to load data, then export again to include them.',
         exportFailed: 'Export failed. Please try again.',
         exportRowSuccess: 'Exported {no}',
         createDeveloping: 'New transaction page is under development',
