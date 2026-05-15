@@ -6,7 +6,7 @@ declare namespace Api {
    */
   namespace Auth {
     interface LoginResponse {
-      access_token: string;
+      accessToken: string;
     }
 
     interface LoginToken {
