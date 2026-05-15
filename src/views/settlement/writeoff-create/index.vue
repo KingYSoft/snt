@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
@@ -24,7 +24,15 @@ import {
   matchTransactionsQueryOutstandingInvoices,
   matchTransactionsSaveMatchWriteOff,
   matchTransactionsQueryDraftMatchNumber,
-  type OutstandingInvoicesParams
+  parseOrgAddressQueryResponse,
+  orgAddressRowLabel,
+  orgAddressRowSelectValue,
+  orgAddressRowBillingParty,
+  orgAddressOutstandingBillingParty,
+  mapOutstandingInvoiceToTableRow,
+  type OrgAddressRow,
+  type OutstandingInvoicesParams,
+  type WriteOffBankRow
 } from '@/service/api/business/match-transactions';
 import type { PaginationProps } from 'naive-ui';
 
@@ -48,10 +56,10 @@ const editorLocked = ref(false);
 
 const buildEmptyForm = () => ({
   matchNumber: '',
-  settleCompany: null as any,
+  settleCompany: null as OrgAddressRow | null,
   settleCompanyName: '',
   description: '',
-  bankAccount: null as any,
+  bankAccount: null as WriteOffBankRow | null,
   bankAccountName: '',
   refNo: '',
   settleAmount: 0,
@@ -92,87 +100,164 @@ const linePagination = reactive({
 }) as PaginationProps;
 
 // Company
-const companyOptions = ref<Array<{ label: string; value: string; data: any }>>([]);
+const companyOptions = ref<Array<{ label: string; value: string; data: OrgAddressRow }>>([]);
 const companyLoading = ref(false);
+
+/** 保证选中项在 options 里，远程下拉才能回显标签 */
+const companySelectOptions = computed(() => {
+  const c = form.value.settleCompany;
+  const v = orgAddressRowSelectValue(c);
+  const base = companyOptions.value;
+  if (!v) return base;
+  if (!c) return base;
+  if (base.some(o => o.value === v)) return base;
+  return [
+    {
+      label: form.value.settleCompanyName || orgAddressRowLabel(c),
+      value: v,
+      data: c
+    },
+    ...base
+  ];
+});
+
+const companySelectValue = computed(() => {
+  const v = orgAddressRowSelectValue(form.value.settleCompany);
+  return v || null;
+});
+
+const canSearchOutstanding = computed(() => Boolean(orgAddressOutstandingBillingParty(form.value.settleCompany)));
+
 async function handleSearchCompany(query: string) {
-  if (!query) {
-    companyOptions.value = [];
-    return;
-  }
   companyLoading.value = true;
   try {
-    const res: any = await matchTransactionsQueryOrgAddress({ Query: query, SkipCount: 0, MaxResultCount: 10 });
-    companyOptions.value = (res?.data?.items ?? res?.items ?? []).map((item: any) => ({
-      label: `${item.name ?? item.company_name ?? ''} (${item.code ?? ''})`,
-      value: item.pk ?? item.id ?? '',
-      data: item
-    }));
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '' });
+    const raw = parseOrgAddressQueryResponse(res);
+    companyOptions.value = raw
+      .map((item: OrgAddressRow) => ({
+        label: orgAddressRowLabel(item),
+        value: orgAddressRowSelectValue(item),
+        data: item
+      }))
+      .filter((o: { value: string }) => o.value);
   } finally {
     companyLoading.value = false;
   }
 }
-async function handleSelectCompany(value: string) {
+
+function onCompanyMenuShow(show: boolean) {
+  if (show) void nextTick(() => void handleSearchCompany(''));
+}
+
+function getCompanyOptionByValue(value: string) {
+  const fromList = companyOptions.value.find(c => c.value === value);
+  if (fromList) return fromList;
+  const c = form.value.settleCompany;
+  if (c && orgAddressRowSelectValue(c) === value) {
+    return {
+      label: form.value.settleCompanyName || orgAddressRowLabel(c),
+      value,
+      data: c
+    };
+  }
+  return undefined;
+}
+
+async function handleSelectCompany(value: string | null) {
   if (editorLocked.value) return;
-  const sel = companyOptions.value.find(c => c.value === value);
-  if (sel?.data) {
-    form.value.settleCompany = sel.data;
-    form.value.settleCompanyName = sel.data.name ?? sel.data.company_name ?? '';
-    if (form.value.bankAccount) {
-      linePagination.page = 1;
-      try {
-        await fetchOutstandingLines();
-      } catch {
-        allLines.value = [];
-        checkedLineKeys.value = [];
-        linePagination.itemCount = 0;
-      }
-    } else {
-      allLines.value = [];
-      checkedLineKeys.value = [];
-      linePagination.itemCount = 0;
-    }
-  } else if (!value) {
+  if (value == null || value === '') {
     form.value.settleCompany = null;
     form.value.settleCompanyName = '';
     allLines.value = [];
     checkedLineKeys.value = [];
     linePagination.itemCount = 0;
+    return;
+  }
+  const sel = getCompanyOptionByValue(value);
+  if (sel?.data) {
+    form.value.settleCompany = sel.data;
+    form.value.settleCompanyName = sel.data.oH_FullName;
+    linePagination.page = 1;
+    try {
+      await fetchOutstandingLines();
+    } catch {
+      allLines.value = [];
+      checkedLineKeys.value = [];
+      linePagination.itemCount = 0;
+    }
   }
 }
 
-// Bank
-const bankOptions = ref<Array<{ label: string; value: string; data: any }>>([]);
+const bankOptions = ref<Array<{ label: string; value: string; data: WriteOffBankRow }>>([]);
 const bankLoading = ref(false);
-async function loadBanks() {
+
+const bankSelectOptions = computed(() => {
+  const acc = form.value.bankAccount;
+  const base = bankOptions.value;
+  if (!acc) return base;
+  const code = String(acc.ab_code ?? '').trim();
+  if (!code) return base;
+  if (base.some(o => o.value === code)) return base;
+  return [
+    {
+      label: String(acc.ab_bankname ?? code),
+      value: code,
+      data: acc
+    },
+    ...base
+  ];
+});
+
+async function handleSearchBank(query: string) {
+  const settleCompanyName = String(query ?? '').trim();
   bankLoading.value = true;
   try {
-    const res: any = await matchTransactionsGetWriteOffBank({});
-    bankOptions.value = (res?.data ?? []).map((item: any, i: number) => ({
-      label: item.bankAccount ?? `Bank ${i + 1}`,
-      value: `${item.bankAccount ?? ''}-${i}`,
-      data: item
-    }));
+    const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName });
+    const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
+    bankOptions.value = list.map((item, i) => {
+      const code = String(item.ab_code ?? '').trim() || `row-${i}`;
+      return {
+        label: String(item.ab_bankname ?? code),
+        value: code,
+        data: item
+      };
+    });
+  } catch {
+    bankOptions.value = [];
   } finally {
     bankLoading.value = false;
   }
 }
-function handleSelectBank(value: string) {
+
+function onBankMenuShow(show: boolean) {
+  if (show) void nextTick(() => void handleSearchBank(''));
+}
+
+function getBankOptionByValue(value: string) {
+  const fromList = bankOptions.value.find(b => b.value === value);
+  if (fromList) return fromList;
+  const acc = form.value.bankAccount;
+  if (acc && String(acc.ab_code ?? '').trim() === value) {
+    return {
+      label: String(acc.ab_bankname ?? value),
+      value,
+      data: acc
+    };
+  }
+  return undefined;
+}
+
+function handleSelectBank(value: string | null) {
   if (editorLocked.value) return;
-  const sel = bankOptions.value.find(b => b.value === value);
-  if (sel?.data) {
-    form.value.bankAccount = sel.data;
-    form.value.bankAccountName = sel.data.bankAccount ?? '';
-    const cn = String(form.value.settleCompany?.company_name ?? '').trim();
-    if (cn) {
-      linePagination.page = 1;
-      void fetchOutstandingLines();
-    }
-  } else {
+  if (value == null || value === '') {
     form.value.bankAccount = null;
     form.value.bankAccountName = '';
-    allLines.value = [];
-    checkedLineKeys.value = [];
-    linePagination.itemCount = 0;
+    return;
+  }
+  const sel = getBankOptionByValue(value);
+  if (sel?.data) {
+    form.value.bankAccount = sel.data;
+    form.value.bankAccountName = sel.data.ab_bankname ?? '';
   }
 }
 
@@ -191,48 +276,26 @@ async function loadCurrencies() {
   }
 }
 
-// Outstanding
-const mapLine = (raw: any, i: number) => {
-  if (!raw) return null;
-  return {
-    id: String(raw.id ?? raw.line_id ?? raw.lineId ?? raw.pk ?? `l-${i}`),
-    tth_pk: raw.tth_pk ?? raw.pk ?? '',
-    ledger: String(raw.ledger ?? '').toUpperCase() || 'AR',
-    job_no: raw.job_no ?? raw.jobNo ?? '',
-    tax_invoice_no: raw.tax_invoice_no ?? '',
-    invoice_number: raw.invoice_number ?? raw.invoiceNumber ?? '',
-    billing_date: raw.billing_date ?? '',
-    currency: raw.currency ?? '',
-    charge_desc: raw.charge_desc ?? '',
-    outstanding: Number(raw.outstanding ?? 0) || 0,
-    settlement_amount_original: Number(raw.settlement_amount_original ?? 0) || 0,
-    ex_rate: Number(raw.ex_rate ?? 1) || 1,
-    settlement_amount_home: Number(raw.settlement_amount_home ?? 0) || 0
-  };
-};
+// Outstanding（接口 data.items 为 camelCase，映射为表格 snake_case）
 function buildOutstandingPayload(billingParty: string): OutstandingInvoicesParams {
-  const page = linePagination.page ?? 1;
-  const pageSize = linePagination.pageSize ?? 50;
   const payload: OutstandingInvoicesParams = {
     billingParty,
-    pageIndex: Math.max(0, page - 1),
-    pageSize
+    ledgerScope: lineLedgerScope.value || 'AR'
   };
-  if (lineLedgerScope.value) payload.ledgerScope = lineLedgerScope.value;
   if (lineSearch.value?.trim()) payload.query = lineSearch.value.trim();
   if (statementVal.value?.trim()) payload.statementNo = statementVal.value.trim();
   if (lineCurrency.value) payload.currency = lineCurrency.value;
   if (moreChargeDesc.value?.trim()) payload.chargeDesc = moreChargeDesc.value.trim();
+  const page = linePagination.page ?? 1;
+  const pageSize = linePagination.pageSize ?? 50;
+  payload.pageIndex = Math.max(0, page - 1);
+  payload.pageSize = pageSize;
   return payload;
 }
 
 async function fetchOutstandingLines() {
   if (editorLocked.value) return;
-  if (!form.value.bankAccount) {
-    window.$message?.warning('Select bank first.');
-    return;
-  }
-  const cn = String(form.value.settleCompany?.company_name ?? '').trim();
+  const cn = orgAddressOutstandingBillingParty(form.value.settleCompany);
   if (!cn) {
     window.$message?.warning('Select company first.');
     allLines.value = [];
@@ -251,13 +314,11 @@ async function fetchOutstandingLines() {
       window.$message?.error(res.msg || 'Failed to load.');
       return;
     }
-    const items = Array.isArray(res?.data?.items)
-      ? res.data.items
-      : Array.isArray(res?.data?.list)
-        ? res.data.list
-        : [];
-    const total = Number(res?.data?.totalCount ?? res?.data?.total ?? res?.totalCount) || items.length;
-    allLines.value = items.map(mapLine).filter(Boolean);
+    const items = Array.isArray(res?.data?.items) ? res.data.items : [];
+    const total = Number(res?.data?.totalCount) || items.length;
+    allLines.value = items
+      .map((item: Record<string, any>, idx: number) => mapOutstandingInvoiceToTableRow(item, idx))
+      .filter(Boolean) as any[];
     checkedLineKeys.value = [];
     linePagination.itemCount = Number.isFinite(total) ? total : items.length;
   } catch {
@@ -272,11 +333,7 @@ async function fetchOutstandingLines() {
 
 async function onSearchLines() {
   if (editorLocked.value) return;
-  if (!form.value.bankAccount) {
-    window.$message?.warning('Select bank first.');
-    return;
-  }
-  const cn = String(form.value.settleCompany?.company_name ?? '').trim();
+  const cn = orgAddressOutstandingBillingParty(form.value.settleCompany);
   if (!cn) {
     window.$message?.warning('Select company first.');
     return;
@@ -321,6 +378,13 @@ watch(
   },
   { immediate: true }
 );
+
+watch(lineLedgerScope, () => {
+  if (editorLocked.value) return;
+  if (!orgAddressOutstandingBillingParty(form.value.settleCompany)) return;
+  linePagination.page = 1;
+  void fetchOutstandingLines();
+});
 
 // Line columns
 const lineColumns = [
@@ -376,9 +440,17 @@ async function handleSave() {
     window.$message?.warning('Select at least one line.');
     return;
   }
-  const cn = String(form.value.settleCompany?.company_name ?? '').trim();
-  if (!cn) {
+  if (!form.value.settleCompany) {
     window.$message?.warning('Select company.');
+    return;
+  }
+  const billingPartyForSave = orgAddressRowBillingParty(form.value.settleCompany);
+  if (!billingPartyForSave) {
+    window.$message?.warning('Select company.');
+    return;
+  }
+  if (!form.value.bankAccount) {
+    window.$message?.warning('Select bank account.');
     return;
   }
   const amt = Number(form.value.settleAmount) || 0;
@@ -420,10 +492,10 @@ async function handleSave() {
     const res: any = await matchTransactionsSaveMatchWriteOff({
       matchNumber: form.value.matchNumber,
       mode: lineLedgerScope.value === 'AR' ? 'receipt' : 'payment',
-      billingParty: cn,
+      billingParty: billingPartyForSave,
       billingPartyName: form.value.settleCompanyName,
       description: form.value.description,
-      bankAccountId: String(form.value.bankAccount?.id ?? form.value.bankAccount?.pk ?? ''),
+      bankAccountId: String(form.value.bankAccount?.ab_code ?? ''),
       bankAccountName: form.value.bankAccountName,
       settleDate: toIso(form.value.settleDate),
       refNo: form.value.refNo,
@@ -469,25 +541,24 @@ function handleReset() {
   allLines.value = [];
   checkedLineKeys.value = [];
   editorLocked.value = false;
-  matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
-    .then((r: any) => {
-      if (r?.data) form.value.matchNumber = String(r.data);
-    })
-    .catch(() => {});
-  const cn = String(sc?.company_name ?? '').trim();
-  if (cn && ba) {
+  // matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
+  //   .then((r: any) => {
+  //     if (r?.data) form.value.matchNumber = String(r.data);
+  //   })
+  //   .catch(() => { });
+  const cn = orgAddressOutstandingBillingParty(sc);
+  if (cn) {
     linePagination.page = 1;
     fetchOutstandingLines().catch(() => {});
   }
 }
 
-loadBanks();
 loadCurrencies();
-matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
-  .then((r: any) => {
-    if (r?.data) form.value.matchNumber = String(r.data);
-  })
-  .catch(() => {});
+// matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
+//   .then((r: any) => {
+//     if (r?.data) form.value.matchNumber = String(r.data);
+//   })
+//   .catch(() => { });
 </script>
 
 <template>
@@ -509,8 +580,8 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
             <div class="flex items-center gap-8px">
               <span class="shrink-0 w-80px text-right text-12px">{{ te('settleCompany') }}:</span>
               <NSelect
-                :value="form.settleCompany?.pk ?? form.settleCompany?.id ?? ''"
-                :options="companyOptions"
+                :value="companySelectValue"
+                :options="companySelectOptions"
                 :loading="companyLoading"
                 filterable
                 remote
@@ -519,6 +590,7 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
                 :disabled="editorLocked"
                 class="flex-1"
                 @search="handleSearchCompany"
+                @update:show="onCompanyMenuShow"
                 @update:value="handleSelectCompany"
               />
             </div>
@@ -541,14 +613,17 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
                 <div class="flex items-center gap-8px">
                   <span class="shrink-0 w-80px text-right text-12px">{{ te('bankAccount') }}:</span>
                   <NSelect
-                    :value="form.bankAccount?.id ?? form.bankAccount?.pk ?? ''"
-                    :options="bankOptions"
+                    :value="form.bankAccount?.ab_code ?? null"
+                    :options="bankSelectOptions"
                     :loading="bankLoading"
                     filterable
+                    remote
                     clearable
                     :placeholder="te('pleaseSelect')"
                     :disabled="editorLocked"
                     class="flex-1"
+                    @search="handleSearchBank"
+                    @update:show="onBankMenuShow"
                     @update:value="handleSelectBank"
                   />
                 </div>
@@ -637,20 +712,20 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
 
       <NDivider style="margin: 8px 0" />
       <NSpace align="center" class="mb-8px py-8px" :wrap="true">
-        <NRadioGroup v-model:value="lineLedgerScope" :disabled="editorLocked || !form.bankAccount" size="small">
+        <NRadioGroup v-model:value="lineLedgerScope" :disabled="editorLocked || !canSearchOutstanding" size="small">
           <NRadio value="AR" size="small">AR</NRadio>
           <NRadio value="AP" size="small">AP</NRadio>
         </NRadioGroup>
         <NInput
           v-model:value="lineSearch"
-          :disabled="editorLocked || !form.bankAccount"
+          :disabled="editorLocked || !canSearchOutstanding"
           clearable
           :placeholder="te('pleaseInput')"
           style="width: 200px"
         />
         <NInput
           v-model:value="statementVal"
-          :disabled="editorLocked || !form.bankAccount"
+          :disabled="editorLocked || !canSearchOutstanding"
           clearable
           :placeholder="te('pleaseInput')"
           style="width: 180px"
@@ -661,11 +736,11 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
           v-model:value="lineCurrency"
           :options="currencyOptions"
           clearable
-          :disabled="editorLocked || !form.bankAccount"
+          :disabled="editorLocked || !canSearchOutstanding"
           :placeholder="te('currency')"
           style="width: 140px"
         />
-        <NButton type="primary" :disabled="editorLocked || !form.bankAccount" size="small" @click="onSearchLines">
+        <NButton type="primary" :disabled="editorLocked || !canSearchOutstanding" size="small" @click="onSearchLines">
           {{ t('common.search') }}
         </NButton>
         <NButton size="small" :disabled="editorLocked" @click="showMoreFilters = !showMoreFilters">
@@ -673,7 +748,7 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
         </NButton>
       </NSpace>
       <NSpace v-if="showMoreFilters" class="mb-8px">
-        <NInput v-model:value="moreChargeDesc" :disabled="editorLocked || !form.bankAccount" style="width: 240px">
+        <NInput v-model:value="moreChargeDesc" :disabled="editorLocked || !canSearchOutstanding" style="width: 240px">
           <template #prefix>{{ te('chargeDescFilter') }}:</template>
         </NInput>
       </NSpace>
@@ -684,7 +759,7 @@ matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
         :data="allLines as any"
         :bordered="false"
         striped
-        :pagination="form.bankAccount ? linePagination : false"
+        :pagination="canSearchOutstanding ? linePagination : false"
         :loading="linesLoading"
         size="small"
         :scroll-x="1700"
