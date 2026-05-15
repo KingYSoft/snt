@@ -640,6 +640,7 @@ const local: App.I18n.Schema = {
         address: {
           newShipper: 'New Shipper',
           newConsignee: 'New Consignee',
+          newNotifyParty: 'New Notify Party',
           newAddress: 'New Address',
           companyName: 'Company Name',
           code: 'Code',

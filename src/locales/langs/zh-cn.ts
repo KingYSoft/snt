@@ -636,6 +636,7 @@ const local: App.I18n.Schema = {
         address: {
           newShipper: '新建发货人',
           newConsignee: '新建收货人',
+          newNotifyParty: '新建通知方',
           newAddress: '新建地址',
           companyName: '公司名称',
           code: '代码',

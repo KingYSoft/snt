@@ -1006,6 +1006,7 @@ declare namespace App {
             address: {
               newShipper: string;
               newConsignee: string;
+              newNotifyParty: string;
               newAddress: string;
               companyName: string;
               code: string;
