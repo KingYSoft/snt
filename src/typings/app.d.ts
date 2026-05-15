@@ -1006,6 +1006,7 @@ declare namespace App {
             address: {
               newShipper: string;
               newConsignee: string;
+              newNotifyParty: string;
               newAddress: string;
               companyName: string;
               code: string;
@@ -1191,6 +1192,7 @@ declare namespace App {
           matchTransactions: {
             title: string;
             newReceipt: string;
+            detailTitle: string;
             export: string;
             view: string;
             print: string;
