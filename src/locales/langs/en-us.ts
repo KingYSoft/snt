@@ -279,7 +279,7 @@ const local: App.I18n.Schema = {
     'settlement_payable-transactions-create': 'New AP Transaction',
     settlement_writeoff: 'Matching Transactions',
     'settlement_writeoff-create': 'New Receipt',
-    'settlement_writeoff-edit': 'Edit',
+    'settlement_writeoff-edit': 'Detail',
     'settlement_billing-detail': 'Billing Detail',
     system: 'System',
     system_user: 'User',
@@ -824,6 +824,7 @@ const local: App.I18n.Schema = {
       matchTransactions: {
         title: 'Matching Transactions',
         newReceipt: 'New Receipt',
+        detailTitle: 'Detail',
         export: 'Export',
         view: 'View',
         print: 'Print',

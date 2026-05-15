@@ -45,23 +45,100 @@ export interface MatchTransactionDetailParams {
   Pk: string;
 }
 
-/** 组织地址查询参数 */
+/** 组织地址查询参数（GET /match-transactions/query-org-address） */
 export interface OrgAddressQueryParams {
-  Query?: string;
-  SkipCount: number;
-  MaxResultCount: number;
+  Query: string;
 }
 
-/** 未结清发票查询参数（POST /match-transactions/query-outstandingInvoices） */
+/** GET /match-transactions/query-org-address 返回的 data */
+export interface OrgAddressQueryResponseData {
+  list: OrgAddressRow[];
+}
+
+/** 组织地址行（与接口一致） */
+export interface OrgAddressRow {
+  aH_OH: string;
+  oH_FullName: string;
+  oH_Code: string;
+}
+
+export function parseOrgAddressQueryResponse(
+  res: { data?: OrgAddressQueryResponseData } | null | undefined
+): OrgAddressRow[] {
+  const list = res?.data?.list;
+  return Array.isArray(list) ? list : [];
+}
+
+export function orgAddressRowLabel(row: OrgAddressRow | null | undefined): string {
+  if (!row?.oH_Code && !row?.oH_FullName) return '—';
+  return `${row.oH_FullName} (${row.oH_Code})`;
+}
+
+/** 下拉 option value（公司编码） */
+export function orgAddressRowSelectValue(row: OrgAddressRow | null | undefined): string {
+  return row?.oH_Code ?? '';
+}
+
+/** 保存核销等接口的 billingParty（公司编码，与后端约定为准） */
+export function orgAddressRowBillingParty(row: OrgAddressRow | null | undefined): string {
+  return String(row?.oH_Code ?? '').trim();
+}
+
+/** POST query-outstandingInvoices 的 billingParty：使用组织头主键 aH_OH */
+export function orgAddressOutstandingBillingParty(row: OrgAddressRow | null | undefined): string {
+  return String(row?.aH_OH ?? '').trim();
+}
+
+/** 未结清发票查询（POST /match-transactions/query-outstandingInvoices） */
 export interface OutstandingInvoicesParams {
   billingParty: string;
-  ledgerScope?: string;
+  ledgerScope: string;
   query?: string;
   statementNo?: string;
   currency?: string;
   chargeDesc?: string;
-  pageIndex: number;
-  pageSize: number;
+  pageIndex?: number;
+  pageSize?: number;
+}
+
+/** 接口返回的 data.items 单行（camelCase） */
+export interface OutstandingInvoiceItem {
+  id: string;
+  tthPk: string;
+  ledger: string;
+  jobNo: string;
+  taxInvoiceNo: string;
+  invoiceNumber: string;
+  billingDate: string;
+  chargeDesc: string;
+  outstanding: number;
+  settlementAmountOriginal: number;
+  exRate: number;
+  settlementAmountHome: number;
+  currency: string;
+}
+
+/** 转为表格行（内部 snake_case，与现有列、保存逻辑一致） */
+export function mapOutstandingInvoiceToTableRow(raw: Record<string, any>, index: number) {
+  if (!raw || typeof raw !== 'object') return null;
+  const billingRaw = raw.billingDate ?? '';
+  const billingDateStr =
+    typeof billingRaw === 'string' && billingRaw.includes('T') ? billingRaw.split('T')[0] : String(billingRaw);
+  return {
+    id: String(raw.id ?? `l-${index}`),
+    tth_pk: raw.tthPk ?? '',
+    ledger: String(raw.ledger ?? '').toUpperCase() || 'AR',
+    job_no: raw.jobNo ?? '',
+    tax_invoice_no: raw.taxInvoiceNo ?? '',
+    invoice_number: raw.invoiceNumber ?? '',
+    billing_date: billingDateStr,
+    currency: raw.currency ?? '',
+    charge_desc: raw.chargeDesc ?? '',
+    outstanding: Number(raw.outstanding) || 0,
+    settlement_amount_original: Number(raw.settlementAmountOriginal) || 0,
+    ex_rate: Number(raw.exRate) || 1,
+    settlement_amount_home: Number(raw.settlementAmountHome) || 0
+  };
 }
 
 /** 保存匹配核销参数 */
@@ -90,11 +167,15 @@ export interface SaveMatchWriteOffParams {
   }>;
 }
 
-/** 银行账户查询参数 */
+/** 核销银行查询（POST /match-transactions/get-writeOff-bank） */
 export interface WriteOffBankParams {
-  mode?: string;
-  settleCompanyName?: string;
-  settleCompanyCode?: string;
+  settleCompanyName: string;
+}
+
+/** 核销银行行（与接口 data[] 一致） */
+export interface WriteOffBankRow {
+  ab_code: string;
+  ab_bankname: string;
 }
 
 // ==================== 工具函数 ====================
@@ -137,20 +218,34 @@ export function normalizeMatchTransactionRecord(raw: Record<string, any>, index?
 
 /**
  * 将 /match-transactions/detail 或旧版 reconciliation 详情响应整理为 writeoff-edit 使用的结构
+ * 新版详情常见形态：{ header, bank, lines }
  */
 export function normalizeWriteoffDetailResponse(raw: Record<string, any> | null | undefined): {
   matchLink: Record<string, any>;
   header: Record<string, any>;
   transactionLines: any[];
+  bank: Record<string, any> | null;
 } {
   if (!raw || typeof raw !== 'object') {
-    return { matchLink: {}, header: {}, transactionLines: [] };
+    return { matchLink: {}, header: {}, transactionLines: [], bank: null };
   }
-  if (raw.matchLink != null || raw.header != null || raw.transactionLines != null) {
+  const bankRaw = raw.bank ?? null;
+  const bank = bankRaw && typeof bankRaw === 'object' ? (bankRaw as Record<string, any>) : null;
+
+  const hasBundleShape =
+    raw.matchLink != null || raw.header != null || raw.transactionLines != null || Array.isArray(raw.lines);
+
+  if (hasBundleShape) {
+    const transactionLines = Array.isArray(raw.transactionLines)
+      ? raw.transactionLines
+      : Array.isArray(raw.lines)
+        ? raw.lines
+        : [];
     return {
       matchLink: (raw.matchLink as Record<string, any>) ?? {},
       header: (raw.header as Record<string, any>) ?? {},
-      transactionLines: Array.isArray(raw.transactionLines) ? raw.transactionLines : []
+      transactionLines,
+      bank
     };
   }
 
@@ -177,7 +272,7 @@ export function normalizeWriteoffDetailResponse(raw: Record<string, any> | null 
     ap_matchdate: paymentDate || raw.ap_matchdate
   };
 
-  return { matchLink, header, transactionLines };
+  return { matchLink, header, transactionLines, bank: null };
 }
 
 // ==================== API 函数 ====================

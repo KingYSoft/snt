@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, ref, watch } from 'vue';
+import { computed, nextTick, onMounted, ref, watch } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import {
@@ -23,8 +23,15 @@ import {
   matchTransactionsGetWriteOffBank,
   matchTransactionsQueryOrgAddress,
   matchTransactionsQueryOutstandingInvoices,
-  matchTransactionsSaveMatchWriteOff,
-  normalizeWriteoffDetailResponse
+  normalizeWriteoffDetailResponse,
+  parseOrgAddressQueryResponse,
+  orgAddressRowLabel,
+  orgAddressRowSelectValue,
+  orgAddressOutstandingBillingParty,
+  mapOutstandingInvoiceToTableRow,
+  type OrgAddressRow,
+  type OutstandingInvoicesParams,
+  type WriteOffBankRow
 } from '@/service/api/business/match-transactions';
 
 defineOptions({ name: 'PageSettlementWriteoffEdit' });
@@ -48,17 +55,16 @@ const formatNum = (n: any, digits = 2) => {
 const formatDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
-const saving = ref(false);
-const editorLocked = ref(false);
+const editorLocked = ref(true);
 const loading = ref(true);
 
 // ==================== Form ====================
 const buildEmptyForm = () => ({
   matchNumber: '',
-  settleCompany: null as any,
+  settleCompany: null as OrgAddressRow | null,
   settleCompanyName: '',
   description: '',
-  bankAccount: null as any,
+  bankAccount: null as WriteOffBankRow | null,
   bankAccountName: '',
   refNo: '',
   settleAmount: 0,
@@ -82,27 +88,57 @@ const allLines = ref<any[]>([]);
 const checkedLineKeys = ref<Array<string | number>>([]);
 
 // ==================== Company Selector ====================
-const companyOptions = ref<Array<{ label: string; value: string; data: any }>>([]);
+const companyOptions = ref<Array<{ label: string; value: string; data: OrgAddressRow }>>([]);
 const companyLoading = ref(false);
 
-async function handleSearchCompany(query: string) {
-  if (!query) {
-    companyOptions.value = [];
-    return;
+const companySelectOptions = computed(() => {
+  const c = form.value.settleCompany;
+  const v = orgAddressRowSelectValue(c);
+  const base = companyOptions.value;
+  if (!v) return base;
+  if (!c) return base;
+  if (base.some(o => o.value === v)) return base;
+  return [
+    {
+      label: form.value.settleCompanyName || orgAddressRowLabel(c),
+      value: v,
+      data: c
+    },
+    ...base
+  ];
+});
+
+const companySelectValue = computed(() => {
+  const v = orgAddressRowSelectValue(form.value.settleCompany);
+  return v || null;
+});
+
+function getCompanyOptionByValue(value: string) {
+  const fromList = companyOptions.value.find(c => c.value === value);
+  if (fromList) return fromList;
+  const c = form.value.settleCompany;
+  if (c && orgAddressRowSelectValue(c) === value) {
+    return {
+      label: form.value.settleCompanyName || orgAddressRowLabel(c),
+      value,
+      data: c
+    };
   }
+  return undefined;
+}
+
+async function handleSearchCompany(query: string) {
   companyLoading.value = true;
   try {
-    const res: any = await matchTransactionsQueryOrgAddress({
-      Query: query,
-      SkipCount: 0,
-      MaxResultCount: 50
-    });
-    const items = res?.data?.items ?? res?.items ?? [];
-    companyOptions.value = items.map((item: any) => ({
-      label: `${item.name ?? item.company_name ?? ''} (${item.code ?? ''})`,
-      value: item.pk ?? item.id ?? '',
-      data: item
-    }));
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '' });
+    const raw = parseOrgAddressQueryResponse(res);
+    companyOptions.value = raw
+      .map((item: OrgAddressRow) => ({
+        label: orgAddressRowLabel(item),
+        value: orgAddressRowSelectValue(item),
+        data: item
+      }))
+      .filter((o: { value: string }) => o.value);
   } catch (error) {
     console.error(error);
   } finally {
@@ -110,16 +146,27 @@ async function handleSearchCompany(query: string) {
   }
 }
 
-async function handleSelectCompany(value: string) {
+function onCompanyMenuShow(show: boolean) {
+  if (show) void nextTick(() => void handleSearchCompany(''));
+}
+
+async function handleSelectCompany(value: string | null) {
   if (editorLocked.value) return;
-  const selected = companyOptions.value.find(c => c.value === value);
+  if (value == null || value === '') {
+    form.value.settleCompany = null;
+    form.value.settleCompanyName = '';
+    allLines.value = [];
+    checkedLineKeys.value = [];
+    return;
+  }
+  const selected = getCompanyOptionByValue(value);
   if (selected?.data) {
     form.value.settleCompany = selected.data;
-    form.value.settleCompanyName = selected.data.name ?? selected.data.company_name ?? '';
-    const companyName = String(selected.data.company_name ?? '').trim();
-    if (companyName) {
+    form.value.settleCompanyName = selected.data.oH_FullName;
+    const billingPartyAh = orgAddressOutstandingBillingParty(selected.data);
+    if (billingPartyAh) {
       try {
-        await queryOutstandingInvoiceLines(companyName);
+        await queryOutstandingInvoiceLines(billingPartyAh);
       } catch (error) {
         console.error(error);
         allLines.value = [];
@@ -130,32 +177,77 @@ async function handleSelectCompany(value: string) {
 }
 
 // ==================== Bank Selector ====================
-const bankOptions = ref<Array<{ label: string; value: string; data: any }>>([]);
+const bankOptions = ref<Array<{ label: string; value: string; data: WriteOffBankRow }>>([]);
 const bankLoading = ref(false);
 
-async function loadBankAccounts() {
+const bankSelectOptions = computed(() => {
+  const acc = form.value.bankAccount;
+  const base = bankOptions.value;
+  if (!acc) return base;
+  const code = String(acc.ab_code ?? '').trim();
+  if (!code) return base;
+  if (base.some(o => o.value === code)) return base;
+  return [
+    {
+      label: String(acc.ab_bankname ?? code),
+      value: code,
+      data: acc
+    },
+    ...base
+  ];
+});
+
+async function handleSearchBank(query: string) {
+  const settleCompanyName = String(query ?? '').trim();
   bankLoading.value = true;
   try {
-    const res: any = await matchTransactionsGetWriteOffBank({});
-    const list = res?.data ?? [];
-    bankOptions.value = list.map((item: any, index: number) => ({
-      label: item.bankAccount ?? item.account_name ?? `Bank ${index + 1}`,
-      value: `${item.bankAccount ?? ''}-${index}`,
-      data: item
-    }));
+    const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName });
+    const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
+    bankOptions.value = list.map((item, index) => {
+      const code = String(item.ab_code ?? '').trim() || `row-${index}`;
+      return {
+        label: String(item.ab_bankname ?? code),
+        value: code,
+        data: item
+      };
+    });
   } catch (error) {
     console.error(error);
+    bankOptions.value = [];
   } finally {
     bankLoading.value = false;
   }
 }
 
-function handleSelectBank(value: string) {
+function onBankMenuShow(show: boolean) {
+  if (show) void nextTick(() => void handleSearchBank(''));
+}
+
+function getBankOptionByValue(value: string) {
+  const fromList = bankOptions.value.find(b => b.value === value);
+  if (fromList) return fromList;
+  const acc = form.value.bankAccount;
+  if (acc && String(acc.ab_code ?? '').trim() === value) {
+    return {
+      label: String(acc.ab_bankname ?? value),
+      value,
+      data: acc
+    };
+  }
+  return undefined;
+}
+
+function handleSelectBank(value: string | null) {
   if (editorLocked.value) return;
-  const selected = bankOptions.value.find(b => b.value === value);
+  if (value == null || value === '') {
+    form.value.bankAccount = null;
+    form.value.bankAccountName = '';
+    return;
+  }
+  const selected = getBankOptionByValue(value);
   if (selected?.data) {
     form.value.bankAccount = selected.data;
-    form.value.bankAccountName = selected.data.bankAccount ?? '';
+    form.value.bankAccountName = selected.data.ab_bankname ?? '';
   }
 }
 
@@ -180,39 +272,19 @@ async function loadCurrencies() {
 }
 
 // ==================== Outstanding Invoices ====================
-const mapLine = (raw: any, index: number) => {
-  if (!raw || typeof raw !== 'object') return null;
-  const rawId = raw.id ?? raw.line_id ?? raw.lineId ?? raw.pk ?? `line-${index}`;
-  return {
-    id: String(rawId),
-    tth_pk: raw.tth_pk ?? raw.pk ?? '',
-    ledger: String(raw.ledger ?? raw.line_type ?? '').toUpperCase() || 'AR',
-    job_no: raw.job_no ?? raw.jobNo ?? '',
-    tax_invoice_no: raw.tax_invoice_no ?? raw.taxInvoiceNo ?? '',
-    invoice_number: raw.invoice_number ?? raw.invoiceNumber ?? '',
-    billing_date: raw.billing_date ?? raw.billingDate ?? '',
-    currency: raw.currency ?? '',
-    charge_desc: raw.charge_desc ?? raw.chargeDesc ?? '',
-    outstanding: Number(raw.outstanding ?? raw.os_amount ?? 0) || 0,
-    settlement_amount_original: Number(raw.settlement_amount_original ?? raw.settlementAmountOriginal ?? 0) || 0,
-    ex_rate: Number(raw.ex_rate ?? raw.exRate ?? 1) || 1,
-    settlement_amount_home: Number(raw.settlement_amount_home ?? raw.settlementAmountHome ?? 0) || 0
-  };
-};
-
-async function queryOutstandingInvoiceLines(companyName: string) {
-  const billingParty = String(companyName).trim();
+async function queryOutstandingInvoiceLines(billingPartyAhOh: string) {
+  const billingParty = String(billingPartyAhOh).trim();
   if (!billingParty) {
     allLines.value = [];
     checkedLineKeys.value = [];
     return;
   }
-  const payload: any = {
+  const payload: OutstandingInvoicesParams = {
     billingParty,
+    ledgerScope: lineLedgerScope.value || 'AR',
     pageIndex: 0,
     pageSize: 50000
   };
-  if (lineLedgerScope.value) payload.ledgerScope = lineLedgerScope.value;
   if (lineSearch.value?.trim()) payload.query = lineSearch.value.trim();
   if (statementVal.value?.trim()) payload.statementNo = statementVal.value.trim();
   if (lineCurrency.value) payload.currency = lineCurrency.value;
@@ -223,24 +295,22 @@ async function queryOutstandingInvoiceLines(companyName: string) {
     checkedLineKeys.value = [];
     return;
   }
-  const sourceItems = Array.isArray(res?.data?.items)
-    ? res.data.items
-    : Array.isArray(res?.data?.list)
-      ? res.data.list
-      : [];
-  allLines.value = sourceItems.map((item: any, idx: number) => mapLine(item, idx)).filter(Boolean);
+  const sourceItems = Array.isArray(res?.data?.items) ? res.data.items : [];
+  allLines.value = sourceItems
+    .map((item: Record<string, any>, idx: number) => mapOutstandingInvoiceToTableRow(item, idx))
+    .filter(Boolean) as any[];
   checkedLineKeys.value = [];
 }
 
 async function onSearchLines() {
   if (editorLocked.value) return;
-  const companyName = String(form.value.settleCompany?.company_name ?? '').trim();
-  if (!companyName) {
+  const billingPartyAh = orgAddressOutstandingBillingParty(form.value.settleCompany);
+  if (!billingPartyAh) {
     window.$message?.warning('Please select settlement company first.');
     return;
   }
   try {
-    await queryOutstandingInvoiceLines(companyName);
+    await queryOutstandingInvoiceLines(billingPartyAh);
   } catch (error) {
     console.error(error);
     window.$message?.error('Failed to load outstanding invoices.');
@@ -294,7 +364,6 @@ watch(
 
 // ==================== Line Table ====================
 const lineColumns = [
-  { type: 'selection' as const, fixed: 'left' as const },
   {
     key: 'index',
     title: '#',
@@ -356,93 +425,7 @@ const lineColumns = [
 
 // ==================== Actions ====================
 function onBalanceClick() {
-  if (editorLocked.value) return;
-  form.value.settleAmount = selectedOutstandingTotal.value;
-}
-
-function toIsoDateTime(val: string) {
-  if (!val) return new Date().toISOString();
-  if (/^\d{4}-\d{2}-\d{2}$/.test(val)) return new Date(`${val}T00:00:00`).toISOString();
-  const d = new Date(val);
-  return Number.isNaN(d.getTime()) ? new Date().toISOString() : d.toISOString();
-}
-
-async function handleSave() {
-  if (editorLocked.value || saving.value) return;
-  if (selectedLines.value.length === 0) {
-    window.$message?.warning('Please select at least one line.');
-    return;
-  }
-  const companyName = String(form.value.settleCompany?.company_name ?? '').trim();
-  if (!companyName) {
-    window.$message?.warning('Please select a settlement company.');
-    return;
-  }
-  const settleAmount = Number(form.value.settleAmount) || 0;
-  if (settleAmount <= 0) {
-    window.$message?.warning('Amount must be greater than 0.');
-    return;
-  }
-
-  const sorted = [...selectedLines.value].sort(
-    (a: any, b: any) => (Number(a.outstanding) || 0) - (Number(b.outstanding) || 0)
-  );
-  let remaining = settleAmount;
-  const writeOffMap = new Map<number, number>();
-  for (const item of sorted) {
-    const os = Math.max(Number((item as any).outstanding) || 0, 0);
-    const writeOff = Math.min(remaining, os);
-    writeOffMap.set(allLines.value.indexOf(item), writeOff);
-    remaining -= writeOff;
-    if (remaining <= 0) remaining = 0;
-  }
-
-  const lines = selectedLines.value.map((row: any) => {
-    const idx = allLines.value.indexOf(row);
-    const os = Math.max(Number(row.outstanding) || 0, 0);
-    const exRate = Number(row.ex_rate) || 1;
-    const writeOffOriginal = writeOffMap.get(idx) ?? 0;
-    return {
-      tthPk: String(row.tth_pk ?? row.pk ?? row.id ?? ''),
-      ledger: String(row.ledger ?? ''),
-      jobNo: String(row.job_no ?? ''),
-      invoiceNumber: String(row.invoice_number ?? ''),
-      writeOffAmountOriginal: writeOffOriginal,
-      writeOffAmountHome: writeOffOriginal * exRate,
-      currentOutstandingOriginal: Math.max(os - writeOffOriginal, 0),
-      currentOutstandingHome: Math.max(os - writeOffOriginal, 0) * exRate
-    };
-  });
-
-  saving.value = true;
-  try {
-    const res: any = await matchTransactionsSaveMatchWriteOff({
-      matchNumber: form.value.matchNumber,
-      mode: lineLedgerScope.value === 'AR' ? 'receipt' : 'payment',
-      billingParty: companyName,
-      billingPartyName: form.value.settleCompanyName,
-      description: form.value.description,
-      bankAccountId: String(form.value.bankAccount?.id ?? form.value.bankAccount?.pk ?? ''),
-      bankAccountName: form.value.bankAccountName,
-      settleDate: toIsoDateTime(form.value.settleDate),
-      refNo: form.value.refNo,
-      chequeNo: form.value.chequeNo,
-      settleAmount,
-      exRateMode: form.value.exRateMode,
-      lines
-    });
-    if (res && res.success === false) {
-      window.$message?.error(res.msg || 'Save failed.');
-      return;
-    }
-    editorLocked.value = true;
-    window.$message?.success('Saved successfully.');
-  } catch (error) {
-    console.error(error);
-    window.$message?.error('Failed to save.');
-  } finally {
-    saving.value = false;
-  }
+  return;
 }
 
 function handleBack() {
@@ -462,21 +445,62 @@ onMounted(async () => {
       window.$message?.error('Failed to load match data.');
       return;
     }
-    const { matchLink, header, transactionLines } = normalizeWriteoffDetailResponse(rawDetail as Record<string, any>);
+    const { matchLink, header, transactionLines, bank } = normalizeWriteoffDetailResponse(
+      rawDetail as Record<string, any>
+    );
+    const h = header;
 
-    form.value.matchNumber = String(matchLink.ap_matchgroupnum ?? header.ah_transactionnum ?? '');
-    form.value.settleCompanyName = String(header.companyName ?? '');
-    form.value.description = String(header.ah_desc ?? '');
-    form.value.settleAmount = Number(header.ah_invoiceamount ?? header.ah_ostotal ?? 0);
-    lineLedgerScope.value = String(header.ah_ledger ?? 'AR').toUpperCase();
+    form.value.matchNumber = String(matchLink.ap_matchgroupnum ?? h.ah_transactionnum ?? '');
 
-    const dateRaw = matchLink.ap_matchdate ?? header.ah_fullypaiddate ?? '';
+    const ahOh = String(h.ah_oh ?? h.aH_OH ?? '').trim();
+    const nameFromHeader = String(h.oh_fullname ?? h.oH_FullName ?? h.companyName ?? h.billingPartyName ?? '').trim();
+    const nameFallback = String(h.ah_desc ?? h.ah_jobnumber ?? h.ah_consolidatedinvoiceref ?? '').trim();
+    const legacyBp = String(h.billingParty ?? '').trim();
+    const ohCode = String(
+      h.oH_Code ?? h.oh_code ?? legacyBp ?? h.ah_originaltransactionnum ?? h.ah_jobnumber ?? ahOh
+    ).trim();
+
+    form.value.settleCompanyName = nameFromHeader || nameFallback || ohCode;
+    if (ahOh || ohCode || form.value.settleCompanyName) {
+      form.value.settleCompany = {
+        aH_OH: ahOh || ohCode,
+        oH_FullName: form.value.settleCompanyName || ohCode,
+        oH_Code: ohCode || ahOh
+      };
+    } else {
+      form.value.settleCompany = null;
+    }
+
+    form.value.description = String(h.ah_desc ?? '');
+    form.value.settleAmount = Number(h.ah_invoiceamount ?? h.ah_ostotal ?? 0);
+    lineLedgerScope.value = String(h.ah_ledger ?? 'AR').toUpperCase();
+
+    form.value.refNo = String(h.ah_chequeorreference ?? h.ah_transactionreference ?? h.refNo ?? '');
+    form.value.chequeNo = String(h.ah_chequedrawer ?? h.chequeNo ?? '');
+
+    const dateRaw = matchLink.ap_matchdate ?? h.ah_fullypaiddate ?? h.ah_invoicedate ?? '';
     if (dateRaw) {
       const d = new Date(dateRaw);
       form.value.settleDate = Number.isNaN(d.getTime()) ? formatDate(new Date()) : formatDate(d);
     }
 
-    allLines.value = transactionLines.map((item: any, idx: number) => mapLine(item, idx)).filter(Boolean);
+    if (bank) {
+      const code = String(bank.ab_code ?? bank.ab_Code ?? '').trim();
+      const bname = String(bank.ab_bankname ?? bank.ab_BankName ?? '').trim();
+      if (code) {
+        const row: WriteOffBankRow = { ab_code: code, ab_bankname: bname };
+        form.value.bankAccount = row;
+        form.value.bankAccountName = bname;
+        bankOptions.value = [{ label: bname || code, value: code, data: row }];
+      }
+    } else {
+      form.value.bankAccount = null;
+      form.value.bankAccountName = '';
+    }
+
+    allLines.value = transactionLines
+      .map((item: Record<string, any>, idx: number) => mapOutstandingInvoiceToTableRow(item, idx))
+      .filter(Boolean) as any[];
     checkedLineKeys.value = allLines.value.map((r: any) => r.id);
   } catch (error) {
     console.error(error);
@@ -489,12 +513,12 @@ onMounted(async () => {
 
 <template>
   <div class="h-full overflow-auto p-16px">
-    <NCard :title="`Edit - ${form.matchNumber || pk}`" :bordered="false">
+    <NCard
+      :title="`${t('page.settlement.matchTransactions.detailTitle')} - ${form.matchNumber || pk}`"
+      :bordered="false"
+    >
       <template #header-extra>
         <NSpace>
-          <NButton type="primary" :loading="saving" :disabled="editorLocked" @click="handleSave">
-            {{ t('common.save') }}
-          </NButton>
           <NButton @click="handleBack">{{ t('common.cancel') }}</NButton>
         </NSpace>
       </template>
@@ -508,8 +532,8 @@ onMounted(async () => {
               <div class="flex items-center gap-8px">
                 <span class="shrink-0 w-80px text-right text-12px">{{ te('settleCompany') }}:</span>
                 <NSelect
-                  :value="form.settleCompany?.pk ?? form.settleCompany?.id ?? ''"
-                  :options="companyOptions"
+                  :value="companySelectValue"
+                  :options="companySelectOptions"
                   :loading="companyLoading"
                   filterable
                   remote
@@ -518,6 +542,7 @@ onMounted(async () => {
                   :disabled="editorLocked"
                   class="flex-1"
                   @search="handleSearchCompany"
+                  @update:show="onCompanyMenuShow"
                   @update:value="handleSelectCompany"
                 />
               </div>
@@ -540,14 +565,17 @@ onMounted(async () => {
                   <div class="flex items-center gap-8px">
                     <span class="shrink-0 w-80px text-right text-12px">{{ te('bankAccount') }}:</span>
                     <NSelect
-                      :value="form.bankAccount?.id ?? form.bankAccount?.pk ?? ''"
-                      :options="bankOptions"
+                      :value="form.bankAccount?.ab_code ?? null"
+                      :options="bankSelectOptions"
                       :loading="bankLoading"
                       filterable
+                      remote
                       clearable
                       :placeholder="te('pleaseSelect')"
                       :disabled="editorLocked"
                       class="flex-1"
+                      @search="handleSearchBank"
+                      @update:show="onBankMenuShow"
                       @update:value="handleSelectBank"
                     />
                   </div>

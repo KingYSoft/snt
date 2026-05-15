@@ -1191,6 +1191,7 @@ declare namespace App {
           matchTransactions: {
             title: string;
             newReceipt: string;
+            detailTitle: string;
             export: string;
             view: string;
             print: string;

@@ -275,7 +275,7 @@ const local: App.I18n.Schema = {
     'settlement_payable-transactions-create': '新增应付',
     settlement_writeoff: '结算匹配',
     'settlement_writeoff-create': '新建收款',
-    'settlement_writeoff-edit': '编辑',
+    'settlement_writeoff-edit': '详情',
     'settlement_billing-detail': '账单详情',
     system: '系统管理',
     system_user: '用户管理',
@@ -820,6 +820,7 @@ const local: App.I18n.Schema = {
       matchTransactions: {
         title: '结算匹配',
         newReceipt: '新建收款',
+        detailTitle: '详情',
         export: '导出',
         view: '查看',
         print: '打印',
