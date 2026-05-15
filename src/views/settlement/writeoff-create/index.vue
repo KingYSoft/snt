@@ -101,7 +101,7 @@ async function handleSearchCompany(query: string) {
   }
   companyLoading.value = true;
   try {
-    const res: any = await matchTransactionsQueryOrgAddress({ Query: query, SkipCount: 0, MaxResultCount: 50 });
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query, SkipCount: 0, MaxResultCount: 10 });
     companyOptions.value = (res?.data?.items ?? res?.items ?? []).map((item: any) => ({
       label: `${item.name ?? item.company_name ?? ''} (${item.code ?? ''})`,
       value: item.pk ?? item.id ?? '',

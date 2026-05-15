@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, reactive, ref } from 'vue';
+import { computed, reactive } from 'vue';
 import { useAuthStore } from '@/store/modules/auth';
-import { useFormRules } from '@/hooks/common/form';
+import { useFormRules, useNaiveForm } from '@/hooks/common/form';
 import { $t } from '@/locales';
 
 defineOptions({
@@ -26,15 +26,16 @@ if (savedEmail) {
 }
 
 const rules = computed<Record<keyof FormModel, App.Global.FormRule[]>>(() => {
-  const { formRules } = useFormRules();
+  const { formRules, createRequiredRule } = useFormRules();
 
   return {
-    email: formRules.email,
+    // 密码登录：账号仅必填，不做邮箱格式校验
+    email: [createRequiredRule($t('form.email.required'))],
     password: formRules.pwd
   };
 });
 
-const formRef = ref(null);
+const { formRef, validate } = useNaiveForm();
 
 const loading = computed(() => authStore.loginLoading);
 
@@ -43,11 +44,11 @@ const loginHandle = async () => {
 };
 
 async function handleSubmit() {
-  if (formRef.value) {
-    const valid = true;
-    if (valid) {
-      await loginHandle();
-    }
+  try {
+    await validate();
+    await loginHandle();
+  } catch {
+    // Naive UI 已展示校验错误
   }
 }
 </script>
