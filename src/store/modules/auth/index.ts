@@ -115,11 +115,11 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
     try {
       const { data: loginResponse, error } = await fetchLogin(email, password);
 
-      if (!error && loginResponse?.access_token) {
+      if (!error && loginResponse?.accessToken) {
         // Step 1 & 2: Store token
-        token.value = loginResponse.access_token;
-        sessionStorage.setItem('token', loginResponse.access_token);
-        localStg.set('token', loginResponse.access_token);
+        token.value = loginResponse.accessToken;
+        sessionStorage.setItem('token', loginResponse.accessToken);
+        localStg.set('token', loginResponse.accessToken);
         localStorage.setItem('email', email);
 
         // Step 3: Fetch app config (user session, permissions, menus)

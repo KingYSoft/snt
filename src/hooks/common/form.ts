@@ -18,7 +18,7 @@ export function useFormRules() {
     },
     pwd: {
       pattern: REG_PWD,
-      message: $t('form.pwd.invalid'),
+      message: $t('form.pwd.required'),
       trigger: 'change'
     },
     code: {
