@@ -349,3 +349,29 @@ export function matchTransactionsQueryDraftMatchNumber(params: { mode: string })
     params: { Mode: params.mode }
   });
 }
+
+export interface MatchTransactionsCurrencyOptionsParams {
+  query?: string;
+}
+
+export function parseMatchTransactionsCurrencyOptions(payload: unknown): Array<{ label: string; value: string }> {
+  const rows = (payload as { data?: Array<{ code?: string }> } | null | undefined)?.data;
+  if (!Array.isArray(rows)) return [];
+  const out: Array<{ label: string; value: string }> = [];
+  for (const row of rows) {
+    const code = String(row?.code ?? '').trim();
+    if (!code) continue;
+    out.push({ label: code, value: code });
+  }
+  return out;
+}
+
+export function matchTransactionsCurrencyOptions(params?: MatchTransactionsCurrencyOptionsParams) {
+  return request<any>({
+    url: '/match-transactions/currency-options',
+    method: 'get',
+    params: {
+      query: params?.query?.trim() ?? ''
+    }
+  });
+}
