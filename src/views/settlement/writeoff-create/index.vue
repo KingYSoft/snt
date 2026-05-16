@@ -17,13 +17,14 @@ import {
   NSelect,
   NSpace
 } from 'naive-ui';
-import { getCurrencyList } from '@/service/api/maintain/currency';
 import {
+  matchTransactionsCurrencyOptions,
   matchTransactionsGetWriteOffBank,
   matchTransactionsQueryOrgAddress,
   matchTransactionsQueryOutstandingInvoices,
   matchTransactionsSaveMatchWriteOff,
   matchTransactionsQueryDraftMatchNumber,
+  parseMatchTransactionsCurrencyOptions,
   parseOrgAddressQueryResponse,
   orgAddressRowLabel,
   orgAddressRowSelectValue,
@@ -261,18 +262,23 @@ function handleSelectBank(value: string | null) {
   }
 }
 
-// Currency
+// Currency：一次性 GET /match-transactions/currency-options，下拉内搜索为本地 filter
 const currencyOptions = ref<Array<{ label: string; value: string }>>([]);
-async function loadCurrencies() {
+
+const currencySelectOptions = computed(() => {
+  const base = currencyOptions.value;
+  const cur = (lineCurrency.value ?? '').trim();
+  if (!cur) return base;
+  if (base.some(o => o.value === cur)) return base;
+  return [{ label: cur, value: cur }, ...base];
+});
+
+async function loadCurrencyOptions() {
   try {
-    const r: any = await getCurrencyList();
-    const c = Array.isArray(r) ? r : r?.data || r?.result || [];
-    currencyOptions.value = c.map((x: any) => ({ label: x.desc ? `${x.code} - ${x.desc}` : x.code, value: x.code }));
+    const data = await matchTransactionsCurrencyOptions({ query: '' });
+    currencyOptions.value = parseMatchTransactionsCurrencyOptions(data);
   } catch {
-    currencyOptions.value = [
-      { label: 'CNY', value: 'CNY' },
-      { label: 'USD', value: 'USD' }
-    ];
+    currencyOptions.value = [];
   }
 }
 
@@ -553,7 +559,7 @@ function handleReset() {
   }
 }
 
-loadCurrencies();
+void loadCurrencyOptions();
 // matchTransactionsQueryDraftMatchNumber({ mode: 'receipt' })
 //   .then((r: any) => {
 //     if (r?.data) form.value.matchNumber = String(r.data);
@@ -734,8 +740,9 @@ loadCurrencies();
         </NInput>
         <NSelect
           v-model:value="lineCurrency"
-          :options="currencyOptions"
+          :options="currencySelectOptions"
           clearable
+          filterable
           :disabled="editorLocked || !canSearchOutstanding"
           :placeholder="te('currency')"
           style="width: 140px"
