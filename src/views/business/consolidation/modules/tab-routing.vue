@@ -6,6 +6,12 @@ import { $t } from '@/locales';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 
+function formatRoutingDate(value: unknown) {
+  if (value === null || value === undefined || value === '') return '';
+  if (typeof value === 'string' && value.includes('T')) return value.split('T')[0];
+  return String(value);
+}
+
 const routingColumns: DataTableColumns<any> = [
   { title: $t('page.business.consolidation.routing.consolidationNumber'), key: 'consolidation_number', minWidth: 160 },
   { title: $t('page.business.consolidation.routing.routeType'), key: 'route_type', minWidth: 120 },
@@ -13,10 +19,30 @@ const routingColumns: DataTableColumns<any> = [
   { title: $t('page.business.consolidation.routing.voyageNumber'), key: 'voyage_number', minWidth: 160 },
   { title: $t('page.business.consolidation.routing.portOfLoading'), key: 'port_of_loading', minWidth: 150 },
   { title: $t('page.business.consolidation.routing.portOfDischarge'), key: 'port_of_discharge', minWidth: 150 },
-  { title: $t('page.business.consolidation.routing.etd'), key: 'jw_etd', minWidth: 120 },
-  { title: $t('page.business.consolidation.routing.eta'), key: 'jw_eta', minWidth: 120 },
-  { title: $t('page.business.consolidation.routing.atd'), key: 'jw_atd', minWidth: 120 },
-  { title: $t('page.business.consolidation.routing.ata'), key: 'jw_ata', minWidth: 120 },
+  {
+    title: $t('page.business.consolidation.routing.etd'),
+    key: 'jw_etd',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_etd)
+  },
+  {
+    title: $t('page.business.consolidation.routing.eta'),
+    key: 'jw_eta',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_eta)
+  },
+  {
+    title: $t('page.business.consolidation.routing.atd'),
+    key: 'jw_atd',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_atd)
+  },
+  {
+    title: $t('page.business.consolidation.routing.ata'),
+    key: 'jw_ata',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_ata)
+  },
   { title: $t('page.business.consolidation.routing.carrier'), key: 'carrier', minWidth: 150 }
 ];
 
