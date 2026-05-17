@@ -13,14 +13,14 @@ const routingColumns: DataTableColumns<any> = [
   { title: $t('page.business.consolidation.routing.voyageNumber'), key: 'voyage_number', minWidth: 160 },
   { title: $t('page.business.consolidation.routing.portOfLoading'), key: 'port_of_loading', minWidth: 150 },
   { title: $t('page.business.consolidation.routing.portOfDischarge'), key: 'port_of_discharge', minWidth: 150 },
-  { title: $t('page.business.consolidation.routing.etd'), key: 'etd', minWidth: 120 },
-  { title: $t('page.business.consolidation.routing.eta'), key: 'eta', minWidth: 120 },
-  { title: $t('page.business.consolidation.routing.atd'), key: 'atd', minWidth: 120 },
-  { title: $t('page.business.consolidation.routing.ata'), key: 'ata', minWidth: 120 },
+  { title: $t('page.business.consolidation.routing.etd'), key: 'jw_etd', minWidth: 120 },
+  { title: $t('page.business.consolidation.routing.eta'), key: 'jw_eta', minWidth: 120 },
+  { title: $t('page.business.consolidation.routing.atd'), key: 'jw_atd', minWidth: 120 },
+  { title: $t('page.business.consolidation.routing.ata'), key: 'jw_ata', minWidth: 120 },
   { title: $t('page.business.consolidation.routing.carrier'), key: 'carrier', minWidth: 150 }
 ];
 
-const routingList = computed<any[]>(() => props.inputData.routing_list || []);
+const routingList = computed<any[]>(() => props.inputData.transport_list || []);
 
 function getRoutingRowKey(row: any) {
   return row.pk ?? row.id ?? row.consolidation_number ?? row.voyage_number ?? JSON.stringify(row);
