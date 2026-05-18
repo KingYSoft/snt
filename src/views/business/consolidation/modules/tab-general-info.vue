@@ -87,7 +87,7 @@ async function fetchServiceLevelOptions(query?: string) {
   }
 }
 
-fetchServiceLevelOptions();
+// fetchServiceLevelOptions();
 
 // --- Matching Shipments Dialog ---
 const matchingDialogVisible = ref(false);
@@ -169,7 +169,7 @@ const shipmentTotals = computed(() => {
 
 // --- Watch shipments from inputData ---
 watch(
-  () => formData.value.shipments,
+  () => formData.value.shps,
   newShipments => {
     if (newShipments) {
       shipmentList.value = newShipments;
@@ -194,7 +194,7 @@ const shipmentColumns: DataTableColumns<any> = [
   { type: 'selection' },
   {
     title: 'Shipment No',
-    key: 'shp_consign_no',
+    key: 'js_uniqueconsignref',
     minWidth: 140,
     render(row) {
       return h(
@@ -203,17 +203,17 @@ const shipmentColumns: DataTableColumns<any> = [
           class: 'cursor-pointer text-primary',
           onClick: () => viewShipment(row)
         },
-        row.shp_consign_no || '-'
+        row.js_uniqueconsignref || '-'
       );
     }
   },
-  { title: 'Origin', key: 'shp_origin', minWidth: 100 },
-  { title: 'Destination', key: 'shp_destination', minWidth: 100 },
-  { title: 'House Bill', key: 'shp_house_bill', minWidth: 120 },
-  { title: 'Packages', key: 'shp_total_package_count', minWidth: 80 },
+  { title: 'Origin', key: 'js_rl_nkorigin', minWidth: 100 },
+  { title: 'Destination', key: 'js_rl_nkdestination', minWidth: 100 },
+  { title: 'House Bill', key: 'js_housebill', minWidth: 120 },
+  { title: 'Packages', key: 'js_outerpacks', minWidth: 80 },
   { title: 'Shipper', key: 'shipperName', minWidth: 140 },
   { title: 'Consignee', key: 'consigneeName', minWidth: 140 },
-  { title: 'Gross Weight', key: 'shp_actual_weight', minWidth: 100 },
+  { title: 'Gross Weight', key: 'js_actualweight', minWidth: 100 },
   { title: 'Volume Weight', key: 'shp_actual_volume', minWidth: 100 }
 ];
 
@@ -232,24 +232,25 @@ const matchingColumns: DataTableColumns<any> = [
 ];
 
 function viewShipment(item: any) {
-  const pk = String(item?.pk ?? '').trim();
+  const pk = String(item?.js_pk ?? '').trim();
   if (!pk) {
     window.$message?.warning('Shipment id/pk is missing.');
     return;
   }
   router.push({
     path: '/business/shipment-edit/' + pk,
-    query: { shipment_no: item.shp_consign_no }
+    query: { shipment_no: item.js_uniqueconsignref }
   });
 }
 
 // --- Fetch matching shipments ---
 async function fetchMatchingShipments() {
+  const etd = formatTransportDate(formData.value.transport_list?.[0]?.jw_etd);
   if (
     !formData.value.jk_transportmode ||
     !formData.value.jk_rl_nkorigin ||
     !formData.value.jk_rl_nkdestination ||
-    !formData.value.jk_e_dep
+    !etd
   ) {
     window.$message?.warning('Please fill in Transport, Origin, Destination and ETD fields.');
     return;
@@ -260,7 +261,7 @@ async function fetchMatchingShipments() {
       con_transport_mode: formData.value.jk_transportmode,
       origin: formData.value.jk_rl_nkorigin,
       destination: formData.value.jk_rl_nkdestination,
-      etd: formData.value.jk_e_dep,
+      etd,
       shipment_number: matchingFilter.value.shipment_number
     });
 
@@ -326,6 +327,30 @@ function getShipmentRowKey(row: any) {
   return row.pk ?? row.id ?? row.shp_consign_no ?? JSON.stringify(row);
 }
 
+function formatTransportDate(value?: string | null): string | null {
+  if (!value || (typeof value === 'string' && !value.trim())) return null;
+  const datePart = String(value).includes('T') ? String(value).split('T')[0] : String(value).slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(datePart)) return null;
+  const parsed = new Date(`${datePart}T00:00:00`);
+  return Number.isNaN(parsed.getTime()) ? null : datePart;
+}
+
+function ensureFirstTransport(): Record<string, any> {
+  const d = formData.value;
+  if (!d.transport_list) d.transport_list = [];
+  if (!d.transport_list[0]) d.transport_list[0] = {};
+  return d.transport_list[0];
+}
+
+function updateFirstTransportField(field: string, value: string | null | undefined) {
+  ensureFirstTransport()[field] = value ?? null;
+}
+
+const firstTransportEtd = computed(() => formatTransportDate(formData.value.transport_list?.[0]?.jw_etd));
+const firstTransportEta = computed(() => formatTransportDate(formData.value.transport_list?.[0]?.jw_eta));
+const firstTransportAtd = computed(() => formatTransportDate(formData.value.transport_list?.[0]?.jw_atd));
+const firstTransportAta = computed(() => formatTransportDate(formData.value.transport_list?.[0]?.jw_ata));
+
 // Expose for parent
 defineExpose({
   pendingAttachShipments,
@@ -357,52 +382,42 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Address1">
-                <NInput
-                  :value="inputData.local_agent?.add_address1"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.add_address1 = v;
-                    }
-                  "
-                />
-              </NFormItemGi>
-              <NFormItemGi label="Address2">
-                <NInput
-                  :value="inputData.local_agent?.add_address2"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.add_address2 = v;
-                    }
-                  "
-                />
-              </NFormItemGi>
-              <NFormItemGi label="Address3">
-                <NInput
-                  :value="inputData.local_agent?.add_address3"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.add_address3 = v;
-                    }
-                  "
-                />
-              </NFormItemGi>
               <NFormItemGi label="Contact">
                 <NInput
-                  :value="inputData.local_agent?.add_contact"
+                  :value="inputData.local_agent?.org_address?.oa_email"
                   @update:value="
                     (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.add_contact = v;
+                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_email = v;
+                    }
+                  "
+                />
+              </NFormItemGi>
+              <NFormItemGi label="Address1">
+                <NInput
+                  :value="inputData.local_agent?.org_address?.oa_address1"
+                  @update:value="
+                    (v: string) => {
+                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_address1 = v;
                     }
                   "
                 />
               </NFormItemGi>
               <NFormItemGi label="Phone">
                 <NInput
-                  :value="inputData.local_agent?.add_phone"
+                  :value="inputData.local_agent?.org_address?.oa_phone"
                   @update:value="
                     (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.add_phone = v;
+                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_phone = v;
+                    }
+                  "
+                />
+              </NFormItemGi>
+              <NFormItemGi label="Address2">
+                <NInput
+                  :value="inputData.local_agent?.org_address?.oa_address2"
+                  @update:value="
+                    (v: string) => {
+                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_address2 = v;
                     }
                   "
                 />
@@ -428,6 +443,16 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
+              <NFormItemGi label="Contact">
+                <NInput
+                  :value="inputData.overseas_agent?.add_contact"
+                  @update:value="
+                    (v: string) => {
+                      if (inputData.overseas_agent) inputData.overseas_agent.add_contact = v;
+                    }
+                  "
+                />
+              </NFormItemGi>
               <NFormItemGi label="Address1">
                 <NInput
                   :value="inputData.overseas_agent?.add_address1"
@@ -444,27 +469,6 @@ defineExpose({
                   @update:value="
                     (v: string) => {
                       if (inputData.overseas_agent) inputData.overseas_agent.add_address2 = v;
-                    }
-                  "
-                />
-              </NFormItemGi>
-              <NFormItemGi label="Address3">
-                <NInput
-                  :value="inputData.overseas_agent?.add_address3"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.overseas_agent) inputData.overseas_agent.add_address3 = v;
-                    }
-                  "
-                />
-              </NFormItemGi>
-
-              <NFormItemGi label="Contact">
-                <NInput
-                  :value="inputData.overseas_agent?.add_contact"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.overseas_agent) inputData.overseas_agent.add_contact = v;
                     }
                   "
                 />
@@ -560,46 +564,28 @@ defineExpose({
         <!-- Column 2: Routing -->
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
-            <NFormItem label="Origin">
-              <NAutoComplete
-                :value="inputData.jk_rl_nkorigin"
-                :options="portOptions"
-                clearable
-                @search="(q: string) => queryPort(q)"
-                @select="(v: string) => (inputData.jk_rl_nkorigin = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkorigin = v)"
-              />
+            <!--
+ <NFormItem label="Origin">
+              <NAutoComplete :value="inputData.jk_rl_nkorigin" :options="portOptions" clearable
+                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkorigin = v)"
+                @update:value="(v: string) => (inputData.jk_rl_nkorigin = v)" />
             </NFormItem>
             <NFormItem label="Destination">
-              <NAutoComplete
-                :value="inputData.jk_rl_nkdestination"
-                :options="portOptions"
-                clearable
-                @search="(q: string) => queryPort(q)"
-                @select="(v: string) => (inputData.jk_rl_nkdestination = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkdestination = v)"
-              />
+              <NAutoComplete :value="inputData.jk_rl_nkdestination" :options="portOptions" clearable
+                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkdestination = v)"
+                @update:value="(v: string) => (inputData.jk_rl_nkdestination = v)" />
             </NFormItem>
             <NFormItem label="Receipt">
-              <NAutoComplete
-                :value="inputData.jk_rl_nkplaceofreceipt"
-                :options="portOptions"
-                clearable
-                @search="(q: string) => queryPort(q)"
-                @select="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)"
-              />
+              <NAutoComplete :value="inputData.jk_rl_nkplaceofreceipt" :options="portOptions" clearable
+                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)"
+                @update:value="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)" />
             </NFormItem>
             <NFormItem label="Delivery">
-              <NAutoComplete
-                :value="inputData.jk_rl_nkplaceofdelivery"
-                :options="portOptions"
-                clearable
-                @search="(q: string) => queryPort(q)"
-                @select="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)"
-              />
-            </NFormItem>
+              <NAutoComplete :value="inputData.jk_rl_nkplaceofdelivery" :options="portOptions" clearable
+                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)"
+                @update:value="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)" />
+            </NFormItem> 
+-->
             <NFormItem label="Load">
               <NAutoComplete
                 :value="inputData.jk_rl_nkloadport"
@@ -621,10 +607,16 @@ defineExpose({
               />
             </NFormItem>
             <NFormItem label="Vessel">
-              <NInput :value="inputData.jk_vessel" @update:value="(v: string) => (inputData.jk_vessel = v)" />
+              <NInput
+                :value="inputData.transport_list?.[0]?.jw_vessel"
+                @update:value="(v: string) => (inputData.jw_vessel = v)"
+              />
             </NFormItem>
             <NFormItem label="Voyage">
-              <NInput :value="inputData.jk_voyage" @update:value="(v: string) => (inputData.jk_voyage = v)" />
+              <NInput
+                :value="inputData.transport_list?.[0]?.jw_voyageflight"
+                @update:value="(v: string) => (inputData.jw_voyageflight = v)"
+              />
             </NFormItem>
           </NForm>
         </NGi>
@@ -634,42 +626,42 @@ defineExpose({
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
             <NFormItem label="ETD">
               <NDatePicker
-                :formatted-value="inputData.jk_e_dep"
+                :formatted-value="firstTransportEtd"
                 type="date"
                 value-format="yyyy-MM-dd"
                 clearable
                 style="width: 100%"
-                @update:formatted-value="(v: string) => (inputData.jk_e_dep = v)"
+                @update:formatted-value="(v: string) => updateFirstTransportField('jw_etd', v)"
               />
             </NFormItem>
             <NFormItem label="ETA">
               <NDatePicker
-                :formatted-value="inputData.jk_e_arv"
+                :formatted-value="firstTransportEta"
                 type="date"
                 value-format="yyyy-MM-dd"
                 clearable
                 style="width: 100%"
-                @update:formatted-value="(v: string) => (inputData.jk_e_arv = v)"
+                @update:formatted-value="(v: string) => updateFirstTransportField('jw_eta', v)"
               />
             </NFormItem>
             <NFormItem label="ATD">
               <NDatePicker
-                :formatted-value="inputData.jk_actualdeparture"
+                :formatted-value="firstTransportAtd"
                 type="date"
                 value-format="yyyy-MM-dd"
                 clearable
                 style="width: 100%"
-                @update:formatted-value="(v: string) => (inputData.jk_actualdeparture = v)"
+                @update:formatted-value="(v: string) => updateFirstTransportField('jw_atd', v)"
               />
             </NFormItem>
             <NFormItem label="ATA">
               <NDatePicker
-                :formatted-value="inputData.jk_actualarrival"
+                :formatted-value="firstTransportAta"
                 type="date"
                 value-format="yyyy-MM-dd"
                 clearable
                 style="width: 100%"
-                @update:formatted-value="(v: string) => (inputData.jk_actualarrival = v)"
+                @update:formatted-value="(v: string) => updateFirstTransportField('jw_ata', v)"
               />
             </NFormItem>
             <NFormItem label="Carrier">
@@ -711,15 +703,15 @@ defineExpose({
                 @update:value="(v: string) => (inputData.jk_coloadmasterbill = v)"
               />
             </NFormItem>
-            <NFormItem label="Coload Ref.">
-              <NInput
-                :value="inputData.jk_coloadbookingreference"
-                @update:value="(v: string) => (inputData.jk_coloadbookingreference = v)"
-              />
-            </NFormItem>
+            <!--
+ <NFormItem label="Coload Ref.">
+              <NInput :value="inputData.jk_coloadbookingreference"
+                @update:value="(v: string) => (inputData.jk_coloadbookingreference = v)" />
+            </NFormItem> 
+-->
             <NFormItem label="On Board">
               <NDatePicker
-                :formatted-value="inputData.jk_shippedonboarddate"
+                :formatted-value="formatTransportDate(inputData.jk_shippedonboarddate)"
                 type="date"
                 value-format="yyyy-MM-dd"
                 clearable
@@ -727,24 +719,16 @@ defineExpose({
                 @update:formatted-value="(v: string) => (inputData.jk_shippedonboarddate = v)"
               />
             </NFormItem>
-            <NFormItem label="VGM Data">
+            <!--
+ <NFormItem label="VGM Data">
               <NSpace :wrap="false" :size="4" class="w-full">
-                <NInputNumber
-                  :value="inputData.jk_vgmweight"
-                  :min="0"
-                  :precision="5"
-                  :show-button="false"
-                  class="flex-1"
-                  @update:value="(v: number | null) => (inputData.jk_vgmweight = v ?? 0)"
-                />
-                <NSelect
-                  :value="inputData.jk_vgmweightunit || 'KG'"
-                  :options="vgmUnitOptions"
-                  style="width: 72px"
-                  @update:value="(v: string) => (inputData.jk_vgmweightunit = v)"
-                />
+                <NInputNumber :value="inputData.jk_vgmweight" :min="0" :precision="5" :show-button="false"
+                  class="flex-1" @update:value="(v: number | null) => (inputData.jk_vgmweight = v ?? 0)" />
+                <NSelect :value="inputData.jk_vgmweightunit || 'KG'" :options="vgmUnitOptions" style="width: 72px"
+                  @update:value="(v: string) => (inputData.jk_vgmweightunit = v)" />
               </NSpace>
-            </NFormItem>
+            </NFormItem> 
+-->
             <NFormItem label="Phase">
               <NSelect
                 :value="inputData.jk_phase"
