@@ -515,6 +515,76 @@ export interface ShipmentDetailResponse {
   data?: ShipmentDetail;
 }
 
+export interface BillingChargeLineParams {
+  shpPk: string;
+  chargeType: string;
+  skipCount?: number;
+  maxResultCount?: number;
+  sorting?: string;
+}
+
+export interface BillingChargeLineItem {
+  jr_pk: string;
+  jr_jh: string;
+  jr_chargetype: string;
+  jr_desc: string;
+  amount: number;
+  os_amount: number;
+  currency: string;
+  party_oh: string;
+  exchange_rate: number;
+  gst_rate: string;
+  wht_rate: string;
+  vat_class: string;
+  line_pk: string;
+  invoice_pk: string;
+  invoice_no: string;
+  invoice_date: string;
+  draft: string;
+}
+
+export interface BillingChargeLinePageResult {
+  totalCount: number;
+  items: BillingChargeLineItem[];
+}
+
+export interface BillingDraftPageParams {
+  shpPk: string;
+  chargeType: string;
+  skipCount?: number;
+  maxResultCount?: number;
+  sorting?: string;
+}
+
+export interface BillingDraftPageItem {
+  id: string;
+  oh_fullname: string;
+  ah_pk: string;
+  ah_ledger: string;
+  ah_transactiontype: string;
+  ah_transactionnum: string;
+  ah_desc: string;
+  ah_invoicedate: string;
+  ah_duedate: string;
+  ah_invoiceamount: number;
+  ah_rx_nktransactioncurrency: string;
+  ah_postdate: string;
+  ah_fullypaiddate: string;
+  ah_invoiceterm: string;
+  ah_matchstatus: string;
+  ah_outstandingamount: number;
+  ah_systemcreatebranch: string;
+  ah_invoiceapproved: number;
+  ah_iscancelled: number;
+  ah_oh?: string;
+  [key: string]: unknown;
+}
+
+export interface BillingDraftPageResult {
+  totalCount: number;
+  items: BillingDraftPageItem[];
+}
+
 // ==================== API Functions ====================
 
 export async function shipmentTbl(params: ShipmentQueryParams) {
@@ -633,9 +703,17 @@ export async function billingQueryPage(params: {
   });
 }
 
+export async function billingChargeLine(params: BillingChargeLineParams) {
+  return request<BillingChargeLinePageResult>({
+    url: '/billing/charge-line',
+    method: 'post',
+    data: params
+  });
+}
+
 export async function billingSummary(shpPk: string) {
   return request({
-    url: '/api/billing/summary',
+    url: '/billing/summary',
     method: 'get',
     params: { shpPk }
   });
@@ -708,6 +786,14 @@ export async function queryDraftPage(params: {
     url: '/api/billing/query-draft-page',
     method: 'get',
     params
+  });
+}
+
+export async function billingDraftPage(params: BillingDraftPageParams) {
+  return request<BillingDraftPageResult>({
+    url: '/billing/draft-page',
+    method: 'post',
+    data: params
   });
 }
 

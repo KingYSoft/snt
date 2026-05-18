@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { ref, watch } from 'vue';
-import { NDataTable, NButton, NSpace, NPagination, NInput } from 'naive-ui';
-import { queryDraftPage, postCharge } from '@/service/api/business/shipment';
+import { NDataTable, NButton, NSpace, NPagination, NInput, NSelect } from 'naive-ui';
+import { billingDraftPage, postCharge, type BillingDraftPageItem } from '@/service/api/business/shipment';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 const emit = defineEmits<{ (e: 'print'): void }>();
@@ -11,8 +11,14 @@ const invoiceLoading = ref(false);
 const invoicePage = ref(1);
 const invoicePageSize = ref(100);
 const invoiceTotal = ref(0);
-const invoiceSelected = ref<any[]>([]);
+const invoiceSelected = ref<string[]>([]);
 const invoiceSearchNo = ref('');
+const invoiceChargeType = ref<'AR' | 'AP'>('AR');
+
+const chargeTypeOptions = [
+  { label: 'AR', value: 'AR' },
+  { label: 'AP', value: 'AP' }
+];
 
 const invoiceColumns = [
   { type: 'selection' as const },
@@ -30,20 +36,48 @@ const invoiceColumns = [
   { title: 'Terms', key: 'ttl_desc', width: 140, ellipsis: { tooltip: true } }
 ];
 
+function formatInvoiceDate(value?: string | null) {
+  if (!value) return '';
+  return String(value).includes('T') ? String(value).split('T')[0] : String(value);
+}
+
+function mapDraftItem(item: BillingDraftPageItem) {
+  return {
+    id: item.id,
+    pk: item.ah_pk,
+    ttl_temp_number: null, //item.ah_transactionnum || '',
+    draft: null, //item.ah_invoiceapproved === 1 ? 'N' : 'Y',
+    ttl_billing_party: null, //item.oh_fullname || item.ah_oh || '',
+    ttl_line_type: item.ah_ledger || '',
+    ttl_post_date: formatInvoiceDate(item.ah_postdate),
+    ttl_reverse_date: formatInvoiceDate(item.ah_invoicedate),
+    ttl_tax_date: formatInvoiceDate(item.ah_fullypaiddate),
+    ttl_ts_currency: item.ah_rx_nktransactioncurrency || '',
+    ttl_ts_amount: item.ah_invoiceamount ?? 0,
+    payment_status: item.ah_matchstatus || (Number(item.ah_outstandingamount) === 0 ? 'Paid' : 'Outstanding'),
+    branch_code: item.ah_systemcreatebranch || '',
+    ttl_desc: null //item.ah_invoiceterm || item.ah_desc || ''
+  };
+}
+
 async function loadInvoices() {
   if (!props.inputData.pk) return;
   try {
     invoiceLoading.value = true;
-    const params = {
+    const { data } = await billingDraftPage({
       shpPk: props.inputData.pk,
-      SkipCount: (invoicePage.value - 1) * invoicePageSize.value,
-      MaxResultCount: invoicePageSize.value,
-      ...(invoiceSearchNo.value && { invoice_no: invoiceSearchNo.value })
-    };
-    const { data } = await queryDraftPage(params);
+      chargeType: invoiceChargeType.value,
+      skipCount: (invoicePage.value - 1) * invoicePageSize.value,
+      maxResultCount: invoicePageSize.value
+    });
     if (data) {
-      invoiceList.value = data.items ?? [];
-      invoiceTotal.value = data.totalCount ?? 0;
+      let items = (data.items ?? []).map((item: BillingDraftPageItem) => mapDraftItem(item));
+      if (invoiceSearchNo.value.trim()) {
+        const q = invoiceSearchNo.value.trim().toLowerCase();
+        items = items.filter(row => String(row.ttl_temp_number).toLowerCase().includes(q));
+      }
+      invoiceList.value = items;
+      invoiceTotal.value = invoiceSearchNo.value.trim() ? items.length : (data.totalCount ?? 0);
     }
   } catch {
     /* ignore */
@@ -68,8 +102,14 @@ function handleSearchClear() {
   loadInvoices();
 }
 
+function handleChargeTypeChange() {
+  invoicePage.value = 1;
+  invoiceSelected.value = [];
+  loadInvoices();
+}
+
 async function handlePost() {
-  const pks = invoiceSelected.value.map((item: any) => item.pk).filter(Boolean);
+  const pks = invoiceSelected.value.filter(Boolean);
   if (pks.length === 0) {
     window.$message?.warning('Please select at least one record.');
     return;
@@ -85,7 +125,7 @@ async function handlePost() {
 }
 
 async function handleVoid() {
-  const pks = invoiceSelected.value.map((item: any) => item.pk).filter(Boolean);
+  const pks = invoiceSelected.value.filter(Boolean);
   if (pks.length === 0) {
     window.$message?.warning('Please select at least one record.');
     return;
@@ -114,6 +154,13 @@ defineExpose({ loadInvoices });
 <template>
   <div>
     <NSpace class="mb-12px" align="center">
+      <NSelect
+        v-model:value="invoiceChargeType"
+        :options="chargeTypeOptions"
+        style="width: 88px"
+        size="small"
+        @update:value="handleChargeTypeChange"
+      />
       <NInput
         v-model:value="invoiceSearchNo"
         placeholder="Search Invoice No."
