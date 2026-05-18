@@ -15,11 +15,12 @@ import {
 } from 'naive-ui';
 import { $t } from '@/locales';
 import {
-  billingQueryPage,
+  billingChargeLine,
   chargeCodeOptions,
   currencyOptions,
   generateDraft,
-  deleteBilling
+  deleteBilling,
+  type BillingChargeLineItem
 } from '@/service/api/business/shipment';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
@@ -63,8 +64,8 @@ function searchChargeCode(query: string) {
       return;
     }
     try {
-      const { data } = await chargeCodeOptions();
-      if (data) chargeCodeList.value = Array.isArray(data) ? data : [];
+      // const { data } = await chargeCodeOptions();
+      // if (data) chargeCodeList.value = Array.isArray(data) ? data : [];
     } catch {
       /* ignore */
     }
@@ -79,45 +80,54 @@ function searchCurrency(query: string) {
       return;
     }
     try {
-      const { data } = await currencyOptions();
-      if (data) currencyList.value = Array.isArray(data) ? data : [];
+      // const { data } = await currencyOptions();
+      // if (data) currencyList.value = Array.isArray(data) ? data : [];
     } catch {
       /* ignore */
     }
   }, 300);
 }
 
+function mapChargeLineItem(item: BillingChargeLineItem, isAR: boolean) {
+  const amount = Number(item.amount) || 0;
+  const exchangeRate = Number(item.exchange_rate) || 1;
+  return {
+    id: item.line_pk || item.jr_pk,
+    pk: item.jr_pk,
+    // Charge_Code: item.jr_jh || '',
+    Description: item.jr_desc || '',
+    Branch: '',
+    Currency: item.currency || '',
+    // Unit_Price: amount,
+    // Qty: 1,
+    Amount: amount,
+    // Tax_Code: item.vat_class || item.gst_rate || '',
+    Tax_Amount: Number(item.wht_rate) || 0,
+    Estimated_Cost: Number(item.os_amount) || 0,
+    Exchange_Rate: exchangeRate,
+    Home_Amount: amount * exchangeRate,
+    is_locked: Boolean(item.invoice_pk),
+    invoice_no: item.invoice_no,
+    invoice_date: item.invoice_date,
+    draft: item.draft
+    // ...(isAR ? { Debtor: item.party_oh || '' } : { Creditor: item.party_oh || '' })
+  };
+}
+
 // --- Load ---
 async function loadBillingData(chargeType: 'AR' | 'AP') {
   if (!props.inputData.pk) return;
   try {
-    const { data } = await billingQueryPage({
+    const { data } = await billingChargeLine({
       shpPk: props.inputData.pk,
       chargeType,
-      SkipCount: 0,
-      MaxResultCount: 1000
+      skipCount: 0,
+      maxResultCount: 1000
     });
     if (data) {
       const items = data.items ?? [];
       const isAR = chargeType === 'AR';
-      const mapped = items.map((item: any) => ({
-        id: item.id,
-        pk: item.pk,
-        Charge_Code: item.jch_charge_code || '',
-        Description: item.jch_charge_desc || '',
-        Branch: item.branch_code || '',
-        Currency: isAR ? item.jch_sell_currency : item.jch_cost_currency,
-        Unit_Price: isAR ? item.jch_sell_rated : item.jch_cost_rated,
-        Qty: item.jch_product_quantity,
-        Amount: isAR ? item.jch_ts_sell_amt : item.jch_ts_cost_amt,
-        Tax_Code: isAR ? item.jch_a9_sell_vat_class : item.jch_a9_cost_vat_class,
-        Tax_Amount: isAR ? item.jch_ts_sell_wht_amt : item.jch_ts_cost_wht_amt,
-        Estimated_Cost: item.jch_estimated_cost,
-        Exchange_Rate: isAR ? item.jch_ts_sell_ex_rate : item.jch_ts_cost_ex_rate,
-        Home_Amount: isAR ? item.jch_home_sell_amt : item.jch_home_cost_amt,
-        is_locked: item.jch_is_locked === 1,
-        ...(isAR ? { Debtor: item.jch_sell_account } : { Creditor: item.jch_cost_account })
-      }));
+      const mapped = items.map((item: BillingChargeLineItem) => mapChargeLineItem(item, isAR));
       if (isAR) emit('update:arCharges', mapped);
       else emit('update:apCharges', mapped);
     }

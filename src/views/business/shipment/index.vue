@@ -47,6 +47,7 @@ function defaultEtdRange(): [number, number] {
 const etdRange = ref<[number, number]>(defaultEtdRange());
 
 function etdRangeToStr(): { start: string; end: string } {
+  if (!etdRange.value) return { start: '', end: '' };
   return {
     start: formatDate(new Date(etdRange.value[0])),
     end: formatDate(new Date(etdRange.value[1]))
