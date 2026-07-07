@@ -1,50 +1,221 @@
 import { request } from '@/service/request';
 
-export interface BillingParams {
-  shp_pk: string;
-  charges: Array<{
-    id?: number;
-    pk?: string;
-    jch_charge_code: string;
-    jch_charge_desc: string;
-    jch_branch: string;
-    jch_product_quantity: number;
-    jch_estimated_cost: number;
-    jch_line_type: string;
-    jch_sell_account?: string;
-    jch_sell_currency?: string;
-    jch_sell_rated?: number;
-    jch_ts_sell_amt?: number;
-    jch_a9_sell_vat_class?: string;
-    jch_ts_sell_wht_amt?: number;
-    jch_ts_sell_ex_rate?: number;
-    jch_home_sell_amt?: number;
-    jch_cost_account?: string;
-    jch_cost_currency?: string;
-    jch_cost_rated?: number;
-    jch_ts_cost_amt?: number;
-    jch_a9_cost_vat_class?: string;
-    jch_ts_cost_wht_amt?: number;
-    jch_ts_cost_ex_rate?: number;
-    jch_home_cost_amt?: number;
-  }>;
+/** POST /billing/charge-line */
+export interface BillingChargeLineInput {
+  shpPk: string;
+  chargeType: string;
+  skipCount?: number;
+  maxResultCount?: number;
+  sorting?: string;
+}
+
+export interface BillingChargeLineItem {
+  jr_pk: string;
+  jr_jh: string;
+  jr_chargetype: string;
+  jr_desc: string;
+  amount: number;
+  os_amount: number;
+  currency: string;
+  party_oh: string;
+  exchange_rate: number;
+  gst_rate: string;
+  wht_rate: string;
+  vat_class: string;
+  line_pk: string;
+  invoice_pk: string;
+  invoice_no: string;
+  invoice_date: string;
+  draft: string;
+}
+
+export interface BillingChargeLineOutput {
+  totalCount: number;
+  items: BillingChargeLineItem[];
+}
+
+/** POST /billing/create-or-update */
+export interface BillingChargeWriteItem {
+  jr_pk?: string;
+  chargeType: string;
+  jr_chargetype?: string;
+  jr_desc?: string;
+  amount?: number;
+  os_amount?: number;
+  currency?: string;
+  party_oh?: string;
+  exchange_rate?: number;
+  gst_rate?: string;
+  wht_rate?: string;
+  vat_class?: string;
+}
+
+export interface BillingCreateInput {
+  shpPk: string;
+  charges: BillingChargeWriteItem[];
+}
+
+/** POST /billing/draft-page */
+export interface BillingDraftPageInput {
+  shpPk: string;
+  chargeType: string;
+  skipCount?: number;
+  maxResultCount?: number;
+  sorting?: string;
+}
+
+/** GET /billing/summary */
+export interface BillingSummaryDto {
+  grossProfitMargin: number;
+  ar: number;
+  ap: number;
+  profits: number;
+  home_currency?: string;
+}
+
+/** AccTransactionHeaderDtoOutput */
+export interface AccTransactionHeader {
+  id: string;
+  ah_pk: string;
+  oh_fullname?: string;
+  ah_ledger?: string;
+  ah_transactionnum?: string;
+  ah_desc?: string;
+  ah_invoicedate?: string;
+  ah_duedate?: string;
+  ah_invoiceamount?: number;
+  ah_rx_nktransactioncurrency?: string;
+  ah_postdate?: string;
+  ah_fullypaiddate?: string;
+  ah_invoiceterm?: string;
+  ah_matchstatus?: string;
+  ah_outstandingamount?: number;
+  ah_systemcreatebranch?: string;
+  ah_invoiceapproved?: number;
+  ah_iscancelled?: number;
+  ah_oh?: string;
+  ah_consolidatedinvoiceref?: string;
+}
+
+export interface BillingDraftPageOutput {
+  totalCount: number;
+  items: AccTransactionHeader[];
+}
+
+export interface GenerateDraftInput {
+  pks: string[];
+  chargeType: string;
+}
+
+export interface PostChargeInput {
+  ahPks: string[];
+}
+
+export interface VoidInvoiceInput {
+  ahPks: string[];
+}
+
+export interface BillingTblFilterItem {
+  key: string;
+  op: string;
+  val: string;
+  start?: string;
+  end?: string;
 }
 
 export interface BillingTblInput {
   skipCount: number;
   maxResultCount: number;
-  filters?: Array<{
-    key: string;
-    op: string;
-    val: string;
-    start?: string;
-    end?: string;
-  }>;
+  filters?: BillingTblFilterItem[];
 }
 
-export async function createOrUpdateBilling(params: BillingParams) {
+export async function billingChargeLine(params: BillingChargeLineInput) {
+  return request<BillingChargeLineOutput>({
+    url: '/billing/charge-line',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function createOrUpdateBilling(params: BillingCreateInput) {
   return request({
-    url: '/api/billing/save',
+    url: '/billing/create-or-update',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function billingDraftPage(params: BillingDraftPageInput) {
+  return request<BillingDraftPageOutput>({
+    url: '/billing/draft-page',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function getBillingSummary(shpPk: string) {
+  return request<BillingSummaryDto>({
+    url: '/billing/summary',
+    method: 'get',
+    params: { shpPk }
+  });
+}
+
+export async function generateDraft(params: GenerateDraftInput) {
+  return request({
+    url: '/billing/generate-draft',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function postCharge(params: PostChargeInput) {
+  return request({
+    url: '/billing/post-charge',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function voidDraftInvoice(params: VoidInvoiceInput) {
+  return request({
+    url: '/billing/void-draft',
+    method: 'post',
+    data: params
+  });
+}
+
+export async function voidPostedInvoice(invoiceNos: string[]) {
+  return request({
+    url: '/billing/void-posted',
+    method: 'post',
+    data: invoiceNos
+  });
+}
+
+export async function deleteBilling(jrPks: string[]) {
+  return request({
+    url: '/billing/delete',
+    method: 'post',
+    data: jrPks
+  });
+}
+
+export async function queryChargesByInvoice(invoiceNo: string) {
+  return request({
+    url: '/billing/charges-by-invoice',
+    method: 'get',
+    params: { invoiceNo }
+  });
+}
+
+export async function editDraftInvoice(params: {
+  ahPk: string;
+  deleteJrPks?: string[];
+  charges?: BillingChargeWriteItem[];
+}) {
+  return request({
+    url: '/billing/edit-draft',
     method: 'post',
     data: params
   });
@@ -71,5 +242,28 @@ export async function queryApBilling(params: BillingTblInput) {
     url: '/billing/ap/tbl',
     method: 'post',
     data: params
+  });
+}
+
+export interface BillingChargeCodeOption {
+  pk: string;
+  code: string;
+  desc: string;
+  charge_type: string;
+}
+
+/** GET /billing/charge-code-options — fuzzy search via query */
+export async function billingChargeCodeOptions(params?: { query?: string }) {
+  return request<BillingChargeCodeOption[]>({
+    url: '/billing/charge-code-options',
+    method: 'get',
+    params
+  });
+}
+
+export async function getCurrencyOptions() {
+  return request<Array<{ code: string; desc?: string }>>({
+    url: '/api/currency/options',
+    method: 'get'
   });
 }

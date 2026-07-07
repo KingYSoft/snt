@@ -32,3 +32,24 @@ export function queryCompanyPage(params: CompanyQueryParams) {
     data: params
   });
 }
+
+export interface GetCompanyExchangeRateInput {
+  companyCode?: string;
+  homecurrency?: string[];
+  invoiceDate?: string;
+  invoiceCurrency?: string;
+}
+
+export interface CompanyExchangeRateOutput {
+  exrate_buy_rate?: number | string;
+  exrate_sell_rate?: number | string;
+}
+
+/** POST /company/get — exchange rate for billing currency */
+export function queryCompanyExchangeRate(data: GetCompanyExchangeRateInput) {
+  return request<CompanyExchangeRateOutput[]>({
+    url: '/company/get',
+    method: 'post',
+    data
+  });
+}

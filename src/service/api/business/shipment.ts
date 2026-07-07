@@ -690,27 +690,6 @@ export async function logsSearch(params: {
   });
 }
 
-export async function billingQueryPage(params: {
-  shpPk: string;
-  chargeType: string;
-  SkipCount?: number;
-  MaxResultCount?: number;
-}) {
-  return request({
-    url: '/api/billing/query-page',
-    method: 'get',
-    params
-  });
-}
-
-export async function billingChargeLine(params: BillingChargeLineParams) {
-  return request<BillingChargeLinePageResult>({
-    url: '/billing/charge-line',
-    method: 'post',
-    data: params
-  });
-}
-
 export async function billingSummary(shpPk: string) {
   return request({
     url: '/billing/summary',
@@ -759,9 +738,9 @@ export async function currencyOptions() {
   });
 }
 
-export async function generateDraft(params: { pks: string[] }) {
+export async function generateDraft(params: { pks: string[]; chargeType: string }) {
   return request({
-    url: '/api/billing/generate-draft',
+    url: '/billing/generate-draft',
     method: 'post',
     data: params
   });
@@ -769,23 +748,9 @@ export async function generateDraft(params: { pks: string[] }) {
 
 export async function deleteBilling(pks: string[]) {
   return request({
-    url: '/api/billing/delete',
-    method: 'delete',
+    url: '/billing/delete',
+    method: 'post',
     data: pks
-  });
-}
-
-export async function queryDraftPage(params: {
-  shpPk: string;
-  SkipCount?: number;
-  MaxResultCount?: number;
-  Sorting?: string;
-  invoice_no?: string;
-}) {
-  return request({
-    url: '/api/billing/query-draft-page',
-    method: 'get',
-    params
   });
 }
 
@@ -797,9 +762,9 @@ export async function billingDraftPage(params: BillingDraftPageParams) {
   });
 }
 
-export async function postCharge(params: { pks: string[] }) {
+export async function postCharge(params: { ahPks: string[] }) {
   return request({
-    url: '/api/billing/postCharge',
+    url: '/billing/post-charge',
     method: 'post',
     data: params
   });

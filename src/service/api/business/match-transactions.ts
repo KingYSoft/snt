@@ -355,13 +355,14 @@ export interface MatchTransactionsCurrencyOptionsParams {
 }
 
 export function parseMatchTransactionsCurrencyOptions(payload: unknown): Array<{ label: string; value: string }> {
-  const rows = (payload as { data?: Array<{ code?: string }> } | null | undefined)?.data;
+  const rows = (payload as { data?: Array<{ code?: string; desc?: string }> } | null | undefined)?.data;
   if (!Array.isArray(rows)) return [];
   const out: Array<{ label: string; value: string }> = [];
   for (const row of rows) {
     const code = String(row?.code ?? '').trim();
     if (!code) continue;
-    out.push({ label: code, value: code });
+    const desc = String(row?.desc ?? '').trim();
+    out.push({ label: desc ? `${code} - ${desc}` : code, value: code });
   }
   return out;
 }
