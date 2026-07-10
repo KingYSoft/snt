@@ -51,3 +51,20 @@ export function getOrganizationById(id: number) {
     method: 'get'
   });
 }
+
+export interface OrganizationQueryOrgAddressParams {
+  query?: string;
+  addressType?: string;
+  sorting?: string;
+  skipCount?: number;
+  maxResultCount?: number;
+}
+
+/** GET /api/organization/query-org-address — debtor/creditor lookup */
+export function organizationQueryOrgAddress(params: OrganizationQueryOrgAddressParams) {
+  return request<{ list?: Record<string, unknown>[]; items?: Record<string, unknown>[]; totalCount?: number }>({
+    url: '/api/organization/query-org-address',
+    method: 'get',
+    params
+  });
+}
