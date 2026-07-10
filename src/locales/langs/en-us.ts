@@ -394,7 +394,7 @@ const local: App.I18n.Schema = {
           container: 'Container',
           routing: 'Routing',
           billing: 'Billing',
-          eDocs: 'eDocs',
+          eDocs: 'Docs',
           logs: 'Logs'
         },
         dialog: {
@@ -570,7 +570,7 @@ const local: App.I18n.Schema = {
           additionalDetails: 'Additional Details',
           routing: 'Routing',
           billing: 'Billing',
-          eDocs: 'eDocs',
+          eDocs: 'Docs',
           logs: 'Logs'
         },
         menu: {

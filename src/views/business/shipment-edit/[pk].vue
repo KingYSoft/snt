@@ -11,6 +11,7 @@ import {
   shipmentQueryPortCode
 } from '@/service/api/business/shipment';
 import { createOrUpdateBilling } from '@/service/api/business/billing';
+import { mapChargeRowToWriteItem } from '../shipment/modules/shipment-billing-map';
 import TabShipment from '../shipment/modules/tab-shipment.vue';
 import TabAdditionalDetails from '../shipment/modules/tab-additional-details.vue';
 import TabRouting from '../shipment/modules/tab-routing.vue';
@@ -489,69 +490,30 @@ const saveRoutingTab = async () => {
 };
 
 const refreshBillingSummary = ref(false);
-const saveBillingTab = async () => {
+const saveBillingTab = async (): Promise<boolean> => {
   if (!inputData.value.pk) {
     window.$message?.warning('Shipment PK is required.');
-    return;
-  }
-
-  const buildCharges = (items: any[], chargeType: string) => {
-    const isAR = chargeType === 'AR';
-    return items
-      .filter((item: any) => !item.is_locked)
-      .map((item: any) => ({
-        id: item.id && item.id > 0 ? item.id : 0,
-        pk: item.pk || '',
-        jch_charge_code: item.Charge_Code,
-        jch_charge_desc: item.Description,
-        jch_branch: item.Branch,
-        jch_product_quantity: item.Qty,
-        jch_estimated_cost: item.Estimated_Cost,
-        jch_line_type: chargeType,
-        ...(isAR && {
-          jch_sell_account: item.Debtor,
-          jch_sell_currency: item.Currency,
-          jch_sell_rated: item.Unit_Price,
-          jch_ts_sell_amt: item.Amount,
-          jch_a9_sell_vat_class: item.Tax_Code,
-          jch_ts_sell_wht_amt: item.Tax_Amount,
-          jch_ts_sell_ex_rate: item.Exchange_Rate,
-          jch_home_sell_amt: item.Home_Amount
-        }),
-        ...(!isAR && {
-          jch_cost_account: item.Creditor,
-          jch_cost_currency: item.Currency,
-          jch_cost_rated: item.Unit_Price,
-          jch_ts_cost_amt: item.Amount,
-          jch_a9_cost_vat_class: item.Tax_Code,
-          jch_ts_cost_wht_amt: item.Tax_Amount,
-          jch_ts_cost_ex_rate: item.Exchange_Rate,
-          jch_home_cost_amt: item.Home_Amount
-        })
-      }));
-  };
-
-  const arCharges = buildCharges(inputData.value.ar_charges || [], 'AR');
-  const apCharges = buildCharges(inputData.value.ap_charges || [], 'AP');
-
-  if (arCharges.length + apCharges.length === 0) {
-    window.$message?.warning($t('page.business.shipment.billing.noRecords'));
-    return;
+    return false;
   }
 
   try {
     const { data } = await createOrUpdateBilling({
-      shp_pk: inputData.value.pk,
-      charges: [...arCharges, ...apCharges]
+      shpPk: inputData.value.pk,
+      charges: [
+        ...(inputData.value.ar_charges || []).map((item: any) => mapChargeRowToWriteItem(item, 'AR')),
+        ...(inputData.value.ap_charges || []).map((item: any) => mapChargeRowToWriteItem(item, 'AP'))
+      ]
     });
     if (data) {
       refreshBillingSummary.value = true;
       window.$message?.success('Successfully saved billing records.');
+      return true;
     }
+    return false;
   } catch (error) {
     console.error('Failed to save billing:', error);
     window.$message?.error('Failed to save billing records.');
-    throw error;
+    return false;
   }
 };
 
@@ -607,7 +569,11 @@ const handleTabChange = async (newTab: number) => {
 };
 
 // --- PDF ---
-const handlePrint = async () => {
+const handlePrint = async (payload?: { url: string; urls: string[] }) => {
+  if (payload?.url) {
+    showPdfDialog(payload.url);
+    return;
+  }
   try {
     cardLoading.value = true;
     await saveShipmentTab();
@@ -660,7 +626,13 @@ const handlePrint = async () => {
         </NTabPane>
         <NTabPane :name="4" :tab="$t('page.business.shipment.tab.billing')">
           <NSkeleton v-if="skeletonLoading" text :row="10" />
-          <TabBilling v-else :input-data="inputData" @print="handlePrint" />
+          <TabBilling
+            v-else
+            v-model:refresh-billing-summary="refreshBillingSummary"
+            :input-data="inputData"
+            :save-billing-fn="saveBillingTab"
+            @print="handlePrint"
+          />
         </NTabPane>
         <NTabPane :name="5" :tab="$t('page.business.shipment.tab.eDocs')">
           <NSkeleton v-if="skeletonLoading" text :row="5" />
