@@ -220,11 +220,7 @@ const handleBack = () => {
           <TabRouting :input-data="inputData" />
         </NTabPane>
         <NTabPane :name="4" :tab="$t('page.business.shipment.tab.billing')">
-          <TabBilling
-            v-model:refresh-billing-summary="refreshBillingSummary"
-            :input-data="inputData"
-            :save-billing-fn="saveBillingTab"
-          />
+          <TabBilling v-model:refresh-billing-summary="refreshBillingSummary" :input-data="inputData" />
         </NTabPane>
         <NTabPane :name="5" :tab="$t('page.business.shipment.tab.eDocs')">
           <TabEDocs :input-data="inputData" />

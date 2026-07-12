@@ -12,7 +12,8 @@ export interface BillingChargeLineInput {
 export interface BillingChargeLineItem {
   jr_pk: string;
   jr_jh: string;
-  jr_chargetype: string;
+  jr_chargetype?: string;
+  jr_invoicetype?: string;
   jr_desc: string;
   amount: number;
   os_amount: number;
@@ -27,6 +28,9 @@ export interface BillingChargeLineItem {
   invoice_no: string;
   invoice_date: string;
   draft: string;
+  jr_gb?: string;
+  party_code?: string;
+  branch_code?: string;
 }
 
 export interface BillingChargeLineOutput {
@@ -38,8 +42,9 @@ export interface BillingChargeLineOutput {
 export interface BillingChargeWriteItem {
   jr_pk?: string;
   chargeType: string;
-  jr_chargetype?: string;
+  jr_jh?: string;
   jr_desc?: string;
+  jr_invoicetype?: string;
   amount?: number;
   os_amount?: number;
   currency?: string;
@@ -48,6 +53,7 @@ export interface BillingChargeWriteItem {
   gst_rate?: string;
   wht_rate?: string;
   vat_class?: string;
+  jr_gb?: string;
 }
 
 export interface BillingCreateInput {
@@ -62,15 +68,6 @@ export interface BillingDraftPageInput {
   skipCount?: number;
   maxResultCount?: number;
   sorting?: string;
-}
-
-/** GET /billing/summary */
-export interface BillingSummaryDto {
-  grossProfitMargin: number;
-  ar: number;
-  ap: number;
-  profits: number;
-  home_currency?: string;
 }
 
 /** AccTransactionHeaderDtoOutput */
@@ -150,14 +147,6 @@ export async function billingDraftPage(params: BillingDraftPageInput) {
     url: '/billing/draft-page',
     method: 'post',
     data: params
-  });
-}
-
-export async function getBillingSummary(shpPk: string) {
-  return request<BillingSummaryDto>({
-    url: '/billing/summary',
-    method: 'get',
-    params: { shpPk }
   });
 }
 
@@ -256,6 +245,59 @@ export interface BillingChargeCodeOption {
 export async function billingChargeCodeOptions(params?: { query?: string }) {
   return request<BillingChargeCodeOption[]>({
     url: '/billing/charge-code-options',
+    method: 'get',
+    params
+  });
+}
+
+export interface BillingBranchOption {
+  pk: string;
+  code: string;
+  desc: string;
+}
+
+/** GET /billing/branch-options — fuzzy search via query */
+export async function billingBranchOptions(params?: { query?: string }) {
+  return request<BillingBranchOption[]>({
+    url: '/billing/branch-options',
+    method: 'get',
+    params
+  });
+}
+
+export interface BillingOrgAddressRow {
+  oh_pk: string;
+  oh_code: string;
+  oh_fullname: string;
+  oa_pk: string;
+  oa_code: string;
+  oa_companynameoverride: string;
+  oa_address1: string;
+  oa_address2: string;
+  oa_city: string;
+  oa_state: string;
+  oa_postcode: string;
+  oa_rn_nkcountrycode: string;
+  oa_phone: string;
+  oa_email: string;
+}
+
+export interface BillingOrgAddressQueryResponse {
+  items: BillingOrgAddressRow[];
+  totalCount?: number;
+}
+
+export interface BillingOrgAddressQueryParams {
+  query?: string;
+  addressType?: string;
+  skipCount?: number;
+  maxResultCount?: number;
+}
+
+/** GET /organization/query-org-address — ship billing debtor/creditor lookup */
+export function billingQueryOrgAddress(params: BillingOrgAddressQueryParams) {
+  return request<BillingOrgAddressQueryResponse>({
+    url: '/organization/query-org-address',
     method: 'get',
     params
   });
