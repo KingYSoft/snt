@@ -344,7 +344,6 @@ const queryData = async () => {
           shp_discharge_port: data.js_rl_nkdischargeport || '',
           shp_etd: formatDate(data.js_e_dep),
           shp_eta: formatDate(data.js_e_arv),
-          shp_cargo_ready: formatDate(data.js_a_rcv),
           shp_est_pickup: formatDate(data.js_exportreceivingdepotdispatchrequested) || formatDate(data.js_a_rcv),
           shp_est_delivery: estimatedDeliveryDate,
           shp_client_requested_eta: formatDate(data.js_clientrequestedeta),
@@ -363,13 +362,12 @@ const queryData = async () => {
             0,
           shp_volume_weight: volumeWeight || 0,
           shp_volume_factor: 166,
-          shp_total_package_count: toInteger(data.js_totalpackagecount, 0),
-          shp_outer_packs: toInteger(data.js_outerpacks, 0),
+          js_outerpacks: toInteger(data.js_outerpacks, 0),
           shp_pack_type: data.js_f3_nktotalcountpacktype || data.js_f3_nkpacktype || 'CTN',
           shp_shipped_on_board: data.js_shippedonboard || '',
           shp_shipped_on_board_date: formatDate(data.js_shippedonboarddate),
           shp_on_board_date: formatDate(data.js_shippedonboarddate),
-          shp_hbl_container_pack_mode_override: data.js_hblcontainerpackmodeoverride || '',
+          js_hblcontainerpackmodeoverride: data.js_hblcontainerpackmodeoverride || '',
           shp_warehouse_location: data.js_warehouselocation || '',
           shp_coload_master_shipment: data.js_js_coloadmastershipment || '',
           shp_split_switch_shipment: data.js_js_splitswitchshipment || '',
@@ -400,10 +398,10 @@ const queryData = async () => {
           shp_vessel: '',
           shp_voyage: '',
           // Address objects
-          shipper: mapAddressToComponent(data.shipper, 'SHIPPER'),
-          consignee: mapAddressToComponent(data.consignee, 'CONSIGNEE'),
-          notify_party: mapAddressToComponent(data.notify_party, 'NOTIFY_PARTY'),
-          notify_party1: mapAddressToComponent(data.notify_party, 'NOTIFY_PARTY'),
+          shipper: data.shipper ?? {},
+          consignee: data.consignee ?? {},
+          notify_party: data.notify_party ?? {},
+          notify_party1: data.notify_party ?? {},
           // Lists
           containers_list: containersList,
           loose_list: looseList,
@@ -630,7 +628,6 @@ const handlePrint = async (payload?: { url: string; urls: string[] }) => {
             v-else
             v-model:refresh-billing-summary="refreshBillingSummary"
             :input-data="inputData"
-            :save-billing-fn="saveBillingTab"
             @print="handlePrint"
           />
         </NTabPane>
