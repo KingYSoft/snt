@@ -1,36 +1,38 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-mutating-props */
-import { h, ref, computed, watch } from 'vue';
+import { h, ref, computed, watch, onMounted } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
-import { NDataTable, NButton, NInput, NAutoComplete, NCard, NSpace, NModal, NCheckbox, NTag, NSelect } from 'naive-ui';
+import { NDataTable, NButton, NInput, NCard, NSpace, NModal, NTag, NSelect } from 'naive-ui';
 import { $t } from '@/locales';
 import { useAppStore } from '@/store/modules/app';
-import { billingTaxCodeItems } from '@/constants/billingTaxCodeItems';
-import RemoteTableMenu from '@/components/business/remote-table-menu.vue';
-import { organizationQueryOrgAddress } from '@/service/api/maintain/organization';
-import { queryCompanyExchangeRate } from '@/service/api/maintain/company';
-import { normalizeBillingExchangeRate } from '@/utils/billing/billingDecimal';
+import { billingTaxCodeItems, findBillingTaxCodeItem, getBillingTaxCodeLabel } from '@/constants/billingTaxCodeItems';
+import { billingInvoiceTypeOptions, isBillingInvoiceType } from '@/constants/billingInvoiceTypeItems';
 import {
   billingChargeLine,
   billingChargeCodeOptions,
+  billingBranchOptions,
+  billingQueryOrgAddress,
+  createOrUpdateBilling,
   deleteBilling,
-  generateDraft
+  generateDraft,
+  type BillingBranchOption,
+  type BillingChargeCodeOption,
+  type BillingOrgAddressRow
 } from '@/service/api/business/billing';
-import {
-  matchTransactionsCurrencyOptions,
-  parseMatchTransactionsCurrencyOptions
-} from '@/service/api/business/match-transactions';
+import { matchTransactionsCurrencyOptions } from '@/service/api/business/match-transactions';
+import { queryCompanyExchangeRate } from '@/service/api/maintain/company';
+import { normalizeBillingExchangeRate } from '@/utils/billing/billingDecimal';
 import {
   getBillingLockLabel,
   getBillingLockTagType,
   mapChargeLineItem,
+  mapChargeRowToWriteItem,
   recalcChargeLineTaxAndHome,
   type ShipmentBillingChargeRow
 } from './shipment-billing-map';
 
 const props = defineProps<{
   inputData: Record<string, any>;
-  saveBillingFn?: () => Promise<boolean | undefined>;
 }>();
 const emit = defineEmits<{
   (e: 'update:arCharges', value: ShipmentBillingChargeRow[]): void;
@@ -40,139 +42,351 @@ const emit = defineEmits<{
 const appStore = useAppStore();
 const tblSelectedAR = ref<Array<string | number>>([]);
 const tblSelectedAP = ref<Array<string | number>>([]);
-const arCompleted = ref(false);
-const apCompleted = ref(false);
 const confirmDeleteVis = ref(false);
 const deleteIndex = ref<number | null>(null);
 const deleteType = ref<'AR' | 'AP'>('AR');
 const loading = ref(false);
+const postLoadingType = ref<'AR' | 'AP' | null>(null);
 
-const chargeCodeCache = ref<Array<{ code: string; desc: string; charge_type: string }>>([]);
-const chargeCodeOpts = ref<Array<{ label: string; value: string }>>([]);
-const currencyOpts = ref<Array<{ label: string; value: string }>>([]);
+const chargeCodeCache = ref<BillingChargeCodeOption[]>([]);
 
-const autocompleteMenuProps = {
-  class: 'billing-charge-autocomplete-menu',
-  style: { minWidth: '360px', maxWidth: '520px' }
-};
+const BILLING_SELECT_QUERY_LIMIT = 50;
+const BILLING_SELECT_DEBOUNCE_MS = 800;
 
-function renderAutocompleteLabel(option: { label?: string; value?: string | number }) {
-  return h(
-    'span',
-    { class: 'billing-charge-autocomplete-label', title: String(option.label ?? option.value ?? '') },
-    String(option.label ?? option.value ?? '')
-  );
+type BillingSelectOption = { label: string; value: string; desc?: string };
+const chargeCodePersistedOpts = ref<BillingSelectOption[]>([]);
+const partyPersistedOpts = ref<BillingSelectOption[]>([]);
+const branchPersistedOpts = ref<BillingSelectOption[]>([]);
+const currencyPersistedOpts = ref<BillingSelectOption[]>([]);
+
+const chargeCodeSearchOpts = ref<BillingSelectOption[]>([]);
+const partySearchOpts = ref<BillingSelectOption[]>([]);
+const branchSearchOpts = ref<BillingSelectOption[]>([]);
+const currencySearchOpts = ref<BillingSelectOption[]>([]);
+
+const chargeCodeSearchLoading = ref(false);
+const partySearchLoading = ref(false);
+const branchSearchLoading = ref(false);
+const currencySearchLoading = ref(false);
+
+function mergeUniqueBillingOptions(base: BillingSelectOption[], items: BillingSelectOption[]): BillingSelectOption[] {
+  const existing = new Set(base.map(o => o.value));
+  const merged = [...base];
+  items.forEach(opt => {
+    if (opt.value && !existing.has(opt.value)) {
+      existing.add(opt.value);
+      merged.push(opt);
+    }
+  });
+  return merged;
 }
 
-const searchChargeCodes = useDebounceFn(async (query: string) => {
-  try {
-    const { data } = await billingChargeCodeOptions({ query: query || undefined });
-    const items = data ?? [];
-    chargeCodeCache.value = items;
-    chargeCodeOpts.value = items.map(c => ({
-      label: `${c.code} - ${c.desc}`,
-      value: c.code
-    }));
-  } catch {
-    chargeCodeCache.value = [];
-    chargeCodeOpts.value = [];
-  }
-}, 300);
+function getRemoteSelectOptions(
+  persisted: BillingSelectOption[],
+  searchResults: BillingSelectOption[],
+  current?: string,
+  currentLabel?: string
+) {
+  const base = searchResults.length ? searchResults : persisted;
+  return ensureCurrentSelectOption(base, current, currentLabel);
+}
 
-const searchCurrencies = useDebounceFn(async (query: string) => {
-  try {
-    const res = await matchTransactionsCurrencyOptions({ query: query || '' });
-    currencyOpts.value = parseMatchTransactionsCurrencyOptions(res);
-  } catch {
-    currencyOpts.value = [];
-  }
-}, 300);
-const taxCodeOpts = billingTaxCodeItems.map(item => ({ label: item.code, value: item.code }));
-const lineTypeOpts = [
-  { label: 'FIN', value: 'FIN' },
-  { label: 'CUR', value: 'CUR' }
-];
+function normalizeCurrencyOptionRows(payload: unknown): Array<{ code?: string; desc?: string }> {
+  if (Array.isArray(payload)) return payload;
+  if (!payload || typeof payload !== 'object') return [];
+  const row = payload as { code?: string; desc?: string; items?: Array<{ code?: string; desc?: string }> };
+  if (Array.isArray(row.items)) return row.items;
+  if (row.code) return [row];
+  return [];
+}
 
-const debtorHeaders = [
-  { title: 'Code', key: 'org_code', minWidth: '100px' },
-  { title: 'Company Name', key: 'company_name', minWidth: '200px' }
-];
+function toCurrencySearchOptions(payload: unknown): BillingSelectOption[] {
+  return normalizeCurrencyOptionRows(payload)
+    .map(row => toBillingSelectOption(String(row?.code ?? ''), String(row?.desc ?? '')))
+    .filter(o => o.value);
+}
 
-function normalizeOrgAddressRow(row: Record<string, unknown>) {
+function toBillingSelectOption(code: string, desc?: string): BillingSelectOption {
+  const value = String(code ?? '').trim();
+  return { label: value, value, desc: String(desc ?? '').trim() };
+}
+
+function toBillingBranchOption(item: BillingBranchOption): BillingSelectOption {
   return {
-    org_code: String(row.org_code ?? row.oH_Code ?? row.oh_code ?? '').trim(),
-    company_name: String(row.company_name ?? row.oH_FullName ?? row.oh_fullname ?? '').trim(),
-    address1: row.address1 ?? row.oa_address1,
-    address2: row.address2 ?? row.oa_address2,
-    address3: row.address3 ?? row.oa_address3
+    label: String(item.code ?? '').trim(),
+    value: String(item.pk ?? '').trim(),
+    desc: String(item.desc ?? '').trim()
   };
 }
 
-function buildDefaultDebtorItems() {
-  const src = [
-    {
-      org_code: props.inputData.shipper?.add_address_code,
-      company_name: props.inputData.shipper?.add_address_name,
-      address1: props.inputData.shipper?.add_address1,
-      address2: props.inputData.shipper?.add_address2,
-      address3: props.inputData.shipper?.add_address3
-    },
-    {
-      org_code: props.inputData.consignee?.add_address_code,
-      company_name: props.inputData.consignee?.add_address_name,
-      address1: props.inputData.consignee?.add_address1,
-      address2: props.inputData.consignee?.add_address2,
-      address3: props.inputData.consignee?.add_address3
-    },
-    {
-      org_code: props.inputData.consol?.local_agent?.add_address_code,
-      company_name: props.inputData.consol?.local_agent?.add_address_name,
-      address1: props.inputData.consol?.local_agent?.add_address1,
-      address2: props.inputData.consol?.local_agent?.add_address2,
-      address3: props.inputData.consol?.local_agent?.add_address3
-    },
-    {
-      org_code: props.inputData.consol?.overseas_agent?.add_address_code,
-      company_name: props.inputData.consol?.overseas_agent?.add_address_name,
-      address1: props.inputData.consol?.overseas_agent?.add_address1,
-      address2: props.inputData.consol?.overseas_agent?.add_address2,
-      address3: props.inputData.consol?.overseas_agent?.add_address3
-    }
-  ];
-  const map = new Map<string, ReturnType<typeof normalizeOrgAddressRow>>();
-  src.forEach(item => {
-    const row = normalizeOrgAddressRow(item as Record<string, unknown>);
-    if (row.org_code && row.company_name && !map.has(row.org_code)) {
-      map.set(row.org_code, row);
-    }
-  });
-  return [...map.values()];
+function toBillingChargeCodeOption(item: BillingChargeCodeOption): BillingSelectOption {
+  return {
+    label: String(item.code ?? '').trim(),
+    value: String(item.pk ?? '').trim(),
+    desc: String(item.desc ?? '').trim()
+  };
 }
 
-async function fetchOrgAddressForBilling(params: Record<string, unknown>) {
-  const query = String(params?.query ?? '').trim();
-  const defaultItems = buildDefaultDebtorItems();
-  if (!query) {
-    return { data: { items: defaultItems, totalCount: defaultItems.length } };
-  }
-  try {
-    const { data } = await organizationQueryOrgAddress({
-      query,
-      skipCount: Math.max(0, (Number(params.page ?? 1) - 1) * Number(params.page_size ?? 10)),
-      maxResultCount: Number(params.page_size ?? 50)
-    });
-    if (!data) {
-      return { data: { items: [], totalCount: 0 } };
+function toBillingPartyOption(item: BillingOrgAddressRow): BillingSelectOption {
+  return {
+    label: String(item.oh_code ?? '').trim(),
+    value: String(item.oh_pk ?? '').trim(),
+    desc: String(item.oh_fullname ?? '').trim()
+  };
+}
+
+function mergeChargeCodeCache(items: BillingChargeCodeOption[]) {
+  const existingCache = new Set(chargeCodeCache.value.map(item => item.pk));
+  const cache = [...chargeCodeCache.value];
+  items.forEach(item => {
+    if (item.pk && !existingCache.has(item.pk)) {
+      existingCache.add(item.pk);
+      cache.push(item);
     }
-    const rawList = Array.isArray(data.list) ? data.list : Array.isArray(data.items) ? data.items : [];
-    const items = rawList
-      .map((row: Record<string, unknown>) => normalizeOrgAddressRow(row))
-      .filter((x: ReturnType<typeof normalizeOrgAddressRow>) => x.org_code);
-    return { data: { items, totalCount: Number(data.totalCount ?? items.length) } };
+  });
+  chargeCodeCache.value = cache;
+}
+
+function mergeBranchPersisted(items: BillingBranchOption[]) {
+  const opts = items.map(toBillingBranchOption).filter(o => o.value);
+  branchPersistedOpts.value = mergeUniqueBillingOptions(branchPersistedOpts.value, opts);
+}
+
+function mergePartyPersisted(items: BillingOrgAddressRow[]) {
+  const opts = items.map(toBillingPartyOption).filter(o => o.value);
+  partyPersistedOpts.value = mergeUniqueBillingOptions(partyPersistedOpts.value, opts);
+}
+
+async function ensurePartyOptionsForChargeRows(rows: ShipmentBillingChargeRow[]) {
+  const codesToQuery = new Set<string>();
+  rows.forEach(row => {
+    if (isChargeLineLocked(row)) return;
+    const pk = String(row.Debtor ?? row.Creditor ?? '').trim();
+    const code = String(row.party_code ?? '').trim();
+    if (!pk || !code) return;
+    if (partyPersistedOpts.value.some(o => o.value === pk)) return;
+    codesToQuery.add(code);
+  });
+  if (!codesToQuery.size) return;
+
+  try {
+    const responses = await Promise.all(
+      [...codesToQuery].map(code => billingQueryOrgAddress({ query: code, skipCount: 0, maxResultCount: 50 }))
+    );
+    const items = responses.flatMap(res => res.data?.items ?? []);
+    mergePartyPersisted(items);
   } catch {
-    return { data: { items: [], totalCount: 0 } };
+    /* ignore */
   }
 }
+
+async function ensureBranchOptionsForChargeRows(rows: ShipmentBillingChargeRow[]) {
+  const codesToQuery = new Set<string>();
+  rows.forEach(row => {
+    if (isChargeLineLocked(row)) return;
+    const pk = String(row.Branch ?? '').trim();
+    const code = String(row.branch_code ?? '').trim();
+    if (!pk || !code) return;
+    if (branchPersistedOpts.value.some(o => o.value === pk)) return;
+    codesToQuery.add(code);
+  });
+  if (!codesToQuery.size) return;
+
+  try {
+    const responses = await Promise.all([...codesToQuery].map(code => billingBranchOptions({ query: code })));
+    responses.forEach(res => mergeBranchPersisted(res.data ?? []));
+  } catch {
+    /* ignore */
+  }
+}
+
+async function searchChargeCodeOptions(query: string) {
+  const q = query.trim();
+  if (!q) {
+    chargeCodeSearchOpts.value = [];
+    return;
+  }
+  chargeCodeSearchLoading.value = true;
+  try {
+    const { data } = await billingChargeCodeOptions({ query: q });
+    const items = data ?? [];
+    mergeChargeCodeCache(items);
+    chargeCodeSearchOpts.value = items.map(toBillingChargeCodeOption).filter(o => o.value);
+  } catch {
+    chargeCodeSearchOpts.value = [];
+  } finally {
+    chargeCodeSearchLoading.value = false;
+  }
+}
+
+async function searchPartyOptions(query: string) {
+  const q = query.trim();
+  if (!q) {
+    partySearchOpts.value = [];
+    return;
+  }
+  partySearchLoading.value = true;
+  try {
+    const { data } = await billingQueryOrgAddress({
+      query: q,
+      skipCount: 0,
+      maxResultCount: BILLING_SELECT_QUERY_LIMIT
+    });
+    const items = data?.items ?? [];
+    partySearchOpts.value = items.map(toBillingPartyOption).filter(o => o.value);
+  } catch {
+    partySearchOpts.value = [];
+  } finally {
+    partySearchLoading.value = false;
+  }
+}
+
+async function searchBranchOptions(query: string) {
+  const q = query.trim();
+  if (!q) {
+    branchSearchOpts.value = [];
+    return;
+  }
+  branchSearchLoading.value = true;
+  try {
+    const { data } = await billingBranchOptions({ query: q });
+    const items = data ?? [];
+    branchSearchOpts.value = items.map(toBillingBranchOption).filter(o => o.value);
+  } catch {
+    branchSearchOpts.value = [];
+  } finally {
+    branchSearchLoading.value = false;
+  }
+}
+
+async function searchCurrencyOptions(query: string) {
+  const q = query.trim();
+  if (!q) {
+    currencySearchOpts.value = [];
+    return;
+  }
+  currencySearchLoading.value = true;
+  try {
+    const { data } = await matchTransactionsCurrencyOptions({ query: q });
+    currencySearchOpts.value = toCurrencySearchOptions(data);
+  } catch {
+    currencySearchOpts.value = [];
+  } finally {
+    currencySearchLoading.value = false;
+  }
+}
+
+const debouncedSearchChargeCode = useDebounceFn(searchChargeCodeOptions, BILLING_SELECT_DEBOUNCE_MS);
+const debouncedSearchParty = useDebounceFn(searchPartyOptions, BILLING_SELECT_DEBOUNCE_MS);
+const debouncedSearchBranch = useDebounceFn(searchBranchOptions, BILLING_SELECT_DEBOUNCE_MS);
+const debouncedSearchCurrency = useDebounceFn(searchCurrencyOptions, BILLING_SELECT_DEBOUNCE_MS);
+
+function findBillingSelectLabel(opts: BillingSelectOption[], pk?: string) {
+  const value = String(pk ?? '').trim();
+  if (!value) return '';
+  return opts.find(o => o.value === value)?.label ?? '';
+}
+
+function getPartyCodeByPk(pk?: string) {
+  const merged = mergeUniqueBillingOptions(partyPersistedOpts.value, partySearchOpts.value);
+  return findBillingSelectLabel(merged, pk);
+}
+
+function getBranchCodeByPk(pk?: string) {
+  const merged = mergeUniqueBillingOptions(branchPersistedOpts.value, branchSearchOpts.value);
+  return findBillingSelectLabel(merged, pk);
+}
+
+function getPartyDisplayLabel(pk?: string) {
+  return getPartyCodeByPk(pk);
+}
+
+function getBranchDisplayLabel(pk?: string) {
+  return getBranchCodeByPk(pk);
+}
+
+function getChargeCodeDisplayLabel(pk?: string) {
+  const merged = mergeUniqueBillingOptions(chargeCodePersistedOpts.value, chargeCodeSearchOpts.value);
+  return findBillingSelectLabel(merged, pk);
+}
+
+function isChargeLineLocked(row: ShipmentBillingChargeRow) {
+  return row.is_locked !== 0;
+}
+
+function renderLockedCell(text?: string | number | null) {
+  return h('span', null, String(text ?? ''));
+}
+
+function renderBillingSelectMenuLabel(option: BillingSelectOption) {
+  const code = String(option.label ?? option.value ?? '');
+  const desc = String(option.desc ?? '').trim();
+  if (!desc) {
+    return h('span', { class: 'billing-remote-select-menu-label' }, code);
+  }
+  return h('div', { class: 'billing-remote-select-menu-option' }, [
+    h('div', { class: 'billing-remote-select-menu-option__code' }, code),
+    h('div', { class: 'billing-remote-select-menu-option__desc', title: desc }, desc)
+  ]);
+}
+
+function persistSelectedOption(
+  target: typeof chargeCodePersistedOpts,
+  searchResults: BillingSelectOption[],
+  value?: string
+) {
+  const pk = String(value ?? '').trim();
+  if (!pk) return;
+  const opt = [...searchResults, ...target.value].find(o => o.value === pk);
+  if (opt) target.value = mergeUniqueBillingOptions(target.value, [opt]);
+}
+
+function ensureCurrentSelectOption(options: BillingSelectOption[], current?: string, displayLabel?: string) {
+  const cur = (current ?? '').trim();
+  if (!cur || options.some(o => o.value === cur)) return options;
+  const label = String(displayLabel ?? '').trim() || cur;
+  return [{ label, value: cur }, ...options];
+}
+
+function renderRemoteBillingSelect(
+  current: string,
+  options: BillingSelectOption[],
+  onUpdateValue: (value: string) => void,
+  onSearch: (query: string) => void,
+  selectLoading: boolean
+) {
+  return h(NSelect, {
+    class: 'billing-remote-select',
+    value: current || null,
+    options,
+    size: 'small',
+    filterable: true,
+    remote: true,
+    loading: selectLoading,
+    clearable: true,
+    consistentMenuWidth: false,
+    menuProps: {
+      class: 'billing-remote-select-menu',
+      style: { minWidth: '280px', maxWidth: '420px' }
+    },
+    placeholder: 'Search...',
+    filter: () => true,
+    renderLabel: (option: BillingSelectOption) => renderBillingSelectMenuLabel(option),
+    onSearch: (query: string) => onSearch(query),
+    onUpdateValue: (v: string | null) => {
+      onUpdateValue(v || '');
+    }
+  });
+}
+
+const taxCodeOpts = billingTaxCodeItems.map(item => ({ label: item.code, value: item.pk }));
+
+function ensureCurrentTaxCodeOption(current?: string) {
+  const cur = (current ?? '').trim();
+  if (!cur || findBillingTaxCodeItem(cur)) return taxCodeOpts;
+  return [{ label: getBillingTaxCodeLabel(cur), value: cur }, ...taxCodeOpts];
+}
+const invoiceTypeOpts = billingInvoiceTypeOptions;
 
 async function applyCurrencyExchangeRate(row: ShipmentBillingChargeRow, currencyCode: string) {
   row.Currency = currencyCode;
@@ -205,6 +419,8 @@ async function loadBillingData(chargeType: 'AR' | 'AP') {
       maxResultCount: 1000
     });
     const mapped = (data?.items ?? []).map(item => mapChargeLineItem(item, chargeType));
+    await ensurePartyOptionsForChargeRows(mapped);
+    await ensureBranchOptionsForChargeRows(mapped);
     if (chargeType === 'AR') emit('update:arCharges', mapped);
     else emit('update:apCharges', mapped);
   } catch {
@@ -214,17 +430,24 @@ async function loadBillingData(chargeType: 'AR' | 'AP') {
   }
 }
 
-function loadAll() {
-  loadBillingData('AR');
-  loadBillingData('AP');
+async function loadAll() {
+  await Promise.all([loadBillingData('AR'), loadBillingData('AP')]);
 }
+
+async function initBillingTab() {
+  if (props.inputData.pk) await loadAll();
+}
+
+onMounted(() => {
+  void initBillingTab();
+});
 
 watch(
   () => props.inputData.pk,
-  pk => {
-    if (pk) loadAll();
-  },
-  { immediate: true }
+  (pk, prevPk) => {
+    if (!pk || pk === prevPk) return;
+    void initBillingTab();
+  }
 );
 
 function generateNewId(items: ShipmentBillingChargeRow[]) {
@@ -242,19 +465,20 @@ function addChargeLine(type: 'AR' | 'AP') {
     pk: '',
     Charge_Code: '',
     Description: '',
-    Branch: appStore.branchInfo.code || '',
+    Branch: appStore.userSession?.branch_pk || '',
+    branch_code: '',
     Currency: '',
-    Type: '',
+    JR_InvoiceType: '',
     Amount: 0,
     Tax_Code: '',
     Tax_Amount: '',
-    Estimated_Cost: 0,
     Exchange_Rate: 1,
     Home_Amount: '',
     invoice_no: '',
     invoice_pk: '',
     draft: '',
     is_locked: 0,
+    party_code: '',
     ...(type === 'AR' ? { Debtor: '' } : { Creditor: '' })
   });
   if (type === 'AR') emit('update:arCharges', list);
@@ -308,8 +532,12 @@ function copyRows(type: 'AR' | 'AP', targetType: 'AR' | 'AP') {
       invoice_pk: '',
       draft: '',
       is_locked: 0,
-      ...(targetType === 'AP' && type === 'AR' ? { Creditor: item.Debtor || '', Debtor: undefined } : {}),
-      ...(targetType === 'AR' && type === 'AP' ? { Debtor: item.Creditor || '', Creditor: undefined } : {})
+      ...(targetType === 'AP' && type === 'AR'
+        ? { Creditor: item.Debtor || '', Debtor: undefined, party_code: item.party_code || '' }
+        : {}),
+      ...(targetType === 'AR' && type === 'AP'
+        ? { Debtor: item.Creditor || '', Creditor: undefined, party_code: item.party_code || '' }
+        : {})
     });
   });
   if (targetType === 'AR') {
@@ -322,29 +550,65 @@ function copyRows(type: 'AR' | 'AP', targetType: 'AR' | 'AP') {
   window.$message?.success($t('page.business.shipment.billing.copySuccess'));
 }
 
-async function handleGenerateDraft(type: 'AR' | 'AP') {
-  const selectedRows = getSelectedRows(type).filter(item => item.is_locked === 0);
-  if (!selectedRows.length) {
+async function saveBillingCharges(): Promise<boolean> {
+  if (!props.inputData.pk) {
+    window.$message?.warning('Shipment PK is required.');
+    return false;
+  }
+
+  try {
+    const { data } = await createOrUpdateBilling({
+      shpPk: props.inputData.pk,
+      charges: [
+        ...(props.inputData.ar_charges || []).map((item: ShipmentBillingChargeRow) =>
+          mapChargeRowToWriteItem(item, 'AR')
+        ),
+        ...(props.inputData.ap_charges || []).map((item: ShipmentBillingChargeRow) =>
+          mapChargeRowToWriteItem(item, 'AP')
+        )
+      ]
+    });
+    return Boolean(data);
+  } catch {
+    window.$message?.error('Failed to save billing records.');
+    return false;
+  }
+}
+
+async function handlePost(type: 'AR' | 'AP') {
+  const selectedKeys = type === 'AR' ? [...tblSelectedAR.value] : [...tblSelectedAP.value];
+  const list: ShipmentBillingChargeRow[] =
+    type === 'AR' ? props.inputData.ar_charges || [] : props.inputData.ap_charges || [];
+  const selectedIndices = list
+    .map((row, index) => (selectedKeys.includes(row.id) && row.is_locked === 0 ? index : -1))
+    .filter(index => index >= 0);
+
+  if (!selectedIndices.length) {
     window.$message?.warning($t('page.business.shipment.billing.selectRecords'));
     return;
   }
 
   try {
-    loading.value = true;
-    if (typeof props.saveBillingFn === 'function') {
-      const saved = await props.saveBillingFn();
-      if (saved === false) return;
-    }
+    postLoadingType.value = type;
+
+    const saved = await saveBillingCharges();
+    if (!saved) return;
 
     await loadBillingData(type);
-    const latest: ShipmentBillingChargeRow[] =
+
+    const updatedList: ShipmentBillingChargeRow[] =
       type === 'AR' ? props.inputData.ar_charges || [] : props.inputData.ap_charges || [];
     const pks = [
-      ...new Set(selectedRows.map(row => latest.find(item => item.id === row.id)?.pk || row.pk).filter(Boolean))
-    ] as string[];
+      ...new Set(
+        selectedIndices
+          .map(index => updatedList[index])
+          .filter((row): row is ShipmentBillingChargeRow => Boolean(row?.pk) && row.is_locked === 0)
+          .map(row => row.pk)
+      )
+    ];
 
     if (!pks.length) {
-      window.$message?.warning('Please save billing data first, then try again.');
+      window.$message?.warning('Failed to get charge line PKs after save.');
       return;
     }
 
@@ -354,9 +618,9 @@ async function handleGenerateDraft(type: 'AR' | 'AP') {
     if (type === 'AR') tblSelectedAR.value = [];
     else tblSelectedAP.value = [];
   } catch {
-    window.$message?.error('Generate draft failed');
+    window.$message?.error('Post failed');
   } finally {
-    loading.value = false;
+    postLoadingType.value = null;
   }
 }
 
@@ -402,34 +666,28 @@ function makeColumns(type: 'AR' | 'AP') {
     {
       title: 'Charge Code',
       key: 'Charge_Code',
-      width: 130,
+      width: 110,
       render(row: ShipmentBillingChargeRow) {
-        return h(NAutoComplete, {
-          value: row.Charge_Code,
-          options: chargeCodeOpts.value,
-          size: 'small',
-          disabled: row.is_locked !== 0,
-          menuProps: autocompleteMenuProps,
-          renderLabel: renderAutocompleteLabel,
-          getShow: () => chargeCodeOpts.value.length > 0,
-          onUpdateValue: (v: string) => {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(getChargeCodeDisplayLabel(row.Charge_Code));
+        }
+        return renderRemoteBillingSelect(
+          row.Charge_Code || '',
+          getRemoteSelectOptions(chargeCodePersistedOpts.value, chargeCodeSearchOpts.value, row.Charge_Code),
+          (v: string) => {
             row.Charge_Code = v;
-            searchChargeCodes(v);
-          },
-          onFocus: () => {
-            searchChargeCodes(row.Charge_Code || '');
-          },
-          onSelect: (v: string) => {
-            row.Charge_Code = v;
-            const cc = chargeCodeCache.value.find(c => c.code === v);
+            persistSelectedOption(chargeCodePersistedOpts, chargeCodeSearchOpts.value, v);
+            const cc = chargeCodeCache.value.find(c => c.pk === v);
             if (cc) {
               row.Description = cc.desc;
-              if (cc.charge_type === 'FIN' || cc.charge_type === 'CUR') {
-                row.Type = cc.charge_type;
+              if (isBillingInvoiceType(cc.charge_type)) {
+                row.JR_InvoiceType = cc.charge_type;
               }
             }
-          }
-        });
+          },
+          debouncedSearchChargeCode,
+          chargeCodeSearchLoading.value
+        );
       }
     },
     {
@@ -437,10 +695,12 @@ function makeColumns(type: 'AR' | 'AP') {
       key: 'Description',
       width: 140,
       render(row: ShipmentBillingChargeRow) {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(row.Description);
+        }
         return h(NInput, {
           value: row.Description,
           size: 'small',
-          disabled: row.is_locked !== 0,
           onUpdateValue: (v: string) => {
             row.Description = v;
           }
@@ -452,70 +712,78 @@ function makeColumns(type: 'AR' | 'AP') {
       key: accountKey,
       width: 140,
       render(row: ShipmentBillingChargeRow) {
-        if (row.is_locked !== 0) {
-          return h('span', null, row[accountKey] || '');
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(row.party_code);
         }
-        return h(RemoteTableMenu, {
-          modelValue: row[accountKey] || '',
-          fetchMethod: fetchOrgAddressForBilling,
-          headers: debtorHeaders,
-          displayKey: 'org_code',
-          itemValue: 'org_code',
-          width: 480,
-          'onUpdate:modelValue': (v: string) => {
+        return renderRemoteBillingSelect(
+          row[accountKey] || '',
+          getRemoteSelectOptions(partyPersistedOpts.value, partySearchOpts.value, row[accountKey], row.party_code),
+          (v: string) => {
             row[accountKey] = v;
+            persistSelectedOption(partyPersistedOpts, partySearchOpts.value, v);
+            row.party_code = getPartyCodeByPk(v);
           },
-          onRowSelect: (r: Record<string, unknown>) => {
-            row[accountKey] = String(r.org_code ?? '');
-          }
-        });
+          debouncedSearchParty,
+          partySearchLoading.value
+        );
       }
     },
     {
       title: 'Branch',
       key: 'Branch',
-      width: 80,
-      render: (row: ShipmentBillingChargeRow) => h('span', null, row.Branch || '')
+      width: 120,
+      render(row: ShipmentBillingChargeRow) {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(row.branch_code);
+        }
+        return renderRemoteBillingSelect(
+          row.Branch || '',
+          getRemoteSelectOptions(branchPersistedOpts.value, branchSearchOpts.value, row.Branch, row.branch_code),
+          (v: string) => {
+            row.Branch = v;
+            persistSelectedOption(branchPersistedOpts, branchSearchOpts.value, v);
+            row.branch_code = getBranchCodeByPk(v);
+          },
+          debouncedSearchBranch,
+          branchSearchLoading.value
+        );
+      }
     },
     {
       title: 'Currency',
       key: 'Currency',
-      width: 80,
+      width: 100,
       render(row: ShipmentBillingChargeRow) {
-        return h(NAutoComplete, {
-          value: row.Currency,
-          options: currencyOpts.value,
-          size: 'small',
-          disabled: row.is_locked !== 0,
-          menuProps: autocompleteMenuProps,
-          renderLabel: renderAutocompleteLabel,
-          getShow: () => currencyOpts.value.length > 0,
-          onUpdateValue: (v: string) => {
-            row.Currency = v;
-            searchCurrencies(v);
-          },
-          onFocus: () => {
-            searchCurrencies(row.Currency || '');
-          },
-          onSelect: (v: string) => {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(row.Currency);
+        }
+        return renderRemoteBillingSelect(
+          row.Currency || '',
+          getRemoteSelectOptions(currencyPersistedOpts.value, currencySearchOpts.value, row.Currency, row.Currency),
+          (v: string) => {
+            persistSelectedOption(currencyPersistedOpts, currencySearchOpts.value, v);
             applyCurrencyExchangeRate(row, v);
-          }
-        });
+          },
+          debouncedSearchCurrency,
+          currencySearchLoading.value
+        );
       }
     },
     {
       title: 'Type',
-      key: 'Type',
+      key: 'JR_InvoiceType',
       width: 100,
       render(row: ShipmentBillingChargeRow) {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(row.JR_InvoiceType);
+        }
         return h(NSelect, {
-          value: row.Type || null,
-          options: lineTypeOpts,
+          value: row.JR_InvoiceType || null,
+          options: invoiceTypeOpts,
           size: 'small',
           clearable: true,
-          disabled: row.is_locked !== 0,
           onUpdateValue: (v: string | null) => {
-            row.Type = v || '';
+            row.JR_InvoiceType = v || '';
           }
         });
       }
@@ -525,10 +793,12 @@ function makeColumns(type: 'AR' | 'AP') {
       key: 'Amount',
       width: 100,
       render(row: ShipmentBillingChargeRow) {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(row.Amount);
+        }
         return h(NInput, {
           value: String(row.Amount ?? ''),
           size: 'small',
-          disabled: row.is_locked !== 0,
           onUpdateValue: (v: string) => {
             row.Amount = v;
             recalcChargeLineTaxAndHome(row);
@@ -541,12 +811,14 @@ function makeColumns(type: 'AR' | 'AP') {
       key: 'Tax_Code',
       width: 100,
       render(row: ShipmentBillingChargeRow) {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(getBillingTaxCodeLabel(row.Tax_Code));
+        }
         return h(NSelect, {
           value: row.Tax_Code || null,
-          options: taxCodeOpts,
+          options: ensureCurrentTaxCodeOption(row.Tax_Code),
           size: 'small',
           clearable: true,
-          disabled: row.is_locked !== 0,
           onUpdateValue: (v: string | null) => {
             row.Tax_Code = v || '';
             recalcChargeLineTaxAndHome(row);
@@ -565,10 +837,12 @@ function makeColumns(type: 'AR' | 'AP') {
       key: 'Exchange_Rate',
       width: 90,
       render(row: ShipmentBillingChargeRow) {
+        if (isChargeLineLocked(row)) {
+          return renderLockedCell(row.Exchange_Rate);
+        }
         return h(NInput, {
           value: String(row.Exchange_Rate ?? ''),
           size: 'small',
-          disabled: row.is_locked !== 0,
           onUpdateValue: (v: string) => {
             row.Exchange_Rate = v;
             recalcChargeLineTaxAndHome(row);
@@ -585,8 +859,36 @@ function makeColumns(type: 'AR' | 'AP') {
   ];
 }
 
-const arColumns = computed(() => makeColumns('AR'));
-const apColumns = computed(() => makeColumns('AP'));
+const arColumns = computed(() => {
+  void partyPersistedOpts.value;
+  void partySearchOpts.value;
+  void chargeCodePersistedOpts.value;
+  void chargeCodeSearchOpts.value;
+  void branchPersistedOpts.value;
+  void branchSearchOpts.value;
+  void currencyPersistedOpts.value;
+  void currencySearchOpts.value;
+  void chargeCodeSearchLoading.value;
+  void partySearchLoading.value;
+  void branchSearchLoading.value;
+  void currencySearchLoading.value;
+  return makeColumns('AR');
+});
+const apColumns = computed(() => {
+  void partyPersistedOpts.value;
+  void partySearchOpts.value;
+  void chargeCodePersistedOpts.value;
+  void chargeCodeSearchOpts.value;
+  void branchPersistedOpts.value;
+  void branchSearchOpts.value;
+  void currencyPersistedOpts.value;
+  void currencySearchOpts.value;
+  void chargeCodeSearchLoading.value;
+  void partySearchLoading.value;
+  void branchSearchLoading.value;
+  void currencySearchLoading.value;
+  return makeColumns('AP');
+});
 
 defineExpose({ loadAll, loadBillingData });
 </script>
@@ -597,12 +899,11 @@ defineExpose({ loadAll, loadBillingData });
       <template #header>
         <NSpace align="center" :wrap="false">
           <span class="font-bold">AR (Accounts Receivable)</span>
-          <NCheckbox v-model:checked="arCompleted">AR Completed</NCheckbox>
-          <NButton size="small" @click="copyRows('AR', 'AR')">Copy</NButton>
           <NButton size="small" @click="copyRows('AR', 'AP')">Copy to AP</NButton>
-          <NButton size="small" :loading="loading" @click="handleGenerateDraft('AR')">Generate Draft</NButton>
-          <NButton size="small">Template</NButton>
-          <NButton type="primary" size="small" @click="addChargeLine('AR')">Add</NButton>
+          <NButton size="small" @click="addChargeLine('AR')">Add</NButton>
+          <NButton type="primary" size="small" :loading="postLoadingType === 'AR'" @click="handlePost('AR')">
+            Post
+          </NButton>
         </NSpace>
       </template>
       <NDataTable
@@ -623,12 +924,11 @@ defineExpose({ loadAll, loadBillingData });
       <template #header>
         <NSpace align="center" :wrap="false">
           <span class="font-bold">AP (Accounts Payable)</span>
-          <NCheckbox v-model:checked="apCompleted">AP Completed</NCheckbox>
-          <NButton size="small" @click="copyRows('AP', 'AP')">Copy</NButton>
           <NButton size="small" @click="copyRows('AP', 'AR')">Copy to AR</NButton>
-          <NButton size="small" :loading="loading" @click="handleGenerateDraft('AP')">Generate Draft</NButton>
-          <NButton size="small">Template</NButton>
-          <NButton type="primary" size="small" @click="addChargeLine('AP')">Add</NButton>
+          <NButton size="small" @click="addChargeLine('AP')">Add</NButton>
+          <NButton type="primary" size="small" :loading="postLoadingType === 'AP'" @click="handlePost('AP')">
+            Post
+          </NButton>
         </NSpace>
       </template>
       <NDataTable
@@ -659,15 +959,38 @@ defineExpose({ loadAll, loadBillingData });
 </template>
 
 <style scoped>
-:deep(.billing-charge-autocomplete-menu .n-base-select-option__content) {
-  white-space: normal;
-  word-break: break-word;
-  overflow: visible;
-  text-overflow: unset;
+:deep(.billing-remote-select .n-base-selection-label),
+:deep(.billing-remote-select .n-base-selection-input) {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-:deep(.billing-charge-autocomplete-label) {
-  display: block;
-  line-height: 1.4;
+/* 选中框只显示 code，隐藏描述行 */
+:deep(.billing-remote-select .n-base-selection-label .billing-remote-select-menu-option) {
+  display: inline;
+}
+
+:deep(.billing-remote-select .n-base-selection-label .billing-remote-select-menu-option__desc) {
+  display: none;
+}
+
+:deep(.billing-remote-select .n-base-selection-label .billing-remote-select-menu-option__code) {
+  font-weight: inherit;
+}
+
+:deep(.billing-remote-select-menu-option__code) {
+  font-weight: 500;
+  line-height: 1.35;
+}
+
+:deep(.billing-remote-select-menu .billing-remote-select-menu-option__desc) {
+  margin-top: 2px;
+  font-size: 12px;
+  line-height: 1.35;
+  color: var(--n-option-text-color);
+  opacity: 0.72;
+  white-space: normal;
+  word-break: break-word;
 }
 </style>

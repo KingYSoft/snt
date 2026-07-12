@@ -437,13 +437,31 @@ export interface ShipmentListItem {
   js_deliveryduedate?: string | null;
 }
 
+/** GET /shipment/detail — shipper / consignee org address */
+export interface ShipmentOrgAddressDto {
+  oh_fullname: string;
+  oa_pk: string;
+  oa_code: string;
+  oa_companynameoverride?: string;
+  oa_address1: string;
+  oa_address2: string;
+  oa_city?: string;
+  oa_state?: string;
+  oa_postcode?: string;
+  oa_rn_nkcountrycode?: string;
+  oa_phone?: string;
+  oa_fax?: string;
+  oa_mobile?: string;
+  oa_email?: string;
+}
+
 /**
  * Shipment detail (extends list item with related data)
  */
 export interface ShipmentDetail extends ShipmentListItem {
-  shipper?: JobDocAddressDto;
-  consignee?: JobDocAddressDto;
-  notify_party?: JobDocAddressDto;
+  shipper?: ShipmentOrgAddressDto;
+  consignee?: ShipmentOrgAddressDto;
+  notify_party?: ShipmentOrgAddressDto;
   pickup?: JobDocAddressDto;
   delivery?: JobDocAddressDto;
   containers_list?: ShipmentDetailContainerDto[];
@@ -657,44 +675,6 @@ export async function shipmentCopy(id: number) {
     url: '/shipment/copy',
     method: 'post',
     data: { id }
-  });
-}
-
-export async function edocSearch(params: { parent_table: string; related_key: string }) {
-  return request({
-    url: '/edoc/search',
-    method: 'post',
-    data: params
-  });
-}
-
-export async function edocSave(formData: FormData) {
-  return request({
-    url: '/edoc/save',
-    method: 'post',
-    data: formData,
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
-}
-
-export async function logsSearch(params: {
-  SkipCount: number;
-  MaxResultCount: number;
-  parent_table: string;
-  related_key: string;
-}) {
-  return request({
-    url: '/api/logs/search',
-    method: 'post',
-    data: params
-  });
-}
-
-export async function billingSummary(shpPk: string) {
-  return request({
-    url: '/billing/summary',
-    method: 'get',
-    params: { shpPk }
   });
 }
 
