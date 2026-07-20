@@ -61,6 +61,7 @@ const defaultData = () => ({
   shp_transit_time_unit: 'DAYS',
   shp_pack_type: 'CTN',
   shp_is_forward_registered: 1,
+  js_jx: '',
   routing_list: [] as any[],
   consolidation_list: [] as any[],
   doc_data: {} as Record<string, any>,
@@ -293,7 +294,6 @@ const queryData = async () => {
       console.log('Detail response:', response);
       const data = response?.data;
       if (data) {
-        skeletonLoading.value = false;
         const containersList = (data.containers_list || []).map((container: any, index: number) =>
           mapContainerToComponent(container, index)
         );
@@ -313,6 +313,7 @@ const queryData = async () => {
           shp_consign_no: data.js_uniqueconsignref || '',
           shp_cargo_receipt: data.js_interimreceipt || '',
           shp_consol_reference: data.js_consolreference || '',
+          js_jx: data.js_jx || '',
           shp_house_bill: data.js_housebill || '',
           shp_shipment_type: data.js_shipmenttype || '',
           shp_transport_mode: data.js_transportmode || 'SEA',
@@ -415,6 +416,7 @@ const queryData = async () => {
           pickup: mapAddressToComponent(data.pickup, 'PICKUP'),
           delivery: mapAddressToComponent(data.delivery, 'DELIVERY')
         };
+        skeletonLoading.value = false;
         console.log('Mapped inputData:', inputData.value);
         // Update tab label with shipment_no
         if (inputData.value.shp_consign_no) {
@@ -480,11 +482,7 @@ const saveAdditionalDetailsTab = async () => {
 };
 
 const saveRoutingTab = async () => {
-  if (!inputData.value.pk) {
-    window.$message?.warning('Shipment PK is required.');
-    return;
-  }
-  await saveShipmentTab();
+  window.$message?.info($t('page.business.shipment.routing.readOnly'));
 };
 
 const refreshBillingSummary = ref(false);
