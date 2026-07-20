@@ -621,6 +621,41 @@ export async function getShipmentDetail(id: string) {
   });
 }
 
+/** GET /shipment/query-consol-transport — JobConsolTransport by shp_pk */
+export interface ShipmentConsolTransportDto {
+  id?: string;
+  jw_pk?: string;
+  jw_isvalid?: number;
+  jw_transportmode?: string;
+  jw_legorder?: number;
+  jw_transporttype?: string;
+  jw_status?: string;
+  jw_vessel?: string;
+  jw_voyageflight?: string;
+  jw_rl_nkloadport?: string;
+  jw_rl_nkdiscport?: string;
+  jw_etd?: string | null;
+  jw_atd?: string | null;
+  jw_eta?: string | null;
+  jw_ata?: string | null;
+  jw_oa_carrieraddress?: string;
+  jw_carrierbookingreference?: string;
+  jw_parentguid?: string;
+  jk_uniqueconsignref?: string;
+}
+
+export interface ShipmentQueryConsolTransportOutput {
+  list: ShipmentConsolTransportDto[];
+}
+
+export function shipmentQueryConsolTransport(params: { shp_pk: string }) {
+  return request<ShipmentQueryConsolTransportOutput>({
+    url: '/shipment/query-consol-transport',
+    method: 'get',
+    params
+  });
+}
+
 export async function shipmentSave(params: ShipmentSaveParams) {
   return request({
     url: '/shipment/save',
