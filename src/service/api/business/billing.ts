@@ -105,7 +105,8 @@ export interface GenerateDraftInput {
 }
 
 export interface PostChargeInput {
-  ahPks: string[];
+  pks: string[];
+  chargeType: string;
 }
 
 export interface VoidInvoiceInput {

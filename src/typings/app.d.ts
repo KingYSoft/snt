@@ -1020,6 +1020,7 @@ declare namespace App {
               copySuccess: string;
               deleteSuccess: string;
               draftSuccess: string;
+              postSuccess: string;
             };
             address: {
               newShipper: string;

@@ -14,7 +14,7 @@ import {
   billingQueryOrgAddress,
   createOrUpdateBilling,
   deleteBilling,
-  generateDraft,
+  postCharge,
   type BillingBranchOption,
   type BillingChargeCodeOption,
   type BillingOrgAddressRow
@@ -612,8 +612,8 @@ async function handlePost(type: 'AR' | 'AP') {
       return;
     }
 
-    await generateDraft({ pks, chargeType: type });
-    window.$message?.success($t('page.business.shipment.billing.draftSuccess'));
+    await postCharge({ pks, chargeType: type });
+    window.$message?.success($t('page.business.shipment.billing.postSuccess'));
     await loadBillingData(type);
     if (type === 'AR') tblSelectedAR.value = [];
     else tblSelectedAP.value = [];

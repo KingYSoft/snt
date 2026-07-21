@@ -3,7 +3,6 @@ import { h, ref, watch, computed } from 'vue';
 import { NDataTable, NButton, NSpace, NPagination, NInput, NSelect, NTag } from 'naive-ui';
 import {
   billingDraftPage,
-  postCharge,
   voidDraftInvoice,
   voidPostedInvoice,
   type AccTransactionHeader
@@ -20,7 +19,6 @@ const invoiceTotal = ref(0);
 const invoiceSelected = ref<string[]>([]);
 const invoiceSearchNo = ref('');
 const invoiceChargeType = ref<'AR' | 'AP'>('AR');
-const posting = ref(false);
 const voiding = ref(false);
 
 const chargeTypeOptions = [
@@ -136,32 +134,6 @@ function handleChargeTypeChange() {
   loadInvoices();
 }
 
-async function handlePost() {
-  const selectedItems = getSelectedItems();
-  if (!selectedItems.length) {
-    window.$message?.warning('Please select at least one record to post.');
-    return;
-  }
-
-  const ahPks = selectedItems.map(item => String(item.ah_pk ?? '').trim()).filter(Boolean);
-  if (!ahPks.length) {
-    window.$message?.warning('No valid records to post.');
-    return;
-  }
-
-  try {
-    posting.value = true;
-    await postCharge({ ahPks });
-    window.$message?.success(`Successfully posted ${ahPks.length} record(s).`);
-    invoiceSelected.value = [];
-    await loadInvoices();
-  } catch {
-    window.$message?.error('Post failed');
-  } finally {
-    posting.value = false;
-  }
-}
-
 async function handleVoid() {
   const selectedItems = getSelectedItems();
   if (!selectedItems.length) {
@@ -230,7 +202,6 @@ defineExpose({ loadInvoices });
       />
       <NButton type="primary" size="small" @click="handleSearch">Search</NButton>
       <NButton size="small" :loading="invoiceLoading" @click="loadInvoices">Refresh</NButton>
-      <NButton type="primary" size="small" :loading="posting" @click="handlePost">Post</NButton>
       <NButton type="error" size="small" ghost :loading="voiding" @click="handleVoid">Void</NButton>
       <NButton size="small" @click="handlePrint">Print</NButton>
     </NSpace>
