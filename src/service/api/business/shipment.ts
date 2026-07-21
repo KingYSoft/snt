@@ -777,7 +777,7 @@ export async function billingDraftPage(params: BillingDraftPageParams) {
   });
 }
 
-export async function postCharge(params: { ahPks: string[] }) {
+export async function postCharge(params: { pks: string[]; chargeType: string }) {
   return request({
     url: '/billing/post-charge',
     method: 'post',

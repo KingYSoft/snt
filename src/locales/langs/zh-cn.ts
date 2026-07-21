@@ -649,7 +649,8 @@ const local: App.I18n.Schema = {
           allLocked: '所有选中的记录已被锁定。',
           copySuccess: '成功复制记录。',
           deleteSuccess: '成功删除记录。',
-          draftSuccess: '成功生成草稿。'
+          draftSuccess: '成功生成草稿。',
+          postSuccess: '成功过账费用行。'
         },
         address: {
           newShipper: '新建发货人',

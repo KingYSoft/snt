@@ -13,12 +13,19 @@ export interface BillingChargeLineItem {
   jr_pk: string;
   jr_jh: string;
   jr_chargetype?: string;
+  jr_ac?: string;
+  charge_code?: string;
+  charge_desc?: string;
   jr_invoicetype?: string;
   jr_desc: string;
   amount: number;
   os_amount: number;
+  qty?: number;
+  unit_price?: number;
   currency: string;
   party_oh: string;
+  party_code?: string;
+  party_name?: string;
   exchange_rate: number;
   gst_rate: string;
   wht_rate: string;
@@ -29,8 +36,8 @@ export interface BillingChargeLineItem {
   invoice_date: string;
   draft: string;
   jr_gb?: string;
-  party_code?: string;
   branch_code?: string;
+  branch_name?: string;
 }
 
 export interface BillingChargeLineOutput {
@@ -105,7 +112,8 @@ export interface GenerateDraftInput {
 }
 
 export interface PostChargeInput {
-  ahPks: string[];
+  pks: string[];
+  chargeType: string;
 }
 
 export interface VoidInvoiceInput {
@@ -190,8 +198,25 @@ export async function deleteBilling(jrPks: string[]) {
   });
 }
 
+export interface QueryChargesByInvoiceOutput {
+  head?: AccTransactionHeader;
+  lines?: AccTransactionLine[];
+  charges?: BillingChargeLineItem[];
+  billingParty?: string;
+}
+
+export interface AccTransactionLine {
+  al_pk?: string;
+  al_desc?: string;
+  al_lineamount?: number;
+  al_osamount?: number;
+  al_rx_nktransactioncurrency?: string;
+  al_exchangerate?: number;
+  [key: string]: unknown;
+}
+
 export async function queryChargesByInvoice(invoiceNo: string) {
-  return request({
+  return request<QueryChargesByInvoiceOutput>({
     url: '/billing/charges-by-invoice',
     method: 'get',
     params: { invoiceNo }

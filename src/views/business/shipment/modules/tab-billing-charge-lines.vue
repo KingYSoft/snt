@@ -1,6 +1,6 @@
 <script setup lang="ts">
 /* eslint-disable vue/no-mutating-props */
-import { h, ref, computed, watch, onMounted } from 'vue';
+import { h, ref, computed, watch, onMounted, defineComponent, type PropType } from 'vue';
 import { useDebounceFn } from '@vueuse/core';
 import { NDataTable, NButton, NInput, NCard, NSpace, NModal, NTag, NSelect } from 'naive-ui';
 import { $t } from '@/locales';
@@ -14,7 +14,7 @@ import {
   billingQueryOrgAddress,
   createOrUpdateBilling,
   deleteBilling,
-  generateDraft,
+  postCharge,
   type BillingBranchOption,
   type BillingChargeCodeOption,
   type BillingOrgAddressRow
@@ -48,48 +48,15 @@ const deleteType = ref<'AR' | 'AP'>('AR');
 const loading = ref(false);
 const postLoadingType = ref<'AR' | 'AP' | null>(null);
 
-const chargeCodeCache = ref<BillingChargeCodeOption[]>([]);
+const chargeCodeByPk = new Map<string, BillingChargeCodeOption>();
+/** Non-reactive label cache — avoids remounting table selects when options update. */
+const chargeCodeLabelByPk = new Map<string, string>();
 
 const BILLING_SELECT_QUERY_LIMIT = 50;
 const BILLING_SELECT_DEBOUNCE_MS = 800;
 
 type BillingSelectOption = { label: string; value: string; desc?: string };
-const chargeCodePersistedOpts = ref<BillingSelectOption[]>([]);
-const partyPersistedOpts = ref<BillingSelectOption[]>([]);
-const branchPersistedOpts = ref<BillingSelectOption[]>([]);
-const currencyPersistedOpts = ref<BillingSelectOption[]>([]);
-
-const chargeCodeSearchOpts = ref<BillingSelectOption[]>([]);
-const partySearchOpts = ref<BillingSelectOption[]>([]);
-const branchSearchOpts = ref<BillingSelectOption[]>([]);
-const currencySearchOpts = ref<BillingSelectOption[]>([]);
-
-const chargeCodeSearchLoading = ref(false);
-const partySearchLoading = ref(false);
-const branchSearchLoading = ref(false);
-const currencySearchLoading = ref(false);
-
-function mergeUniqueBillingOptions(base: BillingSelectOption[], items: BillingSelectOption[]): BillingSelectOption[] {
-  const existing = new Set(base.map(o => o.value));
-  const merged = [...base];
-  items.forEach(opt => {
-    if (opt.value && !existing.has(opt.value)) {
-      existing.add(opt.value);
-      merged.push(opt);
-    }
-  });
-  return merged;
-}
-
-function getRemoteSelectOptions(
-  persisted: BillingSelectOption[],
-  searchResults: BillingSelectOption[],
-  current?: string,
-  currentLabel?: string
-) {
-  const base = searchResults.length ? searchResults : persisted;
-  return ensureCurrentSelectOption(base, current, currentLabel);
-}
+type BillingSelectSearchFn = (query: string) => Promise<BillingSelectOption[]>;
 
 function normalizeCurrencyOptionRows(payload: unknown): Array<{ code?: string; desc?: string }> {
   if (Array.isArray(payload)) return payload;
@@ -136,186 +103,19 @@ function toBillingPartyOption(item: BillingOrgAddressRow): BillingSelectOption {
 }
 
 function mergeChargeCodeCache(items: BillingChargeCodeOption[]) {
-  const existingCache = new Set(chargeCodeCache.value.map(item => item.pk));
-  const cache = [...chargeCodeCache.value];
   items.forEach(item => {
-    if (item.pk && !existingCache.has(item.pk)) {
-      existingCache.add(item.pk);
-      cache.push(item);
-    }
+    const pk = String(item.pk ?? '').trim();
+    if (!pk) return;
+    chargeCodeByPk.set(pk, item);
+    if (item.code) chargeCodeLabelByPk.set(pk, String(item.code).trim());
   });
-  chargeCodeCache.value = cache;
 }
 
-function mergeBranchPersisted(items: BillingBranchOption[]) {
-  const opts = items.map(toBillingBranchOption).filter(o => o.value);
-  branchPersistedOpts.value = mergeUniqueBillingOptions(branchPersistedOpts.value, opts);
-}
-
-function mergePartyPersisted(items: BillingOrgAddressRow[]) {
-  const opts = items.map(toBillingPartyOption).filter(o => o.value);
-  partyPersistedOpts.value = mergeUniqueBillingOptions(partyPersistedOpts.value, opts);
-}
-
-async function ensurePartyOptionsForChargeRows(rows: ShipmentBillingChargeRow[]) {
-  const codesToQuery = new Set<string>();
-  rows.forEach(row => {
-    if (isChargeLineLocked(row)) return;
-    const pk = String(row.Debtor ?? row.Creditor ?? '').trim();
-    const code = String(row.party_code ?? '').trim();
-    if (!pk || !code) return;
-    if (partyPersistedOpts.value.some(o => o.value === pk)) return;
-    codesToQuery.add(code);
-  });
-  if (!codesToQuery.size) return;
-
-  try {
-    const responses = await Promise.all(
-      [...codesToQuery].map(code => billingQueryOrgAddress({ query: code, skipCount: 0, maxResultCount: 50 }))
-    );
-    const items = responses.flatMap(res => res.data?.items ?? []);
-    mergePartyPersisted(items);
-  } catch {
-    /* ignore */
-  }
-}
-
-async function ensureBranchOptionsForChargeRows(rows: ShipmentBillingChargeRow[]) {
-  const codesToQuery = new Set<string>();
-  rows.forEach(row => {
-    if (isChargeLineLocked(row)) return;
-    const pk = String(row.Branch ?? '').trim();
-    const code = String(row.branch_code ?? '').trim();
-    if (!pk || !code) return;
-    if (branchPersistedOpts.value.some(o => o.value === pk)) return;
-    codesToQuery.add(code);
-  });
-  if (!codesToQuery.size) return;
-
-  try {
-    const responses = await Promise.all([...codesToQuery].map(code => billingBranchOptions({ query: code })));
-    responses.forEach(res => mergeBranchPersisted(res.data ?? []));
-  } catch {
-    /* ignore */
-  }
-}
-
-async function searchChargeCodeOptions(query: string) {
-  const q = query.trim();
-  if (!q) {
-    chargeCodeSearchOpts.value = [];
-    return;
-  }
-  chargeCodeSearchLoading.value = true;
-  try {
-    const { data } = await billingChargeCodeOptions({ query: q });
-    const items = data ?? [];
-    mergeChargeCodeCache(items);
-    chargeCodeSearchOpts.value = items.map(toBillingChargeCodeOption).filter(o => o.value);
-  } catch {
-    chargeCodeSearchOpts.value = [];
-  } finally {
-    chargeCodeSearchLoading.value = false;
-  }
-}
-
-async function searchPartyOptions(query: string) {
-  const q = query.trim();
-  if (!q) {
-    partySearchOpts.value = [];
-    return;
-  }
-  partySearchLoading.value = true;
-  try {
-    const { data } = await billingQueryOrgAddress({
-      query: q,
-      skipCount: 0,
-      maxResultCount: BILLING_SELECT_QUERY_LIMIT
-    });
-    const items = data?.items ?? [];
-    partySearchOpts.value = items.map(toBillingPartyOption).filter(o => o.value);
-  } catch {
-    partySearchOpts.value = [];
-  } finally {
-    partySearchLoading.value = false;
-  }
-}
-
-async function searchBranchOptions(query: string) {
-  const q = query.trim();
-  if (!q) {
-    branchSearchOpts.value = [];
-    return;
-  }
-  branchSearchLoading.value = true;
-  try {
-    const { data } = await billingBranchOptions({ query: q });
-    const items = data ?? [];
-    branchSearchOpts.value = items.map(toBillingBranchOption).filter(o => o.value);
-  } catch {
-    branchSearchOpts.value = [];
-  } finally {
-    branchSearchLoading.value = false;
-  }
-}
-
-async function searchCurrencyOptions(query: string) {
-  const q = query.trim();
-  if (!q) {
-    currencySearchOpts.value = [];
-    return;
-  }
-  currencySearchLoading.value = true;
-  try {
-    const { data } = await matchTransactionsCurrencyOptions({ query: q });
-    currencySearchOpts.value = toCurrencySearchOptions(data);
-  } catch {
-    currencySearchOpts.value = [];
-  } finally {
-    currencySearchLoading.value = false;
-  }
-}
-
-const debouncedSearchChargeCode = useDebounceFn(searchChargeCodeOptions, BILLING_SELECT_DEBOUNCE_MS);
-const debouncedSearchParty = useDebounceFn(searchPartyOptions, BILLING_SELECT_DEBOUNCE_MS);
-const debouncedSearchBranch = useDebounceFn(searchBranchOptions, BILLING_SELECT_DEBOUNCE_MS);
-const debouncedSearchCurrency = useDebounceFn(searchCurrencyOptions, BILLING_SELECT_DEBOUNCE_MS);
-
-function findBillingSelectLabel(opts: BillingSelectOption[], pk?: string) {
-  const value = String(pk ?? '').trim();
-  if (!value) return '';
-  return opts.find(o => o.value === value)?.label ?? '';
-}
-
-function getPartyCodeByPk(pk?: string) {
-  const merged = mergeUniqueBillingOptions(partyPersistedOpts.value, partySearchOpts.value);
-  return findBillingSelectLabel(merged, pk);
-}
-
-function getBranchCodeByPk(pk?: string) {
-  const merged = mergeUniqueBillingOptions(branchPersistedOpts.value, branchSearchOpts.value);
-  return findBillingSelectLabel(merged, pk);
-}
-
-function getPartyDisplayLabel(pk?: string) {
-  return getPartyCodeByPk(pk);
-}
-
-function getBranchDisplayLabel(pk?: string) {
-  return getBranchCodeByPk(pk);
-}
-
-function getChargeCodeDisplayLabel(pk?: string) {
-  const merged = mergeUniqueBillingOptions(chargeCodePersistedOpts.value, chargeCodeSearchOpts.value);
-  return findBillingSelectLabel(merged, pk);
-}
-
-function isChargeLineLocked(row: ShipmentBillingChargeRow) {
-  return row.is_locked !== 0;
-}
-
-function renderLockedCell(text?: string | number | null) {
-  return h('span', null, String(text ?? ''));
+function ensureCurrentSelectOption(options: BillingSelectOption[], current?: string, displayLabel?: string) {
+  const cur = (current ?? '').trim();
+  if (!cur || options.some(o => o.value === cur)) return options;
+  const label = String(displayLabel ?? '').trim() || cur;
+  return [{ label, value: cur }, ...options];
 }
 
 function renderBillingSelectMenuLabel(option: BillingSelectOption) {
@@ -330,53 +130,136 @@ function renderBillingSelectMenuLabel(option: BillingSelectOption) {
   ]);
 }
 
-function persistSelectedOption(
-  target: typeof chargeCodePersistedOpts,
-  searchResults: BillingSelectOption[],
-  value?: string
-) {
-  const pk = String(value ?? '').trim();
-  if (!pk) return;
-  const opt = [...searchResults, ...target.value].find(o => o.value === pk);
-  if (opt) target.value = mergeUniqueBillingOptions(target.value, [opt]);
+/** Per-cell remote select: local loading/options only — no shared search state. */
+const BillingRemoteSelectCell = defineComponent({
+  name: 'BillingRemoteSelectCell',
+  props: {
+    value: { type: String, default: '' },
+    currentLabel: { type: String, default: '' },
+    search: { type: Function as PropType<BillingSelectSearchFn>, required: true }
+  },
+  emits: {
+    'update:value': (_value: string) => true,
+    'select-option': (_opt: BillingSelectOption) => true
+  },
+  setup(cellProps, { emit: cellEmit }) {
+    const selectLoading = ref(false);
+    const searchOpts = ref<BillingSelectOption[]>([]);
+
+    const options = computed(() =>
+      ensureCurrentSelectOption(searchOpts.value, cellProps.value, cellProps.currentLabel)
+    );
+
+    const runSearch = useDebounceFn(async (query: string) => {
+      const q = query.trim();
+      if (!q) {
+        searchOpts.value = [];
+        return;
+      }
+      selectLoading.value = true;
+      try {
+        searchOpts.value = await cellProps.search(q);
+      } catch {
+        searchOpts.value = [];
+      } finally {
+        selectLoading.value = false;
+      }
+    }, BILLING_SELECT_DEBOUNCE_MS);
+
+    return () =>
+      h(NSelect, {
+        class: 'billing-remote-select',
+        value: cellProps.value || null,
+        options: options.value,
+        size: 'small',
+        filterable: true,
+        remote: true,
+        loading: selectLoading.value,
+        clearable: true,
+        consistentMenuWidth: false,
+        menuProps: {
+          class: 'billing-remote-select-menu',
+          style: { minWidth: '280px', maxWidth: '420px' }
+        },
+        placeholder: 'Search...',
+        filter: () => true,
+        renderLabel: (option: BillingSelectOption) => renderBillingSelectMenuLabel(option),
+        onSearch: (query: string) => {
+          void runSearch(query);
+        },
+        onUpdateValue: (v: string | null) => {
+          const value = v || '';
+          const opt = searchOpts.value.find(o => o.value === value);
+          cellEmit('update:value', value);
+          if (opt) cellEmit('select-option', opt);
+        }
+      });
+  }
+});
+
+/** Per-cell static select (Type / Tax Code) — isolated instance per row. */
+const BillingStaticSelectCell = defineComponent({
+  name: 'BillingStaticSelectCell',
+  props: {
+    value: { type: String, default: '' },
+    options: { type: Array as PropType<Array<{ label: string; value: string }>>, required: true },
+    clearable: { type: Boolean, default: true }
+  },
+  emits: {
+    'update:value': (_value: string) => true
+  },
+  setup(cellProps, { emit: cellEmit }) {
+    return () =>
+      h(NSelect, {
+        value: cellProps.value || null,
+        options: cellProps.options,
+        size: 'small',
+        clearable: cellProps.clearable,
+        onUpdateValue: (v: string | null) => {
+          cellEmit('update:value', v || '');
+        }
+      });
+  }
+});
+
+async function fetchChargeCodeOptions(query: string): Promise<BillingSelectOption[]> {
+  const { data } = await billingChargeCodeOptions({ query: query.trim() });
+  const items = data ?? [];
+  mergeChargeCodeCache(items);
+  return items.map(toBillingChargeCodeOption).filter(o => o.value);
 }
 
-function ensureCurrentSelectOption(options: BillingSelectOption[], current?: string, displayLabel?: string) {
-  const cur = (current ?? '').trim();
-  if (!cur || options.some(o => o.value === cur)) return options;
-  const label = String(displayLabel ?? '').trim() || cur;
-  return [{ label, value: cur }, ...options];
-}
-
-function renderRemoteBillingSelect(
-  current: string,
-  options: BillingSelectOption[],
-  onUpdateValue: (value: string) => void,
-  onSearch: (query: string) => void,
-  selectLoading: boolean
-) {
-  return h(NSelect, {
-    class: 'billing-remote-select',
-    value: current || null,
-    options,
-    size: 'small',
-    filterable: true,
-    remote: true,
-    loading: selectLoading,
-    clearable: true,
-    consistentMenuWidth: false,
-    menuProps: {
-      class: 'billing-remote-select-menu',
-      style: { minWidth: '280px', maxWidth: '420px' }
-    },
-    placeholder: 'Search...',
-    filter: () => true,
-    renderLabel: (option: BillingSelectOption) => renderBillingSelectMenuLabel(option),
-    onSearch: (query: string) => onSearch(query),
-    onUpdateValue: (v: string | null) => {
-      onUpdateValue(v || '');
-    }
+async function fetchPartyOptions(query: string): Promise<BillingSelectOption[]> {
+  const { data } = await billingQueryOrgAddress({
+    query: query.trim(),
+    skipCount: 0,
+    maxResultCount: BILLING_SELECT_QUERY_LIMIT
   });
+  return (data?.items ?? []).map(toBillingPartyOption).filter(o => o.value);
+}
+
+async function fetchBranchOptions(query: string): Promise<BillingSelectOption[]> {
+  const { data } = await billingBranchOptions({ query: query.trim() });
+  return (data ?? []).map(toBillingBranchOption).filter(o => o.value);
+}
+
+async function fetchCurrencyOptions(query: string): Promise<BillingSelectOption[]> {
+  const { data } = await matchTransactionsCurrencyOptions({ query: query.trim() });
+  return toCurrencySearchOptions(data);
+}
+
+function getChargeCodeDisplayLabel(pk?: string) {
+  const value = String(pk ?? '').trim();
+  if (!value) return '';
+  return chargeCodeLabelByPk.get(value) ?? '';
+}
+
+function isChargeLineLocked(row: ShipmentBillingChargeRow) {
+  return row.is_locked !== 0;
+}
+
+function renderLockedCell(text?: string | number | null) {
+  return h('span', null, String(text ?? ''));
 }
 
 const taxCodeOpts = billingTaxCodeItems.map(item => ({ label: item.code, value: item.pk }));
@@ -419,8 +302,6 @@ async function loadBillingData(chargeType: 'AR' | 'AP') {
       maxResultCount: 1000
     });
     const mapped = (data?.items ?? []).map(item => mapChargeLineItem(item, chargeType));
-    await ensurePartyOptionsForChargeRows(mapped);
-    await ensureBranchOptionsForChargeRows(mapped);
     if (chargeType === 'AR') emit('update:arCharges', mapped);
     else emit('update:apCharges', mapped);
   } catch {
@@ -612,8 +493,8 @@ async function handlePost(type: 'AR' | 'AP') {
       return;
     }
 
-    await generateDraft({ pks, chargeType: type });
-    window.$message?.success($t('page.business.shipment.billing.draftSuccess'));
+    await postCharge({ pks, chargeType: type });
+    window.$message?.success($t('page.business.shipment.billing.postSuccess'));
     await loadBillingData(type);
     if (type === 'AR') tblSelectedAR.value = [];
     else tblSelectedAP.value = [];
@@ -671,13 +552,13 @@ function makeColumns(type: 'AR' | 'AP') {
         if (isChargeLineLocked(row)) {
           return renderLockedCell(getChargeCodeDisplayLabel(row.Charge_Code));
         }
-        return renderRemoteBillingSelect(
-          row.Charge_Code || '',
-          getRemoteSelectOptions(chargeCodePersistedOpts.value, chargeCodeSearchOpts.value, row.Charge_Code),
-          (v: string) => {
+        return h(BillingRemoteSelectCell, {
+          value: row.Charge_Code || '',
+          currentLabel: getChargeCodeDisplayLabel(row.Charge_Code),
+          search: fetchChargeCodeOptions,
+          'onUpdate:value': (v: string) => {
             row.Charge_Code = v;
-            persistSelectedOption(chargeCodePersistedOpts, chargeCodeSearchOpts.value, v);
-            const cc = chargeCodeCache.value.find(c => c.pk === v);
+            const cc = chargeCodeByPk.get(v);
             if (cc) {
               row.Description = cc.desc;
               if (isBillingInvoiceType(cc.charge_type)) {
@@ -685,9 +566,10 @@ function makeColumns(type: 'AR' | 'AP') {
               }
             }
           },
-          debouncedSearchChargeCode,
-          chargeCodeSearchLoading.value
-        );
+          onSelectOption: (opt: BillingSelectOption) => {
+            chargeCodeLabelByPk.set(opt.value, opt.label);
+          }
+        });
       }
     },
     {
@@ -715,17 +597,17 @@ function makeColumns(type: 'AR' | 'AP') {
         if (isChargeLineLocked(row)) {
           return renderLockedCell(row.party_code);
         }
-        return renderRemoteBillingSelect(
-          row[accountKey] || '',
-          getRemoteSelectOptions(partyPersistedOpts.value, partySearchOpts.value, row[accountKey], row.party_code),
-          (v: string) => {
+        return h(BillingRemoteSelectCell, {
+          value: row[accountKey] || '',
+          currentLabel: row.party_code,
+          search: fetchPartyOptions,
+          'onUpdate:value': (v: string) => {
             row[accountKey] = v;
-            persistSelectedOption(partyPersistedOpts, partySearchOpts.value, v);
-            row.party_code = getPartyCodeByPk(v);
           },
-          debouncedSearchParty,
-          partySearchLoading.value
-        );
+          onSelectOption: (opt: BillingSelectOption) => {
+            row.party_code = opt.label;
+          }
+        });
       }
     },
     {
@@ -736,17 +618,17 @@ function makeColumns(type: 'AR' | 'AP') {
         if (isChargeLineLocked(row)) {
           return renderLockedCell(row.branch_code);
         }
-        return renderRemoteBillingSelect(
-          row.Branch || '',
-          getRemoteSelectOptions(branchPersistedOpts.value, branchSearchOpts.value, row.Branch, row.branch_code),
-          (v: string) => {
+        return h(BillingRemoteSelectCell, {
+          value: row.Branch || '',
+          currentLabel: row.branch_code,
+          search: fetchBranchOptions,
+          'onUpdate:value': (v: string) => {
             row.Branch = v;
-            persistSelectedOption(branchPersistedOpts, branchSearchOpts.value, v);
-            row.branch_code = getBranchCodeByPk(v);
           },
-          debouncedSearchBranch,
-          branchSearchLoading.value
-        );
+          onSelectOption: (opt: BillingSelectOption) => {
+            row.branch_code = opt.label;
+          }
+        });
       }
     },
     {
@@ -757,16 +639,14 @@ function makeColumns(type: 'AR' | 'AP') {
         if (isChargeLineLocked(row)) {
           return renderLockedCell(row.Currency);
         }
-        return renderRemoteBillingSelect(
-          row.Currency || '',
-          getRemoteSelectOptions(currencyPersistedOpts.value, currencySearchOpts.value, row.Currency, row.Currency),
-          (v: string) => {
-            persistSelectedOption(currencyPersistedOpts, currencySearchOpts.value, v);
+        return h(BillingRemoteSelectCell, {
+          value: row.Currency || '',
+          currentLabel: row.Currency,
+          search: fetchCurrencyOptions,
+          'onUpdate:value': (v: string) => {
             applyCurrencyExchangeRate(row, v);
-          },
-          debouncedSearchCurrency,
-          currencySearchLoading.value
-        );
+          }
+        });
       }
     },
     {
@@ -777,13 +657,11 @@ function makeColumns(type: 'AR' | 'AP') {
         if (isChargeLineLocked(row)) {
           return renderLockedCell(row.JR_InvoiceType);
         }
-        return h(NSelect, {
-          value: row.JR_InvoiceType || null,
+        return h(BillingStaticSelectCell, {
+          value: row.JR_InvoiceType || '',
           options: invoiceTypeOpts,
-          size: 'small',
-          clearable: true,
-          onUpdateValue: (v: string | null) => {
-            row.JR_InvoiceType = v || '';
+          'onUpdate:value': (v: string) => {
+            row.JR_InvoiceType = v;
           }
         });
       }
@@ -814,13 +692,11 @@ function makeColumns(type: 'AR' | 'AP') {
         if (isChargeLineLocked(row)) {
           return renderLockedCell(getBillingTaxCodeLabel(row.Tax_Code));
         }
-        return h(NSelect, {
-          value: row.Tax_Code || null,
+        return h(BillingStaticSelectCell, {
+          value: row.Tax_Code || '',
           options: ensureCurrentTaxCodeOption(row.Tax_Code),
-          size: 'small',
-          clearable: true,
-          onUpdateValue: (v: string | null) => {
-            row.Tax_Code = v || '';
+          'onUpdate:value': (v: string) => {
+            row.Tax_Code = v;
             recalcChargeLineTaxAndHome(row);
           }
         });
@@ -859,36 +735,8 @@ function makeColumns(type: 'AR' | 'AP') {
   ];
 }
 
-const arColumns = computed(() => {
-  void partyPersistedOpts.value;
-  void partySearchOpts.value;
-  void chargeCodePersistedOpts.value;
-  void chargeCodeSearchOpts.value;
-  void branchPersistedOpts.value;
-  void branchSearchOpts.value;
-  void currencyPersistedOpts.value;
-  void currencySearchOpts.value;
-  void chargeCodeSearchLoading.value;
-  void partySearchLoading.value;
-  void branchSearchLoading.value;
-  void currencySearchLoading.value;
-  return makeColumns('AR');
-});
-const apColumns = computed(() => {
-  void partyPersistedOpts.value;
-  void partySearchOpts.value;
-  void chargeCodePersistedOpts.value;
-  void chargeCodeSearchOpts.value;
-  void branchPersistedOpts.value;
-  void branchSearchOpts.value;
-  void currencyPersistedOpts.value;
-  void currencySearchOpts.value;
-  void chargeCodeSearchLoading.value;
-  void partySearchLoading.value;
-  void branchSearchLoading.value;
-  void currencySearchLoading.value;
-  return makeColumns('AP');
-});
+const arColumns = computed(() => makeColumns('AR'));
+const apColumns = computed(() => makeColumns('AP'));
 
 defineExpose({ loadAll, loadBillingData });
 </script>

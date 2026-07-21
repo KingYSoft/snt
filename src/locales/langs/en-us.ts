@@ -653,7 +653,8 @@ const local: App.I18n.Schema = {
           allLocked: 'All selected records are already locked.',
           copySuccess: 'Successfully copied records.',
           deleteSuccess: 'Successfully deleted the record.',
-          draftSuccess: 'Successfully generated draft.'
+          draftSuccess: 'Successfully generated draft.',
+          postSuccess: 'Successfully posted charge line(s).'
         },
         address: {
           newShipper: 'New Shipper',
