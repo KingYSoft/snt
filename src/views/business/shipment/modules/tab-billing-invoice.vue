@@ -1,12 +1,16 @@
 <script setup lang="ts">
 import { h, ref, watch, computed } from 'vue';
-import { NDataTable, NButton, NSpace, NPagination, NInput, NSelect, NTag } from 'naive-ui';
+import type { DataTableColumns } from 'naive-ui';
+import { NDataTable, NButton, NSpace, NPagination, NInput, NSelect, NTag, NModal, NSpin } from 'naive-ui';
 import {
   billingDraftPage,
   voidDraftInvoice,
   voidPostedInvoice,
-  type AccTransactionHeader
+  queryChargesByInvoice,
+  type AccTransactionHeader,
+  type BillingChargeLineItem
 } from '@/service/api/business/billing';
+import { getBillingTaxCodeLabel } from '@/constants/billingTaxCodeItems';
 import { formatInvoiceDate, getInvoiceHeaderStatus } from './shipment-billing-map';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
@@ -20,6 +24,11 @@ const invoiceSelected = ref<string[]>([]);
 const invoiceSearchNo = ref('');
 const invoiceChargeType = ref<'AR' | 'AP'>('AR');
 const voiding = ref(false);
+
+const chargeDetailVisible = ref(false);
+const chargeDetailLoading = ref(false);
+const chargeDetailInvoiceNo = ref('');
+const chargeDetailRows = ref<BillingChargeLineItem[]>([]);
 
 const chargeTypeOptions = [
   { label: 'AR', value: 'AR' },
@@ -38,9 +47,51 @@ function getInvoiceStatusType(status: string): 'default' | 'success' | 'warning'
   }
 }
 
-const invoiceColumns = [
-  { type: 'selection' as const },
-  { title: 'Job Invoice No.', key: 'ah_transactionnum', width: 140, ellipsis: { tooltip: true } },
+async function openChargeDetail(invoiceNo?: string | null) {
+  const no = String(invoiceNo ?? '').trim();
+  if (!no) return;
+
+  chargeDetailInvoiceNo.value = no;
+  chargeDetailVisible.value = true;
+  chargeDetailLoading.value = true;
+  chargeDetailRows.value = [];
+
+  try {
+    const { data } = await queryChargesByInvoice(no);
+    chargeDetailRows.value = data?.charges ?? [];
+  } catch {
+    window.$message?.error('Failed to load invoice charges.');
+    chargeDetailRows.value = [];
+  } finally {
+    chargeDetailLoading.value = false;
+  }
+}
+
+const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
+  { type: 'selection' },
+  {
+    title: 'Job Invoice No.',
+    key: 'ah_transactionnum',
+    width: 140,
+    ellipsis: { tooltip: true },
+    render: (row: AccTransactionHeader) => {
+      const no = String(row.ah_transactionnum ?? '').trim();
+      if (!no) return '';
+      return h(
+        'a',
+        {
+          href: 'javascript:void(0)',
+          class: 'invoice-no-link',
+          onClick: (e: MouseEvent) => {
+            e.preventDefault();
+            e.stopPropagation();
+            void openChargeDetail(no);
+          }
+        },
+        no
+      );
+    }
+  },
   {
     title: 'Status',
     key: 'status',
@@ -75,6 +126,24 @@ const invoiceColumns = [
   { title: 'Payment Status', key: 'ah_matchstatus', width: 120 },
   { title: 'Branch', key: 'ah_systemcreatebranch', width: 80 },
   { title: 'Terms', key: 'ah_invoiceterm', width: 140, ellipsis: { tooltip: true } }
+]);
+
+const chargeDetailColumns: DataTableColumns<BillingChargeLineItem> = [
+  { title: 'Charge Code', key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
+  { title: 'Description', key: 'jr_desc', minWidth: 160, ellipsis: { tooltip: true } },
+  { title: 'Party', key: 'party_code', width: 120, ellipsis: { tooltip: true } },
+  { title: 'Branch', key: 'branch_code', width: 90 },
+  { title: 'Currency', key: 'currency', width: 80 },
+  { title: 'Type', key: 'jr_invoicetype', width: 80 },
+  { title: 'Amount', key: 'amount', width: 100 },
+  { title: 'Home Amt', key: 'os_amount', width: 100 },
+  { title: 'Exch Rate', key: 'exchange_rate', width: 90 },
+  {
+    title: 'Tax',
+    key: 'tax',
+    width: 100,
+    render: row => getBillingTaxCodeLabel(row.wht_rate || row.gst_rate)
+  }
 ];
 
 const displayList = computed(() => {
@@ -86,6 +155,8 @@ const displayList = computed(() => {
       .includes(q)
   );
 });
+
+const chargeDetailTitle = computed(() => `Invoice ${chargeDetailInvoiceNo.value}`);
 
 function getSelectedItems() {
   const keySet = new Set(invoiceSelected.value.map(key => String(key).trim()).filter(Boolean));
@@ -224,5 +295,39 @@ defineExpose({ loadInvoices });
         @update:page="handlePageChange"
       />
     </div>
+
+    <NModal
+      v-model:show="chargeDetailVisible"
+      preset="card"
+      :title="chargeDetailTitle"
+      style="width: 960px"
+      :bordered="false"
+      size="huge"
+    >
+      <NSpin :show="chargeDetailLoading">
+        <NDataTable
+          :columns="chargeDetailColumns"
+          :data="chargeDetailRows"
+          :bordered="true"
+          size="small"
+          :row-key="(row: BillingChargeLineItem) => row.jr_pk || row.line_pk"
+          :scroll-x="1100"
+          :max-height="420"
+          striped
+        />
+      </NSpin>
+    </NModal>
   </div>
 </template>
+
+<style scoped>
+.invoice-no-link {
+  color: var(--primary-color);
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.invoice-no-link:hover {
+  text-decoration: underline;
+}
+</style>
