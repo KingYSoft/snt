@@ -301,7 +301,13 @@ async function loadBillingData(chargeType: 'AR' | 'AP') {
       skipCount: 0,
       maxResultCount: 1000
     });
-    const mapped = (data?.items ?? []).map(item => mapChargeLineItem(item, chargeType));
+    const mapped = (data?.items ?? []).map(item => {
+      const row = mapChargeLineItem(item, chargeType);
+      if (row.Charge_Code && row.charge_code) {
+        chargeCodeLabelByPk.set(row.Charge_Code, row.charge_code);
+      }
+      return row;
+    });
     if (chargeType === 'AR') emit('update:arCharges', mapped);
     else emit('update:apCharges', mapped);
   } catch {
@@ -345,6 +351,7 @@ function addChargeLine(type: 'AR' | 'AP') {
     id: generateNewId(list),
     pk: '',
     Charge_Code: '',
+    charge_code: '',
     Description: '',
     Branch: appStore.userSession?.branch_pk || '',
     branch_code: '',
@@ -550,23 +557,27 @@ function makeColumns(type: 'AR' | 'AP') {
       width: 110,
       render(row: ShipmentBillingChargeRow) {
         if (isChargeLineLocked(row)) {
-          return renderLockedCell(getChargeCodeDisplayLabel(row.Charge_Code));
+          return renderLockedCell(row.charge_code || getChargeCodeDisplayLabel(row.Charge_Code));
         }
         return h(BillingRemoteSelectCell, {
           value: row.Charge_Code || '',
-          currentLabel: getChargeCodeDisplayLabel(row.Charge_Code),
+          currentLabel: row.charge_code || getChargeCodeDisplayLabel(row.Charge_Code),
           search: fetchChargeCodeOptions,
           'onUpdate:value': (v: string) => {
             row.Charge_Code = v;
             const cc = chargeCodeByPk.get(v);
             if (cc) {
+              row.charge_code = cc.code;
               row.Description = cc.desc;
               if (isBillingInvoiceType(cc.charge_type)) {
                 row.JR_InvoiceType = cc.charge_type;
               }
+            } else if (!v) {
+              row.charge_code = '';
             }
           },
           onSelectOption: (opt: BillingSelectOption) => {
+            row.charge_code = opt.label;
             chargeCodeLabelByPk.set(opt.value, opt.label);
           }
         });
@@ -693,10 +704,10 @@ function makeColumns(type: 'AR' | 'AP') {
           return renderLockedCell(getBillingTaxCodeLabel(row.Tax_Code));
         }
         return h(BillingStaticSelectCell, {
-          value: row.Tax_Code || '',
+          value: findBillingTaxCodeItem(row.Tax_Code)?.pk || row.Tax_Code || '',
           options: ensureCurrentTaxCodeOption(row.Tax_Code),
           'onUpdate:value': (v: string) => {
-            row.Tax_Code = v;
+            row.Tax_Code = findBillingTaxCodeItem(v)?.pk || v;
             recalcChargeLineTaxAndHome(row);
           }
         });

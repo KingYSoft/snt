@@ -49,7 +49,8 @@ export interface BillingChargeLineOutput {
 export interface BillingChargeWriteItem {
   jr_pk?: string;
   chargeType: string;
-  jr_jh?: string;
+  /** AccChargeCode.ac_pk */
+  jr_ac?: string;
   jr_desc?: string;
   jr_invoicetype?: string;
   amount?: number;
