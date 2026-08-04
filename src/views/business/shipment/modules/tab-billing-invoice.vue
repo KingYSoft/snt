@@ -7,6 +7,7 @@ import {
   voidDraftInvoice,
   voidPostedInvoice,
   queryChargesByInvoice,
+  generateInvoicePdf,
   type AccTransactionHeader,
   type BillingChargeLineItem
 } from '@/service/api/business/billing';
@@ -24,6 +25,7 @@ const invoiceSelected = ref<string[]>([]);
 const invoiceSearchNo = ref('');
 const invoiceChargeType = ref<'AR' | 'AP'>('AR');
 const voiding = ref(false);
+const printing = ref(false);
 
 const chargeDetailVisible = ref(false);
 const chargeDetailLoading = ref(false);
@@ -238,8 +240,62 @@ async function handleVoid() {
   }
 }
 
-function handlePrint() {
-  window.$message?.info('Print API is not available in billing swagger yet.');
+function resolveInvoicePdfUrl(pdfPath: string) {
+  const path = String(pdfPath ?? '').trim();
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const appBase = String(import.meta.env.VITE_APP_BASE_API ?? '')
+    .trim()
+    .replace(/\/$/, '');
+  if (appBase) return `${appBase}${path.startsWith('/') ? path : `/${path}`}`;
+
+  const serviceBase = String(import.meta.env.VITE_SERVICE_BASE_URL ?? '')
+    .trim()
+    .replace(/\/apis\/?$/, '')
+    .replace(/\/$/, '');
+  if (serviceBase) return `${serviceBase}${path.startsWith('/') ? path : `/${path}`}`;
+
+  return path.startsWith('/') ? path : `/${path}`;
+}
+
+async function handlePrint() {
+  const selectedItems = getSelectedItems();
+  if (!selectedItems.length) {
+    window.$message?.warning('Please select at least one record.');
+    return;
+  }
+
+  const invoiceNos = [
+    ...new Set(selectedItems.map(item => String(item.ah_transactionnum ?? '').trim()).filter(Boolean))
+  ];
+  if (!invoiceNos.length) {
+    window.$message?.warning('Selected records have no invoice number.');
+    return;
+  }
+
+  try {
+    printing.value = true;
+    const { data } = await generateInvoicePdf({
+      invoice_nos: invoiceNos,
+      ledger_type: invoiceChargeType.value
+    });
+    const results = (data?.results ?? []).filter(item => String(item.pdf_path ?? '').trim());
+    if (!results.length) {
+      window.$message?.warning('No PDF generated.');
+      return;
+    }
+
+    results.forEach(item => {
+      const url = resolveInvoicePdfUrl(String(item.pdf_path));
+      if (url) window.open(url, '_blank');
+    });
+    window.$message?.success('PDF generated.');
+  } catch {
+    window.$message?.error('Print failed');
+  } finally {
+    printing.value = false;
+  }
 }
 
 watch(
@@ -274,7 +330,7 @@ defineExpose({ loadInvoices });
       <NButton type="primary" size="small" @click="handleSearch">Search</NButton>
       <NButton size="small" :loading="invoiceLoading" @click="loadInvoices">Refresh</NButton>
       <NButton type="error" size="small" ghost :loading="voiding" @click="handleVoid">Void</NButton>
-      <NButton size="small" @click="handlePrint">Print</NButton>
+      <NButton size="small" :loading="printing" @click="handlePrint">Print</NButton>
     </NSpace>
     <NDataTable
       v-model:checked-row-keys="invoiceSelected"

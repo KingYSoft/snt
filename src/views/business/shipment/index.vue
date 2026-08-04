@@ -39,8 +39,9 @@ function formatDate(date: Date): string {
 }
 
 function defaultEtdRange(): [number, number] {
-  const start = new Date('2026-01-01');
   const end = new Date();
+  const start = new Date(end);
+  start.setMonth(start.getMonth() - 1);
   return [start.getTime(), end.getTime()];
 }
 
