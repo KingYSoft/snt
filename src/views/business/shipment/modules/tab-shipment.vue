@@ -296,7 +296,6 @@ function copyNotifyFromConsignee() {
   n.oh_fullname = c.oh_fullname ?? '';
   n.oa_address1 = c.oa_address1 ?? '';
   n.oa_address2 = c.oa_address2 ?? '';
-  n.address3 = c.address3 ?? '';
 }
 
 function onNotifySameAsConsignee(v: boolean) {
@@ -719,17 +718,6 @@ const addrDialogTitle = computed(() => {
                     "
                   />
                 </NFormItemGi>
-                <NFormItemGi :span="24" label="Address3">
-                  <NInput
-                    :value="inputData.shipper?.address3 ?? ''"
-                    @update:value="
-                      (v: string) => {
-                        if (!inputData.shipper) inputData.shipper = {};
-                        inputData.shipper.address3 = v;
-                      }
-                    "
-                  />
-                </NFormItemGi>
               </NGrid>
             </div>
             <div>
@@ -772,17 +760,6 @@ const addrDialogTitle = computed(() => {
                       (v: string) => {
                         if (!inputData.consignee) inputData.consignee = {};
                         inputData.consignee.oa_address2 = v;
-                      }
-                    "
-                  />
-                </NFormItemGi>
-                <NFormItemGi :span="24" label="Address3">
-                  <NInput
-                    :value="inputData.consignee?.address3 ?? ''"
-                    @update:value="
-                      (v: string) => {
-                        if (!inputData.consignee) inputData.consignee = {};
-                        inputData.consignee.address3 = v;
                       }
                     "
                   />
@@ -831,18 +808,6 @@ const addrDialogTitle = computed(() => {
                       (v: string) => {
                         if (!inputData.notify_party) inputData.notify_party = {};
                         inputData.notify_party.oa_address2 = v;
-                        onNotifyPartyManual();
-                      }
-                    "
-                  />
-                </NFormItemGi>
-                <NFormItemGi :span="24" label="Address3">
-                  <NInput
-                    :value="inputData.notify_party?.address3 ?? ''"
-                    @update:value="
-                      (v: string) => {
-                        if (!inputData.notify_party) inputData.notify_party = {};
-                        inputData.notify_party.address3 = v;
                         onNotifyPartyManual();
                       }
                     "

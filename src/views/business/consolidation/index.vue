@@ -19,7 +19,7 @@ const showMore = ref(false);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsByPk = ref(new Map<string, ConsolidationRow>());
 
-// --- ETD date range（与货运列表一致，默认 2026-01-01～今天） ---
+// --- ETD date range（与货运列表一致，默认近一个月） ---
 function formatDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -28,8 +28,9 @@ function formatDate(date: Date): string {
 }
 
 function defaultEtdRange(): [number, number] {
-  const start = new Date('2026-01-01');
   const end = new Date();
+  const start = new Date(end);
+  start.setMonth(start.getMonth() - 1);
   return [start.getTime(), end.getTime()];
 }
 
@@ -177,13 +178,13 @@ function csvCell(value: unknown) {
   return s;
 }
 
-function formatShippedOnBoard(row: ConsolidationRow) {
-  const date = row.jk_shippedonboarddate as string | null | undefined;
-  if (!date) return '';
-  const dateObj = new Date(date);
-  if (Number.isNaN(dateObj.getTime())) return '';
-  return dateObj.toISOString().split('T')[0];
-}
+// function formatShippedOnBoard(row: ConsolidationRow) {
+//   const date = row.jk_shippedonboarddate as string | null | undefined;
+//   if (!date) return '';
+//   const dateObj = new Date(date);
+//   if (Number.isNaN(dateObj.getTime())) return '';
+//   return dateObj.toISOString().split('T')[0];
+// }
 
 function formatCancelledCell(row: ConsolidationRow) {
   const normalized = String(row.jk_iscancelled ?? '').toLowerCase();
@@ -195,13 +196,13 @@ function buildConsolidationCsv(items: ConsolidationRow[]) {
   const header = [
     $t('page.business.consolidation.table.consolidationNo'),
     $t('page.business.consolidation.table.masterBillNo'),
-    $t('page.business.consolidation.table.bookingReference'),
-    $t('page.business.consolidation.table.consolStatus'),
+    // $t('page.business.consolidation.table.bookingReference'),
+    // $t('page.business.consolidation.table.consolStatus'),
     $t('page.business.consolidation.table.phase'),
     $t('page.business.consolidation.table.transportMode'),
     $t('page.business.consolidation.table.loadPort'),
     $t('page.business.consolidation.table.dischargePort'),
-    $t('page.business.consolidation.table.shippedOnBoardDate'),
+    // $t('page.business.consolidation.table.shippedOnBoardDate'),
     $t('page.business.consolidation.table.consolChargeable'),
     $t('page.business.consolidation.table.cancelled')
   ].join(',');
@@ -210,13 +211,13 @@ function buildConsolidationCsv(items: ConsolidationRow[]) {
     [
       csvCell(item.jk_uniqueconsignref),
       csvCell(item.jk_masterbillnum),
-      csvCell(item.jk_bookingreference),
-      csvCell(item.jk_consolstatus),
+      // csvCell(item.jk_bookingreference),
+      // csvCell(item.jk_consolstatus),
       csvCell(item.jk_phase),
       csvCell(item.jk_transportmode),
       csvCell(item.jk_rl_nkloadport),
       csvCell(item.jk_rl_nkdischargeport),
-      csvCell(formatShippedOnBoard(item)),
+      // csvCell(formatShippedOnBoard(item)),
       csvCell(item.jk_consolchargeable),
       csvCell(formatCancelledCell(item))
     ].join(',')

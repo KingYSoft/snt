@@ -81,7 +81,15 @@ export function setupElegantRouter() {
         'business_consolidation-edite',
         'maintain_organization-detail',
         'maintain_organization-edit',
-        'maintain_organization-new'
+        'maintain_organization-new',
+        // temporarily hide from 基础维护 menu
+        'maintain_airlines',
+        'maintain_commodities',
+        'maintain_containers',
+        'maintain_package-types',
+        'maintain_service-level',
+        'maintain_shipping-lines',
+        'maintain_vessel'
       ];
 
       if (hideInMenuRoutes.includes(key)) {
