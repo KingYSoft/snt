@@ -155,7 +155,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_airlines',
           i18nKey: 'route.maintain_airlines',
-          order: 1
+          order: 1,
+          hideInMenu: true
         }
       },
       {
@@ -205,7 +206,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_commodities',
           i18nKey: 'route.maintain_commodities',
-          order: 5
+          order: 5,
+          hideInMenu: true
         }
       },
       {
@@ -225,7 +227,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_containers',
           i18nKey: 'route.maintain_containers',
-          order: 6
+          order: 6,
+          hideInMenu: true
         }
       },
       {
@@ -328,7 +331,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_package-types',
           i18nKey: 'route.maintain_package-types',
-          order: 7
+          order: 7,
+          hideInMenu: true
         }
       },
       {
@@ -348,7 +352,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_service-level',
           i18nKey: 'route.maintain_service-level',
-          order: 9
+          order: 9,
+          hideInMenu: true
         }
       },
       {
@@ -358,7 +363,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_shipping-lines',
           i18nKey: 'route.maintain_shipping-lines',
-          order: 10
+          order: 10,
+          hideInMenu: true
         }
       },
       {
@@ -378,7 +384,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_vessel',
           i18nKey: 'route.maintain_vessel',
-          order: 19
+          order: 19,
+          hideInMenu: true
         }
       },
       {

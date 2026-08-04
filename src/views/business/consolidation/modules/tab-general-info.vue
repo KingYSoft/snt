@@ -148,8 +148,8 @@ function calculateTotals() {
   const list = shipmentList.value;
   const d = formData.value;
   d.jk_total_shipmentcount = list.length;
-  d.jk_total_packs = list.reduce((sum, r) => sum + (Number(r.shp_total_package_count) || 0), 0);
-  d.jk_total_gw = list.reduce((sum, r) => sum + (Number(r.shp_actual_weight) || 0), 0);
+  d.jk_total_packs = list.reduce((sum, r) => sum + (Number(r.js_outerpacks) || 0), 0);
+  d.jk_total_gw = list.reduce((sum, r) => sum + (Number(r.js_actualweight) || 0), 0);
   d.jk_total_cbm = list.reduce((sum, r) => sum + (Number(r.shp_actual_volume) || 0), 0);
   if (!d.jk_consolchargeable) {
     d.jk_consolchargeable = d.jk_total_cbm;
@@ -384,40 +384,40 @@ defineExpose({
               </NFormItemGi>
               <NFormItemGi label="Contact">
                 <NInput
-                  :value="inputData.local_agent?.org_address?.oa_email"
+                  :value="inputData.local_agent?.e2_contact"
                   @update:value="
                     (v: string) => {
-                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_email = v;
+                      if (inputData.local_agent) inputData.local_agent.e2_contact = v;
                     }
                   "
                 />
               </NFormItemGi>
               <NFormItemGi label="Address1">
                 <NInput
-                  :value="inputData.local_agent?.org_address?.oa_address1"
+                  :value="inputData.local_agent?.e2_address1"
                   @update:value="
                     (v: string) => {
-                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_address1 = v;
+                      if (inputData.local_agent) inputData.local_agent.e2_address1 = v;
                     }
                   "
                 />
               </NFormItemGi>
               <NFormItemGi label="Phone">
                 <NInput
-                  :value="inputData.local_agent?.org_address?.oa_phone"
+                  :value="inputData.local_agent?.e2_phone"
                   @update:value="
                     (v: string) => {
-                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_phone = v;
+                      if (inputData.local_agent) inputData.local_agent.e2_phone = v;
                     }
                   "
                 />
               </NFormItemGi>
               <NFormItemGi label="Address2">
                 <NInput
-                  :value="inputData.local_agent?.org_address?.oa_address2"
+                  :value="inputData.local_agent?.e2_address2"
                   @update:value="
                     (v: string) => {
-                      if (inputData.local_agent?.org_address) inputData.local_agent.org_address.oa_address2 = v;
+                      if (inputData.local_agent) inputData.local_agent.e2_address2 = v;
                     }
                   "
                 />

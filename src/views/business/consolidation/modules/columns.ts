@@ -61,18 +61,18 @@ export function getConsolidationColumns<T>(
       minWidth: 160,
       ellipsis: { tooltip: true }
     },
-    {
-      title: $t('page.business.consolidation.table.bookingReference'),
-      key: 'jk_bookingreference',
-      minWidth: 160,
-      ellipsis: { tooltip: true }
-    },
-    {
-      title: $t('page.business.consolidation.table.consolStatus'),
-      key: 'jk_consolstatus',
-      minWidth: 140,
-      ellipsis: { tooltip: true }
-    },
+    // {
+    //   title: $t('page.business.consolidation.table.bookingReference'),
+    //   key: 'jk_bookingreference',
+    //   minWidth: 160,
+    //   ellipsis: { tooltip: true }
+    // },
+    // {
+    //   title: $t('page.business.consolidation.table.consolStatus'),
+    //   key: 'jk_consolstatus',
+    //   minWidth: 140,
+    //   ellipsis: { tooltip: true }
+    // },
     {
       title: $t('page.business.consolidation.table.phase'),
       key: 'jk_phase',
@@ -97,19 +97,19 @@ export function getConsolidationColumns<T>(
       minWidth: 120,
       ellipsis: { tooltip: true }
     },
-    {
-      title: $t('page.business.consolidation.table.shippedOnBoardDate'),
-      key: 'jk_shippedonboarddate',
-      minWidth: 160,
-      ellipsis: { tooltip: true },
-      render(row: T & Record<string, unknown>) {
-        const date = row.jk_shippedonboarddate as string | null | undefined;
-        if (!date) return '-';
-        const dateObj = new Date(date);
-        if (isNaN(dateObj.getTime())) return '-';
-        return dateObj.toISOString().split('T')[0];
-      }
-    },
+    // {
+    //   title: $t('page.business.consolidation.table.shippedOnBoardDate'),
+    //   key: 'jk_shippedonboarddate',
+    //   minWidth: 160,
+    //   ellipsis: { tooltip: true },
+    //   render(row: T & Record<string, unknown>) {
+    //     const date = row.jk_shippedonboarddate as string | null | undefined;
+    //     if (!date) return '-';
+    //     const dateObj = new Date(date);
+    //     if (isNaN(dateObj.getTime())) return '-';
+    //     return dateObj.toISOString().split('T')[0];
+    //   }
+    // },
     {
       title: $t('page.business.consolidation.table.consolChargeable'),
       key: 'jk_consolchargeable',

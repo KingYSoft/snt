@@ -191,6 +191,31 @@ export async function voidPostedInvoice(invoiceNos: string[]) {
   });
 }
 
+/** POST /billing/invoice/pdf */
+export interface GenerateInvoicePdfInput {
+  invoice_nos: string[];
+  /** AR / AP；留空不按账本过滤 */
+  ledger_type?: string;
+}
+
+export interface InvoicePdfResult {
+  invoice_no?: string;
+  /** 相对路径，如 /files/pdf/202608/INV_xxx.pdf */
+  pdf_path?: string;
+}
+
+export interface GenerateInvoicePdfOutput {
+  results?: InvoicePdfResult[];
+}
+
+export async function generateInvoicePdf(params: GenerateInvoicePdfInput) {
+  return request<GenerateInvoicePdfOutput>({
+    url: '/billing/invoice/pdf',
+    method: 'post',
+    data: params
+  });
+}
+
 export async function deleteBilling(jrPks: string[]) {
   return request({
     url: '/billing/delete',
