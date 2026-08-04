@@ -185,13 +185,16 @@ function mapAddressToComponent(address: any, addressType = '') {
 }
 
 function mapContainerToComponent(container: any, index: number) {
-  const grossWeight = toNumber(container.pac_gross_weight ?? container.jc_grossweight, 0);
   const actualVolume = toNumber(container.pac_actual_volume ?? container.jc_grossvolume, 0);
+  const grossWeight = toNumber(container.container.jc_grossweight, 0);
 
   return {
     ...container,
     id: toInteger(container.id),
     pk: container.jc_pk || '',
+    jc_containernum: container.container.jc_containernum || '',
+    jc_sealnum: container.container.jc_sealnum || '',
+    jc_grossweight: grossWeight,
     ctr_shipment: container.jc_containerjobid || '',
     ctr_booking: '',
     ctr_is_active: container.jc_isvalid ?? 1,
@@ -203,8 +206,6 @@ function mapContainerToComponent(container: any, index: number) {
     ctr_container_quality: container.jc_containerquality || '',
     ctr_count: toInteger(container.jc_containercount, 1) || 1,
     ctr_type: container.jc_rc || container.jc_f3_nkpacktype || '20GP',
-    ctr_container_num: container.jc_containernum || '',
-    ctr_seal_num: container.jc_sealnum || '',
     ctr_description: container.jc_description || '',
     ctr_pack_type: container.jc_f3_nkpacktype || '',
     ctr_container_storage_location: container.jc_containerstoragelocation || '',
@@ -227,7 +228,6 @@ function mapContainerToComponent(container: any, index: number) {
     ctr_length: container.jc_totallength ?? undefined,
     ctr_width: container.jc_totalwidth ?? undefined,
     ctr_total_uom: container.jc_totalunitofmeasure || '',
-    ctr_gross_weight: grossWeight,
     ctr_gross_weight_uom: container.jc_grossweightuq || '',
     ctr_tare_weight: container.jc_tareweight ?? undefined,
     ctr_volume: actualVolume,
@@ -237,7 +237,6 @@ function mapContainerToComponent(container: any, index: number) {
     ctr_seal_party: container.jc_sealparty || '',
     ctr_empty_return_reference: container.jc_emptyreturnreference || '',
     pac_commodity: container.pac_commodity || container.jc_rh_nkcontainercommoditycode || '',
-    pac_gross_weight: grossWeight,
     pac_actual_volume: actualVolume,
     pac_package_count: toInteger(container.pac_package_count, 0),
     pac_pack_type: container.pac_pack_type || container.jc_f3_nkpacktype || 'CTN',
@@ -394,7 +393,7 @@ const queryData = async () => {
           shp_marks_numbers: marksAndNumbers,
           shp_gate_in_date: firstContainer?.ctr_fcl_gate_in || null,
           shp_vgm:
-            containersList.reduce((sum: number, item: any) => sum + toNumber(item.ctr_gross_weight, 0), 0) ||
+            containersList.reduce((sum: number, item: any) => sum + toNumber(item.jc_grossweight, 0), 0) ||
             toNumber(data.js_actualweight, 0),
           shp_vessel: '',
           shp_voyage: '',
