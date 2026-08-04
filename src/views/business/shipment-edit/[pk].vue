@@ -61,6 +61,7 @@ const defaultData = () => ({
   shp_transit_time_unit: 'DAYS',
   shp_pack_type: 'CTN',
   shp_is_forward_registered: 1,
+  js_jx: '',
   routing_list: [] as any[],
   consolidation_list: [] as any[],
   doc_data: {} as Record<string, any>,
@@ -184,13 +185,16 @@ function mapAddressToComponent(address: any, addressType = '') {
 }
 
 function mapContainerToComponent(container: any, index: number) {
-  const grossWeight = toNumber(container.pac_gross_weight ?? container.jc_grossweight, 0);
   const actualVolume = toNumber(container.pac_actual_volume ?? container.jc_grossvolume, 0);
+  const grossWeight = toNumber(container.container.jc_grossweight, 0);
 
   return {
     ...container,
     id: toInteger(container.id),
     pk: container.jc_pk || '',
+    jc_containernum: container.container.jc_containernum || '',
+    jc_sealnum: container.container.jc_sealnum || '',
+    jc_grossweight: grossWeight,
     ctr_shipment: container.jc_containerjobid || '',
     ctr_booking: '',
     ctr_is_active: container.jc_isvalid ?? 1,
@@ -202,8 +206,6 @@ function mapContainerToComponent(container: any, index: number) {
     ctr_container_quality: container.jc_containerquality || '',
     ctr_count: toInteger(container.jc_containercount, 1) || 1,
     ctr_type: container.jc_rc || container.jc_f3_nkpacktype || '20GP',
-    ctr_container_num: container.jc_containernum || '',
-    ctr_seal_num: container.jc_sealnum || '',
     ctr_description: container.jc_description || '',
     ctr_pack_type: container.jc_f3_nkpacktype || '',
     ctr_container_storage_location: container.jc_containerstoragelocation || '',
@@ -226,7 +228,6 @@ function mapContainerToComponent(container: any, index: number) {
     ctr_length: container.jc_totallength ?? undefined,
     ctr_width: container.jc_totalwidth ?? undefined,
     ctr_total_uom: container.jc_totalunitofmeasure || '',
-    ctr_gross_weight: grossWeight,
     ctr_gross_weight_uom: container.jc_grossweightuq || '',
     ctr_tare_weight: container.jc_tareweight ?? undefined,
     ctr_volume: actualVolume,
@@ -236,7 +237,6 @@ function mapContainerToComponent(container: any, index: number) {
     ctr_seal_party: container.jc_sealparty || '',
     ctr_empty_return_reference: container.jc_emptyreturnreference || '',
     pac_commodity: container.pac_commodity || container.jc_rh_nkcontainercommoditycode || '',
-    pac_gross_weight: grossWeight,
     pac_actual_volume: actualVolume,
     pac_package_count: toInteger(container.pac_package_count, 0),
     pac_pack_type: container.pac_pack_type || container.jc_f3_nkpacktype || 'CTN',
@@ -293,7 +293,6 @@ const queryData = async () => {
       console.log('Detail response:', response);
       const data = response?.data;
       if (data) {
-        skeletonLoading.value = false;
         const containersList = (data.containers_list || []).map((container: any, index: number) =>
           mapContainerToComponent(container, index)
         );
@@ -313,6 +312,7 @@ const queryData = async () => {
           shp_consign_no: data.js_uniqueconsignref || '',
           shp_cargo_receipt: data.js_interimreceipt || '',
           shp_consol_reference: data.js_consolreference || '',
+          js_jx: data.js_jx || '',
           shp_house_bill: data.js_housebill || '',
           shp_shipment_type: data.js_shipmenttype || '',
           shp_transport_mode: data.js_transportmode || 'SEA',
@@ -344,7 +344,6 @@ const queryData = async () => {
           shp_discharge_port: data.js_rl_nkdischargeport || '',
           shp_etd: formatDate(data.js_e_dep),
           shp_eta: formatDate(data.js_e_arv),
-          shp_cargo_ready: formatDate(data.js_a_rcv),
           shp_est_pickup: formatDate(data.js_exportreceivingdepotdispatchrequested) || formatDate(data.js_a_rcv),
           shp_est_delivery: estimatedDeliveryDate,
           shp_client_requested_eta: formatDate(data.js_clientrequestedeta),
@@ -363,13 +362,12 @@ const queryData = async () => {
             0,
           shp_volume_weight: volumeWeight || 0,
           shp_volume_factor: 166,
-          shp_total_package_count: toInteger(data.js_totalpackagecount, 0),
-          shp_outer_packs: toInteger(data.js_outerpacks, 0),
+          js_outerpacks: toInteger(data.js_outerpacks, 0),
           shp_pack_type: data.js_f3_nktotalcountpacktype || data.js_f3_nkpacktype || 'CTN',
           shp_shipped_on_board: data.js_shippedonboard || '',
           shp_shipped_on_board_date: formatDate(data.js_shippedonboarddate),
           shp_on_board_date: formatDate(data.js_shippedonboarddate),
-          shp_hbl_container_pack_mode_override: data.js_hblcontainerpackmodeoverride || '',
+          js_hblcontainerpackmodeoverride: data.js_hblcontainerpackmodeoverride || '',
           shp_warehouse_location: data.js_warehouselocation || '',
           shp_coload_master_shipment: data.js_js_coloadmastershipment || '',
           shp_split_switch_shipment: data.js_js_splitswitchshipment || '',
@@ -395,15 +393,15 @@ const queryData = async () => {
           shp_marks_numbers: marksAndNumbers,
           shp_gate_in_date: firstContainer?.ctr_fcl_gate_in || null,
           shp_vgm:
-            containersList.reduce((sum: number, item: any) => sum + toNumber(item.ctr_gross_weight, 0), 0) ||
+            containersList.reduce((sum: number, item: any) => sum + toNumber(item.jc_grossweight, 0), 0) ||
             toNumber(data.js_actualweight, 0),
           shp_vessel: '',
           shp_voyage: '',
           // Address objects
-          shipper: mapAddressToComponent(data.shipper, 'SHIPPER'),
-          consignee: mapAddressToComponent(data.consignee, 'CONSIGNEE'),
-          notify_party: mapAddressToComponent(data.notify_party, 'NOTIFY_PARTY'),
-          notify_party1: mapAddressToComponent(data.notify_party, 'NOTIFY_PARTY'),
+          shipper: data.shipper ?? {},
+          consignee: data.consignee ?? {},
+          notify_party: data.notify_party ?? {},
+          notify_party1: data.notify_party ?? {},
           // Lists
           containers_list: containersList,
           loose_list: looseList,
@@ -417,6 +415,7 @@ const queryData = async () => {
           pickup: mapAddressToComponent(data.pickup, 'PICKUP'),
           delivery: mapAddressToComponent(data.delivery, 'DELIVERY')
         };
+        skeletonLoading.value = false;
         console.log('Mapped inputData:', inputData.value);
         // Update tab label with shipment_no
         if (inputData.value.shp_consign_no) {
@@ -482,11 +481,7 @@ const saveAdditionalDetailsTab = async () => {
 };
 
 const saveRoutingTab = async () => {
-  if (!inputData.value.pk) {
-    window.$message?.warning('Shipment PK is required.');
-    return;
-  }
-  await saveShipmentTab();
+  window.$message?.info($t('page.business.shipment.routing.readOnly'));
 };
 
 const refreshBillingSummary = ref(false);
@@ -630,7 +625,6 @@ const handlePrint = async (payload?: { url: string; urls: string[] }) => {
             v-else
             v-model:refresh-billing-summary="refreshBillingSummary"
             :input-data="inputData"
-            :save-billing-fn="saveBillingTab"
             @print="handlePrint"
           />
         </NTabPane>

@@ -616,6 +616,24 @@ const local: App.I18n.Schema = {
           consolidation: 'Consolidation Details',
           voyageDetails: 'Voyage Details'
         },
+        routing: {
+          consolidationNumber: 'Consolidation Number',
+          routeType: 'Route Type',
+          vesselName: 'Vessel/Train/Truck',
+          voyageNumber: 'Voyage/Flight/Truck',
+          portOfLoading: 'Port of Loading',
+          portOfDischarge: 'Port of Discharge',
+          etd: 'ETD',
+          eta: 'ETA',
+          atd: 'ATD',
+          ata: 'ATA',
+          carrier: 'Carrier',
+          noData: 'No Data',
+          pkRequired: 'Shipment PK is required',
+          empty: 'No transport routes for this shipment',
+          loadFailed: 'Failed to load routing',
+          readOnly: 'Routing is loaded from consolidation transport and is read-only.'
+        },
         billing: {
           grossProfitMargin: 'Gross Profit Margin',
           arAmount: 'AR Amount',
@@ -635,7 +653,8 @@ const local: App.I18n.Schema = {
           allLocked: 'All selected records are already locked.',
           copySuccess: 'Successfully copied records.',
           deleteSuccess: 'Successfully deleted the record.',
-          draftSuccess: 'Successfully generated draft.'
+          draftSuccess: 'Successfully generated draft.',
+          postSuccess: 'Successfully posted charge line(s).'
         },
         address: {
           newShipper: 'New Shipper',

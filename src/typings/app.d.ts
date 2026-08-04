@@ -982,6 +982,24 @@ declare namespace App {
               consolidation: string;
               voyageDetails: string;
             };
+            routing: {
+              consolidationNumber: string;
+              routeType: string;
+              vesselName: string;
+              voyageNumber: string;
+              portOfLoading: string;
+              portOfDischarge: string;
+              etd: string;
+              eta: string;
+              atd: string;
+              ata: string;
+              carrier: string;
+              noData: string;
+              pkRequired: string;
+              empty: string;
+              loadFailed: string;
+              readOnly: string;
+            };
             billing: {
               grossProfitMargin: string;
               arAmount: string;
@@ -1002,6 +1020,7 @@ declare namespace App {
               copySuccess: string;
               deleteSuccess: string;
               draftSuccess: string;
+              postSuccess: string;
             };
             address: {
               newShipper: string;

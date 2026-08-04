@@ -612,6 +612,24 @@ const local: App.I18n.Schema = {
           consolidation: '合并详情',
           voyageDetails: '航程详情'
         },
+        routing: {
+          consolidationNumber: '拼箱编号',
+          routeType: '路由类型',
+          vesselName: '船名/车名/列车名',
+          voyageNumber: '航次/航班/车次',
+          portOfLoading: '装货港',
+          portOfDischarge: '卸货港',
+          etd: '预计离港',
+          eta: '预计到港',
+          atd: '实际离港',
+          ata: '实际到港',
+          carrier: '承运人',
+          noData: '暂无数据',
+          pkRequired: '需要货运 PK',
+          empty: '该货运暂无运输路线',
+          loadFailed: '加载路由失败',
+          readOnly: '路由信息来自拼箱运输路线，只读不可编辑。'
+        },
         billing: {
           grossProfitMargin: '毛利率',
           arAmount: '应收金额',
@@ -631,7 +649,8 @@ const local: App.I18n.Schema = {
           allLocked: '所有选中的记录已被锁定。',
           copySuccess: '成功复制记录。',
           deleteSuccess: '成功删除记录。',
-          draftSuccess: '成功生成草稿。'
+          draftSuccess: '成功生成草稿。',
+          postSuccess: '成功过账费用行。'
         },
         address: {
           newShipper: '新建发货人',

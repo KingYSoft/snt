@@ -437,13 +437,31 @@ export interface ShipmentListItem {
   js_deliveryduedate?: string | null;
 }
 
+/** GET /shipment/detail — shipper / consignee org address */
+export interface ShipmentOrgAddressDto {
+  oh_fullname: string;
+  oa_pk: string;
+  oa_code: string;
+  oa_companynameoverride?: string;
+  oa_address1: string;
+  oa_address2: string;
+  oa_city?: string;
+  oa_state?: string;
+  oa_postcode?: string;
+  oa_rn_nkcountrycode?: string;
+  oa_phone?: string;
+  oa_fax?: string;
+  oa_mobile?: string;
+  oa_email?: string;
+}
+
 /**
  * Shipment detail (extends list item with related data)
  */
 export interface ShipmentDetail extends ShipmentListItem {
-  shipper?: JobDocAddressDto;
-  consignee?: JobDocAddressDto;
-  notify_party?: JobDocAddressDto;
+  shipper?: ShipmentOrgAddressDto;
+  consignee?: ShipmentOrgAddressDto;
+  notify_party?: ShipmentOrgAddressDto;
   pickup?: JobDocAddressDto;
   delivery?: JobDocAddressDto;
   containers_list?: ShipmentDetailContainerDto[];
@@ -603,6 +621,41 @@ export async function getShipmentDetail(id: string) {
   });
 }
 
+/** GET /shipment/query-consol-transport — JobConsolTransport by shp_pk */
+export interface ShipmentConsolTransportDto {
+  id?: string;
+  jw_pk?: string;
+  jw_isvalid?: number;
+  jw_transportmode?: string;
+  jw_legorder?: number;
+  jw_transporttype?: string;
+  jw_status?: string;
+  jw_vessel?: string;
+  jw_voyageflight?: string;
+  jw_rl_nkloadport?: string;
+  jw_rl_nkdiscport?: string;
+  jw_etd?: string | null;
+  jw_atd?: string | null;
+  jw_eta?: string | null;
+  jw_ata?: string | null;
+  jw_oa_carrieraddress?: string;
+  jw_carrierbookingreference?: string;
+  jw_parentguid?: string;
+  jk_uniqueconsignref?: string;
+}
+
+export interface ShipmentQueryConsolTransportOutput {
+  list: ShipmentConsolTransportDto[];
+}
+
+export function shipmentQueryConsolTransport(params: { shp_pk: string }) {
+  return request<ShipmentQueryConsolTransportOutput>({
+    url: '/shipment/query-consol-transport',
+    method: 'get',
+    params
+  });
+}
+
 export async function shipmentSave(params: ShipmentSaveParams) {
   return request({
     url: '/shipment/save',
@@ -657,44 +710,6 @@ export async function shipmentCopy(id: number) {
     url: '/shipment/copy',
     method: 'post',
     data: { id }
-  });
-}
-
-export async function edocSearch(params: { parent_table: string; related_key: string }) {
-  return request({
-    url: '/edoc/search',
-    method: 'post',
-    data: params
-  });
-}
-
-export async function edocSave(formData: FormData) {
-  return request({
-    url: '/edoc/save',
-    method: 'post',
-    data: formData,
-    headers: { 'Content-Type': 'multipart/form-data' }
-  });
-}
-
-export async function logsSearch(params: {
-  SkipCount: number;
-  MaxResultCount: number;
-  parent_table: string;
-  related_key: string;
-}) {
-  return request({
-    url: '/api/logs/search',
-    method: 'post',
-    data: params
-  });
-}
-
-export async function billingSummary(shpPk: string) {
-  return request({
-    url: '/billing/summary',
-    method: 'get',
-    params: { shpPk }
   });
 }
 
@@ -762,7 +777,7 @@ export async function billingDraftPage(params: BillingDraftPageParams) {
   });
 }
 
-export async function postCharge(params: { ahPks: string[] }) {
+export async function postCharge(params: { pks: string[]; chargeType: string }) {
   return request({
     url: '/billing/post-charge',
     method: 'post',

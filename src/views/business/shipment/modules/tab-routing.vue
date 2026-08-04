@@ -1,272 +1,143 @@
 <script setup lang="ts">
-/* eslint-disable vue/no-mutating-props */
-import { h } from 'vue';
-import { NDataTable, NButton, NSelect, NInput, NDatePicker } from 'naive-ui';
+import { computed, ref, watch } from 'vue';
+import type { DataTableColumns } from 'naive-ui';
+import { NDataTable, NEmpty, NSpin } from 'naive-ui';
+import { $t } from '@/locales';
+import { shipmentQueryConsolTransport, type ShipmentConsolTransportDto } from '@/service/api/business/shipment';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 
-const routeTypeOptions = [
-  { label: 'Main', value: 'Main' },
-  { label: 'Feeder', value: 'Feeder' },
-  { label: 'Direct', value: 'Direct' }
-];
+const loading = ref(false);
+const routingList = ref<ShipmentConsolTransportDto[]>([]);
+const emptyKey = ref<'noData' | 'pkRequired' | 'empty' | 'loadFailed'>('noData');
 
-const columns = [
+function formatRoutingDate(value: unknown) {
+  if (value === null || value === undefined || value === '') return '';
+  if (typeof value === 'string' && value.includes('T')) return value.split('T')[0];
+  return String(value);
+}
+
+const routingColumns = computed<DataTableColumns<ShipmentConsolTransportDto>>(() => [
   {
-    title: () => {
-      return h('div', { style: 'white-space: nowrap; display: flex; justify-content: center' }, [
-        h(
-          NButton,
-          {
-            text: true,
-            type: 'primary',
-            size: 'small',
-            onClick: () => addRoutingLine()
-          },
-          { default: () => '+' }
-        )
-      ]);
-    },
-    key: 'actions',
-    width: 40,
-    align: 'center' as const,
-    render(_: any, index: number) {
-      return h(
-        NButton,
-        {
-          text: true,
-          type: 'error',
-          size: 'small',
-          onClick: () => deleteLine(index)
-        },
-        { default: () => '-' }
-      );
-    }
+    title: $t('page.business.shipment.routing.consolidationNumber'),
+    key: 'jk_uniqueconsignref',
+    minWidth: 160,
+    ellipsis: { tooltip: true }
+  },
+  { title: $t('page.business.shipment.routing.routeType'), key: 'jw_transporttype', minWidth: 120 },
+  {
+    title: $t('page.business.shipment.routing.vesselName'),
+    key: 'jw_vessel',
+    minWidth: 160,
+    ellipsis: { tooltip: true }
   },
   {
-    title: 'Consolidation Number',
-    key: 'consolidation_number',
-    width: 150,
-    ellipsis: { tooltip: true },
-    render(row: any) {
-      return h(NInput, {
-        value: row.consolidation_number,
-        size: 'small',
-        'onUpdate:value': (v: string) => {
-          row.consolidation_number = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.voyageNumber'),
+    key: 'jw_voyageflight',
+    minWidth: 140,
+    ellipsis: { tooltip: true }
   },
   {
-    title: 'Route Type',
-    key: 'route_type',
-    width: 120,
-    align: 'center' as const,
-    render(row: any) {
-      return h(NSelect, {
-        value: row.route_type,
-        options: routeTypeOptions,
-        size: 'small',
-        'onUpdate:value': (v: string) => {
-          row.route_type = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.portOfLoading'),
+    key: 'jw_rl_nkloadport',
+    minWidth: 150,
+    ellipsis: { tooltip: true }
   },
   {
-    title: 'Vessel/Train/Truck',
-    key: 'vessel_name',
-    width: 150,
-    ellipsis: { tooltip: true },
-    render(row: any) {
-      return h(NInput, {
-        value: row.vessel_name,
-        size: 'small',
-        'onUpdate:value': (v: string) => {
-          row.vessel_name = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.portOfDischarge'),
+    key: 'jw_rl_nkdiscport',
+    minWidth: 150,
+    ellipsis: { tooltip: true }
   },
   {
-    title: 'Voyage/Flight/Truck',
-    key: 'voyage_number',
-    width: 120,
-    ellipsis: { tooltip: true },
-    render(row: any) {
-      return h(NInput, {
-        value: row.voyage_number,
-        size: 'small',
-        'onUpdate:value': (v: string) => {
-          row.voyage_number = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.etd'),
+    key: 'jw_etd',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_etd)
   },
   {
-    title: 'Port of Loading',
-    key: 'port_of_loading',
-    width: 150,
-    ellipsis: { tooltip: true },
-    render(row: any) {
-      return h(NInput, {
-        value: row.port_of_loading,
-        size: 'small',
-        'onUpdate:value': (v: string) => {
-          row.port_of_loading = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.eta'),
+    key: 'jw_eta',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_eta)
   },
   {
-    title: 'Port of Discharge',
-    key: 'port_of_discharge',
-    width: 150,
-    ellipsis: { tooltip: true },
-    render(row: any) {
-      return h(NInput, {
-        value: row.port_of_discharge,
-        size: 'small',
-        'onUpdate:value': (v: string) => {
-          row.port_of_discharge = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.atd'),
+    key: 'jw_atd',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_atd)
   },
   {
-    title: 'ETD',
-    key: 'etd',
-    width: 140,
-    align: 'center' as const,
-    render(row: any) {
-      return h(NDatePicker, {
-        formattedValue: safeDate(row.etd),
-        type: 'date',
-        size: 'small',
-        clearable: true,
-        style: 'width:100%',
-        valueFormat: 'yyyy-MM-dd',
-        'onUpdate:formattedValue': (v: string) => {
-          row.etd = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.ata'),
+    key: 'jw_ata',
+    minWidth: 120,
+    render: row => formatRoutingDate(row.jw_ata)
   },
   {
-    title: 'ETA',
-    key: 'eta',
-    width: 140,
-    align: 'center' as const,
-    render(row: any) {
-      return h(NDatePicker, {
-        formattedValue: safeDate(row.eta),
-        type: 'date',
-        size: 'small',
-        clearable: true,
-        style: 'width:100%',
-        valueFormat: 'yyyy-MM-dd',
-        'onUpdate:formattedValue': (v: string) => {
-          row.eta = v;
-        }
-      });
-    }
-  },
-  {
-    title: 'ATD',
-    key: 'atd',
-    width: 140,
-    align: 'center' as const,
-    render(row: any) {
-      return h(NDatePicker, {
-        formattedValue: safeDate(row.atd),
-        type: 'date',
-        size: 'small',
-        clearable: true,
-        style: 'width:100%',
-        valueFormat: 'yyyy-MM-dd',
-        'onUpdate:formattedValue': (v: string) => {
-          row.atd = v;
-        }
-      });
-    }
-  },
-  {
-    title: 'ATA',
-    key: 'ata',
-    width: 140,
-    align: 'center' as const,
-    render(row: any) {
-      return h(NDatePicker, {
-        formattedValue: safeDate(row.ata),
-        type: 'date',
-        size: 'small',
-        clearable: true,
-        style: 'width:100%',
-        valueFormat: 'yyyy-MM-dd',
-        'onUpdate:formattedValue': (v: string) => {
-          row.ata = v;
-        }
-      });
-    }
-  },
-  {
-    title: 'Carrier',
-    key: 'carrier',
-    width: 200,
-    ellipsis: { tooltip: true },
-    render(row: any) {
-      return h(NInput, {
-        value: row.carrier,
-        size: 'small',
-        'onUpdate:value': (v: string) => {
-          row.carrier = v;
-        }
-      });
-    }
+    title: $t('page.business.shipment.routing.carrier'),
+    key: 'jw_oa_carrieraddressName',
+    minWidth: 160,
+    ellipsis: { tooltip: true }
   }
-];
+]);
 
-function safeDate(val: string | null | undefined): string | undefined {
-  return val || undefined;
-}
-
-function addRoutingLine() {
-  console.log('addRoutingLine: ', addRoutingLine);
-  if (!props.inputData.routing_list) {
-    props.inputData.routing_list = [];
+async function loadRouting() {
+  const shpPk = String(props.inputData.pk ?? '').trim();
+  if (!shpPk) {
+    routingList.value = [];
+    emptyKey.value = 'pkRequired';
+    return;
   }
-  props.inputData.routing_list.push({
-    id: Date.now(),
-    consolidation_number: '',
-    route_type: 'Main',
-    vessel_name: '',
-    voyage_number: '',
-    port_of_loading: '',
-    port_of_discharge: '',
-    etd: null,
-    eta: null,
-    atd: null,
-    ata: null,
-    carrier: ''
-  });
+
+  loading.value = true;
+  emptyKey.value = 'noData';
+  try {
+    const { data } = await shipmentQueryConsolTransport({ shp_pk: shpPk });
+    routingList.value = data?.list ?? [];
+    if (!routingList.value.length) {
+      emptyKey.value = 'empty';
+    }
+  } catch {
+    routingList.value = [];
+    emptyKey.value = 'loadFailed';
+  } finally {
+    loading.value = false;
+  }
 }
 
-function deleteLine(index: number) {
-  props.inputData.routing_list.splice(index, 1);
+watch(
+  () => props.inputData.pk,
+  () => {
+    void loadRouting();
+  },
+  { immediate: true }
+);
+
+const hasRows = computed(() => routingList.value.length > 0);
+const emptyDescription = computed(() => $t(`page.business.shipment.routing.${emptyKey.value}`));
+
+function getRoutingRowKey(row: ShipmentConsolTransportDto) {
+  return row.jw_pk || row.id || `${row.jk_uniqueconsignref ?? ''}-${row.jw_legorder ?? ''}`;
 }
+
+defineExpose({ loadRouting });
 </script>
 
 <template>
   <div class="p-4">
-    <NDataTable
-      :columns="columns"
-      :data="inputData.routing_list || []"
-      :bordered="true"
-      size="small"
-      :row-key="(row: any) => String(row.id ?? Math.random())"
-      :scroll-x="1540"
-      striped
-    />
+    <NSpin :show="loading">
+      <NDataTable
+        v-if="hasRows"
+        :columns="routingColumns"
+        :data="routingList"
+        :bordered="true"
+        size="small"
+        :pagination="false"
+        :row-key="getRoutingRowKey"
+        :scroll-x="1550"
+        striped
+      />
+      <NEmpty v-else :description="emptyDescription" />
+    </NSpin>
   </div>
 </template>

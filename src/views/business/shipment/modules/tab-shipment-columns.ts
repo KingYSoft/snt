@@ -64,28 +64,28 @@ export function createContainerColumns(removeFn: (index: number) => void) {
     },
     {
       title: 'Container No',
-      key: 'ctr_container_num',
+      key: 'jc_containernum',
       width: 140,
       render(row: any) {
         return h(NInput, {
-          value: row.ctr_container_num,
+          value: row.jc_containernum,
           size: 'small',
           'onUpdate:value': (v: string) => {
-            row.ctr_container_num = v;
+            row.jc_containernum = v;
           }
         });
       }
     },
     {
       title: 'Seal No',
-      key: 'ctr_seal_num',
+      key: 'jc_sealnum',
       width: 120,
       render(row: any) {
         return h(NInput, {
-          value: row.ctr_seal_num,
+          value: row.jc_sealnum,
           size: 'small',
           'onUpdate:value': (v: string) => {
-            row.ctr_seal_num = v;
+            row.jc_sealnum = v;
           }
         });
       }
@@ -120,17 +120,17 @@ export function createContainerColumns(removeFn: (index: number) => void) {
     },
     {
       title: 'Gross Weight',
-      key: 'pac_gross_weight',
+      key: 'jc_grossweight',
       width: 110,
       render(row: any) {
         return h(NInputNumber, {
-          value: row.pac_gross_weight,
+          value: row.jc_grossweight,
           size: 'small',
           min: 0,
           showButton: false,
           style: 'width:100%',
           'onUpdate:value': (v: number | null) => {
-            row.pac_gross_weight = v ?? 0;
+            row.jc_grossweight = v ?? 0;
           }
         });
       }

@@ -79,12 +79,7 @@ watch(
   d => {
     if (!d) return;
     if (!d.notify_party || typeof d.notify_party !== 'object') {
-      d.notify_party = {
-        add_address_name: '',
-        add_address1: '',
-        add_address2: '',
-        add_address3: ''
-      };
+      d.notify_party = {};
     }
   },
   { immediate: true, deep: true }
@@ -298,28 +293,10 @@ function copyNotifyFromConsignee() {
   const c = props.inputData.consignee;
   const n = props.inputData.notify_party;
   if (!c || typeof c !== 'object' || !n || typeof n !== 'object') return;
-  const keys = [
-    'add_address_type',
-    'add_address_short_code',
-    'add_address_code',
-    'add_address_name',
-    'add_address',
-    'add_address1',
-    'add_address2',
-    'add_address3',
-    'add_contact',
-    'add_city',
-    'add_state',
-    'add_postal_code',
-    'add_country_code',
-    'add_phone',
-    'add_mobile',
-    'add_fax',
-    'add_email'
-  ] as const;
-  for (const k of keys) {
-    n[k] = c[k];
-  }
+  n.oh_fullname = c.oh_fullname ?? '';
+  n.oa_address1 = c.oa_address1 ?? '';
+  n.oa_address2 = c.oa_address2 ?? '';
+  n.address3 = c.address3 ?? '';
 }
 
 function onNotifySameAsConsignee(v: boolean) {
@@ -561,11 +538,11 @@ function addContainer() {
   props.inputData.containers_list.push({
     ctr_type: '20GP',
     ctr_count: 1,
-    ctr_container_num: '',
-    ctr_seal_num: '',
+    jc_containernum: '',
+    jc_sealnum: '',
     ctr_is_soc: 0,
     pac_commodity: '',
-    pac_gross_weight: 0,
+    jc_grossweight: 0,
     pac_actual_volume: 0,
     pac_package_count: 0,
     pac_pack_type: 'CTN',
@@ -651,13 +628,6 @@ const rules = {
       trigger: 'change'
     }
   ],
-  shp_cargo_ready: [
-    {
-      required: true,
-      message: () => $t('page.business.shipment.form.cargoReady'),
-      trigger: 'change'
-    }
-  ],
   shp_inco: [
     {
       required: true,
@@ -692,7 +662,14 @@ const addrDialogTitle = computed(() => {
 <!-- eslint-disable vue/no-mutating-props -->
 <template>
   <div class="h-full overflow-auto pb-48px">
-    <NForm ref="formRef" label-placement="left" label-width="140" :show-feedback="false" class="compact-form p-16px">
+    <NForm
+      ref="formRef"
+      :model="inputData"
+      label-placement="left"
+      label-width="140"
+      :show-feedback="false"
+      class="compact-form p-16px"
+    >
       <!-- Main layout: 4 columns (Shipper / Consignee / Notify | Logistics | Status | Personnel) -->
       <NGrid :cols="24" :x-gap="16" class="mb-12px">
         <!-- Col 1: Parties -->
@@ -703,32 +680,55 @@ const addrDialogTitle = computed(() => {
                 <span class="text-12px font-bold uppercase opacity-70">Shipper</span>
               </NDivider>
               <NGrid :cols="24" :y-gap="6" class="mt-4px">
-                <NFormItemGi class="mt-10px" :span="24" label="Name" path="shipper_name" :rule="rules.shipper_name">
-                  <RemoteTableMenu
-                    :model-value="inputData.shipper?.add_address_name || ''"
-                    :fetch-method="shipmentQueryOrgAddress"
-                    :headers="addrTableHeaders"
-                    display-key="company_name"
-                    :query-extra="{ address_type: 'SHIPPER' }"
-                    show-new
-                    @update:model-value="
+                <NFormItemGi
+                  class="mt-10px"
+                  :span="24"
+                  label="Name"
+                  path="shipper.oh_fullname"
+                  :rule="rules.shipper_name"
+                >
+                  <NInput
+                    :value="inputData.shipper?.oh_fullname ?? ''"
+                    @update:value="
                       (v: string) => {
-                        if (inputData.shipper) inputData.shipper.add_address_name = v;
+                        if (!inputData.shipper) inputData.shipper = {};
+                        inputData.shipper.oh_fullname = v;
                       }
                     "
-                    @row-select="(row: any) => onSelectShipper(row)"
-                    @clear="clearShipper"
-                    @new-handle="openAddrDialog('SHIPPER')"
                   />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address1">
-                  <NInput :value="inputData.shipper?.add_address1" readonly />
+                  <NInput
+                    :value="inputData.shipper?.oa_address1 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.shipper) inputData.shipper = {};
+                        inputData.shipper.oa_address1 = v;
+                      }
+                    "
+                  />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address2">
-                  <NInput :value="inputData.shipper?.add_address2" readonly />
+                  <NInput
+                    :value="inputData.shipper?.oa_address2 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.shipper) inputData.shipper = {};
+                        inputData.shipper.oa_address2 = v;
+                      }
+                    "
+                  />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address3">
-                  <NInput :value="inputData.shipper?.add_address3" readonly />
+                  <NInput
+                    :value="inputData.shipper?.address3 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.shipper) inputData.shipper = {};
+                        inputData.shipper.address3 = v;
+                      }
+                    "
+                  />
                 </NFormItemGi>
               </NGrid>
             </div>
@@ -737,32 +737,55 @@ const addrDialogTitle = computed(() => {
                 <span class="text-12px font-bold uppercase opacity-70">Consignee</span>
               </NDivider>
               <NGrid :cols="24" :y-gap="6" class="mt-4px">
-                <NFormItemGi class="mt-10px" :span="24" label="Name" path="consignee_name" :rule="rules.consignee_name">
-                  <RemoteTableMenu
-                    :model-value="inputData.consignee?.add_address_name || ''"
-                    :fetch-method="shipmentQueryOrgAddress"
-                    :headers="addrTableHeaders"
-                    display-key="company_name"
-                    :query-extra="{ address_type: 'CONSIGNEE' }"
-                    show-new
-                    @update:model-value="
+                <NFormItemGi
+                  class="mt-10px"
+                  :span="24"
+                  label="Name"
+                  path="consignee.oh_fullname"
+                  :rule="rules.consignee_name"
+                >
+                  <NInput
+                    :value="inputData.consignee?.oh_fullname ?? ''"
+                    @update:value="
                       (v: string) => {
-                        if (inputData.consignee) inputData.consignee.add_address_name = v;
+                        if (!inputData.consignee) inputData.consignee = {};
+                        inputData.consignee.oh_fullname = v;
                       }
                     "
-                    @row-select="(row: any) => onSelectConsignee(row)"
-                    @clear="clearConsignee"
-                    @new-handle="openAddrDialog('CONSIGNEE')"
                   />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address1">
-                  <NInput :value="inputData.consignee?.add_address1" readonly />
+                  <NInput
+                    :value="inputData.consignee?.oa_address1 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.consignee) inputData.consignee = {};
+                        inputData.consignee.oa_address1 = v;
+                      }
+                    "
+                  />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address2">
-                  <NInput :value="inputData.consignee?.add_address2" readonly />
+                  <NInput
+                    :value="inputData.consignee?.oa_address2 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.consignee) inputData.consignee = {};
+                        inputData.consignee.oa_address2 = v;
+                      }
+                    "
+                  />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address3">
-                  <NInput :value="inputData.consignee?.add_address3" readonly />
+                  <NInput
+                    :value="inputData.consignee?.address3 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.consignee) inputData.consignee = {};
+                        inputData.consignee.address3 = v;
+                      }
+                    "
+                  />
                 </NFormItemGi>
               </NGrid>
             </div>
@@ -772,49 +795,58 @@ const addrDialogTitle = computed(() => {
               </NDivider>
               <div class="mb-6px mt-4px flex items-center justify-end gap-8px"></div>
               <NGrid :cols="24" :y-gap="6">
-                <NFormItemGi :span="24" label="Name">
-                  <RemoteTableMenu
-                    class="mt-10px"
-                    :model-value="inputData.notify_party?.add_address_name || ''"
-                    :fetch-method="shipmentQueryOrgAddress"
-                    :headers="addrTableHeaders"
-                    display-key="company_name"
-                    :query-extra="{ address_type: 'NOTIFY_PARTY' }"
-                    show-new
-                    @update:model-value="
+                <NFormItemGi class="mt-10px" :span="24" label="Name">
+                  <NInput
+                    :value="inputData.notify_party?.oh_fullname ?? ''"
+                    @update:value="
                       (v: string) => {
-                        if (inputData.notify_party) inputData.notify_party.add_address_name = v;
+                        if (!inputData.notify_party) inputData.notify_party = {};
+                        inputData.notify_party.oh_fullname = v;
                         onNotifyPartyManual();
                       }
                     "
-                    @row-select="
-                      (row: any) => {
-                        onSelectNotifyParty(row);
-                        onNotifyPartyManual();
-                      }
-                    "
-                    @clear="
-                      () => {
-                        clearNotifyParty();
-                        onNotifyPartyManual();
-                      }
-                    "
-                    @new-handle="openAddrDialog('NOTIFY_PARTY')"
                   />
-                  <NCheckbox
-                    class="ml-8px"
-                    :checked="notifySameAsConsignee"
-                    @update:checked="onNotifySameAsConsignee"
-                  />
+                </NFormItemGi>
+                <NFormItemGi :span="24">
+                  <NCheckbox :checked="notifySameAsConsignee" @update:checked="onNotifySameAsConsignee">
+                    Same as Consignee
+                  </NCheckbox>
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address1">
-                  <NInput :value="inputData.notify_party?.add_address1" readonly />
+                  <NInput
+                    :value="inputData.notify_party?.oa_address1 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.notify_party) inputData.notify_party = {};
+                        inputData.notify_party.oa_address1 = v;
+                        onNotifyPartyManual();
+                      }
+                    "
+                  />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address2">
-                  <NInput :value="inputData.notify_party?.add_address2" readonly />
+                  <NInput
+                    :value="inputData.notify_party?.oa_address2 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.notify_party) inputData.notify_party = {};
+                        inputData.notify_party.oa_address2 = v;
+                        onNotifyPartyManual();
+                      }
+                    "
+                  />
                 </NFormItemGi>
                 <NFormItemGi :span="24" label="Address3">
-                  <NInput :value="inputData.notify_party?.add_address3" readonly />
+                  <NInput
+                    :value="inputData.notify_party?.address3 ?? ''"
+                    @update:value="
+                      (v: string) => {
+                        if (!inputData.notify_party) inputData.notify_party = {};
+                        inputData.notify_party.address3 = v;
+                        onNotifyPartyManual();
+                      }
+                    "
+                  />
                 </NFormItemGi>
               </NGrid>
             </div>
@@ -903,15 +935,6 @@ const addrDialogTitle = computed(() => {
                 @update:formatted-value="(v: string) => (inputData.shp_eta = v)"
               />
             </NFormItemGi>
-            <NFormItemGi :span="24" label="Cargo Ready Date" path="shp_cargo_ready" :rule="rules.shp_cargo_ready">
-              <NDatePicker
-                :formatted-value="inputData.shp_cargo_ready"
-                type="date"
-                value-format="yyyy-MM-dd"
-                style="width: 100%"
-                @update:formatted-value="(v: string) => (inputData.shp_cargo_ready = v)"
-              />
-            </NFormItemGi>
             <NFormItemGi :span="24" label="Gross Weight">
               <NSpace :wrap="false" :size="4" class="w-full">
                 <NInputNumber
@@ -980,11 +1003,11 @@ const addrDialogTitle = computed(() => {
             <NFormItemGi :span="24" label="No. of Package">
               <NSpace :wrap="false" :size="4" class="w-full">
                 <NInputNumber
-                  :value="inputData.shp_total_package_count"
+                  :value="inputData.js_outerpacks"
                   :min="0"
                   :show-button="false"
                   style="width: 100%"
-                  @update:value="(v: number | null) => (inputData.shp_total_package_count = v ?? 0)"
+                  @update:value="(v: number | null) => (inputData.js_outerpacks = v ?? 0)"
                 />
                 <NSelect
                   :value="inputData.shp_pack_type"
@@ -1050,10 +1073,10 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" label="Delivery Mode">
               <NSelect
-                :value="inputData.shp_delivery_mode"
+                :value="inputData.js_hblcontainerpackmodeoverride"
                 :options="deliveryModeOptions"
                 clearable
-                @update:value="(v: string) => (inputData.shp_delivery_mode = v)"
+                @update:value="(v: string) => (inputData.js_hblcontainerpackmodeoverride = v)"
               />
             </NFormItemGi>
             <NFormItemGi :span="24" label="Cargo Value">
