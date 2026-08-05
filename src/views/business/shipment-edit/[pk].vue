@@ -141,6 +141,21 @@ function toInteger(value: unknown, fallback = 0) {
   return fallback;
 }
 
+type ShipmentCustomValue = { xV_Name?: string; xV_Data?: string };
+
+/** Read xV_Data from custom_values by exact xV_Name match (first hit). */
+function getCustomValueData(customValues: unknown, name: string) {
+  if (!Array.isArray(customValues)) return '';
+  const target = name.trim().toLowerCase();
+  const hit = (customValues as ShipmentCustomValue[]).find(
+    item =>
+      String(item?.xV_Name ?? '')
+        .trim()
+        .toLowerCase() === target
+  );
+  return String(hit?.xV_Data ?? '').trim();
+}
+
 function calculateVolumeWeight(volume: number) {
   return volume > 0 ? volume * 166 : null;
 }
@@ -301,6 +316,7 @@ const queryData = async () => {
         const firstContainer = containersList[0];
         const estimatedDeliveryDate = formatDate(data.js_reviseddeliveryduedate) || formatDate(data.js_deliveryduedate);
         const marksAndNumbers = looseList.find((item: any) => item.pac_marks_and_numbers)?.pac_marks_and_numbers || '';
+        const customValues = data.custom_values || [];
 
         // Map ShipmentDetail to shipment save/inputData format
         inputData.value = {
@@ -373,8 +389,8 @@ const queryData = async () => {
           shp_split_switch_shipment: data.js_js_splitswitchshipment || '',
           shp_is_split_shipment: data.js_issplitshipment || 0,
           shp_one_time_quote: data.js_th_onetimequote || '',
-          shp_carrier_contract_number: data.js_carriercontractnumber || '',
-          shp_contact_no: data.js_carriercontractnumber || '',
+          shp_carrier_contract_number: getCustomValueData(customValues, 'Contract No.'),
+          shp_contact_no: getCustomValueData(customValues, 'Contract No.'),
           shp_preferred_carrier: data.js_oa_bookedshippinglineaddress || '',
           shp_carrier: data.js_oa_bookedshippinglineaddress || '',
           shp_booking_allocation_line: data.js_rca_bookingallocationline || '',
@@ -397,6 +413,12 @@ const queryData = async () => {
             toNumber(data.js_actualweight, 0),
           shp_vessel: '',
           shp_voyage: '',
+          // custom_values → UI fields (match xV_Name)
+          shp_controlling_customer: getCustomValueData(customValues, 'Controlling Customer Full Name'),
+          shp_job_rep_cs_name: getCustomValueData(customValues, 'Customer Service'),
+          shp_sea_pricing: getCustomValueData(customValues, 'SEA PRICING'),
+          shp_op_at_1st_booking_party: getCustomValueData(customValues, 'OP AT 1ST BOOKING PARTY'),
+          custom_values: customValues,
           // Address objects
           shipper: data.shipper ?? {},
           consignee: data.consignee ?? {},
