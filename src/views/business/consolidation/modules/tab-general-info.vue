@@ -213,8 +213,7 @@ const shipmentColumns: DataTableColumns<any> = [
   { title: 'Packages', key: 'js_outerpacks', minWidth: 80 },
   { title: 'Shipper', key: 'shipperName', minWidth: 140 },
   { title: 'Consignee', key: 'consigneeName', minWidth: 140 },
-  { title: 'Gross Weight', key: 'js_actualweight', minWidth: 100 },
-  { title: 'Volume Weight', key: 'shp_actual_volume', minWidth: 100 }
+  { title: 'Gross Weight', key: 'js_actualweight', minWidth: 100 }
 ];
 
 const matchingColumns: DataTableColumns<any> = [
@@ -227,8 +226,7 @@ const matchingColumns: DataTableColumns<any> = [
   { title: 'Shipper', key: 'shipperName', minWidth: 140 },
   { title: 'Consignee', key: 'consigneeName', minWidth: 140 },
   { title: 'ETD', key: 'shp_etd', minWidth: 100 },
-  { title: 'Gross Weight', key: 'shp_actual_weight', minWidth: 100 },
-  { title: 'Volume Weight', key: 'shp_actual_volume', minWidth: 100 }
+  { title: 'Gross Weight', key: 'shp_actual_weight', minWidth: 100 }
 ];
 
 function viewShipment(item: any) {

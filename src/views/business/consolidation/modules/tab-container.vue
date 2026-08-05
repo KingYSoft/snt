@@ -8,12 +8,9 @@ const props = defineProps<{ inputData: Record<string, any> }>();
 
 const containerColumns: DataTableColumns<any> = [
   { title: $t('page.business.consolidation.container.containerType'), key: 'jc_f3_nkpacktype', minWidth: 120 },
-  { title: $t('page.business.consolidation.container.count'), key: 'ctr_count', width: 80 },
   { title: $t('page.business.consolidation.container.containerNo'), key: 'jc_containernum', minWidth: 140 },
   { title: $t('page.business.consolidation.container.sealNo'), key: 'jc_sealnum', minWidth: 120 },
-  { title: $t('page.business.consolidation.container.soc'), key: 'ctr_is_soc', width: 80 },
-  { title: $t('page.business.consolidation.container.commodity'), key: 'pac_commodity', minWidth: 140 },
-  { title: $t('page.business.consolidation.container.grossWeight'), key: 'pac_gross_weight', minWidth: 120 },
+  { title: $t('page.business.consolidation.container.grossWeight'), key: 'jc_grossweight', minWidth: 120 },
   { title: $t('page.business.consolidation.container.cbm'), key: 'pac_actual_volume', minWidth: 100 },
   { title: $t('page.business.consolidation.container.packages'), key: 'pac_package_count', minWidth: 100 },
   { title: $t('page.business.consolidation.container.packType'), key: 'pac_pack_type', minWidth: 100 },
@@ -23,7 +20,7 @@ const containerColumns: DataTableColumns<any> = [
 const containerList = computed<any[]>(() => props.inputData.containers || []);
 
 function getContainerRowKey(row: any) {
-  return row.pk ?? row.id ?? row.ctr_container_num ?? JSON.stringify(row);
+  return row.pk ?? row.id ?? row.jc_containernum ?? JSON.stringify(row);
 }
 </script>
 
@@ -37,7 +34,7 @@ function getContainerRowKey(row: any) {
       size="small"
       :pagination="false"
       :row-key="getContainerRowKey"
-      :scroll-x="1350"
+      :scroll-x="1100"
     />
     <NEmpty v-else />
   </div>
