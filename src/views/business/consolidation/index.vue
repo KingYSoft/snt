@@ -34,9 +34,10 @@ function defaultEtdRange(): [number, number] {
   return [start.getTime(), end.getTime()];
 }
 
-const etdRange = ref<[number, number]>(defaultEtdRange());
+const etdRange = ref<[number, number] | null>(defaultEtdRange());
 
 function etdRangeToStr(): { start: string; end: string } {
+  if (!etdRange.value) return { start: '', end: '' };
   return {
     start: formatDate(new Date(etdRange.value[0])),
     end: formatDate(new Date(etdRange.value[1]))
@@ -57,6 +58,10 @@ const searchKeyOptions = [
   {
     label: $t('page.business.consolidation.search.masterBillNo'),
     value: 'jk_masterbillnum'
+  },
+  {
+    label: $t('page.business.consolidation.search.consolidationNo'),
+    value: 'jk_uniqueconsignref'
   }
 ];
 
@@ -72,7 +77,9 @@ const pageSizeRef = ref(20);
 function buildFilters() {
   const filters: ConsolidationFilter[] = [];
   const { start, end } = etdRangeToStr();
-  filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
+  if (start && end) {
+    filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
+  }
 
   if (searchVal.value) {
     filters.push({ key: searchKey.value, op: 'Contain', val: searchVal.value });

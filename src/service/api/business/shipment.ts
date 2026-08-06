@@ -455,6 +455,12 @@ export interface ShipmentOrgAddressDto {
   oa_email?: string;
 }
 
+/** Job custom value (xV_Name / xV_Data) */
+export interface ShipmentCustomValueDto {
+  xV_Name?: string;
+  xV_Data?: string;
+}
+
 /**
  * Shipment detail (extends list item with related data)
  */
@@ -467,6 +473,7 @@ export interface ShipmentDetail extends ShipmentListItem {
   containers_list?: ShipmentDetailContainerDto[];
   loose_list?: JobPackLinesDto[];
   doc_data?: JobDocumentDataDto;
+  custom_values?: ShipmentCustomValueDto[];
 }
 
 // ==================== Request/Response Types ====================

@@ -367,6 +367,7 @@ const local: App.I18n.Schema = {
           more: '更多',
           clear: '清除',
           masterBillNo: '主单号',
+          consolidationNo: '拼箱编号',
           transportMode: '运输方式',
           consolMode: '拼箱方式',
           cancelled: '已取消',

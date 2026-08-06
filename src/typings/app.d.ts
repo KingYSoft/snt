@@ -737,6 +737,7 @@ declare namespace App {
               more: string;
               clear: string;
               masterBillNo: string;
+              consolidationNo: string;
               transportMode: string;
               consolMode: string;
               cancelled: string;

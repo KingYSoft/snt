@@ -13,12 +13,32 @@ function formatRoutingDate(value: unknown) {
 }
 
 const routingColumns: DataTableColumns<any> = [
-  { title: $t('page.business.consolidation.routing.consolidationNumber'), key: 'consolidation_number', minWidth: 160 },
-  { title: $t('page.business.consolidation.routing.routeType'), key: 'route_type', minWidth: 120 },
-  { title: $t('page.business.consolidation.routing.vesselName'), key: 'vessel_name', minWidth: 160 },
-  { title: $t('page.business.consolidation.routing.voyageNumber'), key: 'voyage_number', minWidth: 160 },
-  { title: $t('page.business.consolidation.routing.portOfLoading'), key: 'port_of_loading', minWidth: 150 },
-  { title: $t('page.business.consolidation.routing.portOfDischarge'), key: 'port_of_discharge', minWidth: 150 },
+  { title: $t('page.business.consolidation.routing.consolidationNumber'), key: 'jk_uniqueconsignref', minWidth: 160 },
+  { title: $t('page.business.consolidation.routing.routeType'), key: 'jw_transporttype', minWidth: 120 },
+  {
+    title: $t('page.business.consolidation.routing.vesselName'),
+    key: 'jw_vessel',
+    minWidth: 160,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.consolidation.routing.voyageNumber'),
+    key: 'jw_voyageflight',
+    minWidth: 160,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.consolidation.routing.portOfLoading'),
+    key: 'jw_rl_nkloadport',
+    minWidth: 150,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.consolidation.routing.portOfDischarge'),
+    key: 'jw_rl_nkdiscport',
+    minWidth: 150,
+    ellipsis: { tooltip: true }
+  },
   {
     title: $t('page.business.consolidation.routing.etd'),
     key: 'jw_etd',
@@ -43,13 +63,18 @@ const routingColumns: DataTableColumns<any> = [
     minWidth: 120,
     render: row => formatRoutingDate(row.jw_ata)
   },
-  { title: $t('page.business.consolidation.routing.carrier'), key: 'carrier', minWidth: 150 }
+  {
+    title: $t('page.business.consolidation.routing.carrier'),
+    key: 'jw_oa_carrieraddress',
+    minWidth: 150,
+    ellipsis: { tooltip: true }
+  }
 ];
 
 const routingList = computed<any[]>(() => props.inputData.transport_list || []);
 
 function getRoutingRowKey(row: any) {
-  return row.pk ?? row.id ?? row.consolidation_number ?? row.voyage_number ?? JSON.stringify(row);
+  return row.pk ?? row.id ?? row.jk_uniqueconsignref ?? row.jw_voyageflight ?? JSON.stringify(row);
 }
 </script>
 
