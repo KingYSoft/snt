@@ -1,25 +1,65 @@
 <script setup lang="ts">
 import { computed, h, onMounted, ref, watch } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
-import { NCard, NDataTable, NGi, NGrid, NSpin, NTag } from 'naive-ui';
+import { NButton, NCard, NDataTable, NGi, NGrid, NSpin, NTag } from 'naive-ui';
 import { getBillingTaxCodeLabel } from '@/constants/billingTaxCodeItems';
+import { formatBillingAmount } from '@/utils/billing/billingDecimal';
 import {
   consolBillingChargeLine,
   consolBillingSummary,
-  type ConsolBillingSummary
+  type ConsolBillingCostLineItem,
+  type ConsolBillingSummary,
+  type ConsolCostItemDto
 } from '@/service/api/business/consol-billing';
-import {
-  getBillingLockLabel,
-  getBillingLockTagType,
-  mapChargeLineItem,
-  type ShipmentBillingChargeRow
-} from '@/views/business/shipment/modules/shipment-billing-map';
+import { getBillingLockLabel, getBillingLockTagType } from '@/views/business/shipment/modules/shipment-billing-map';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 
+/** UI row aligned to first-cargo cons AP charge-line headers */
+interface ConsolCostLineRow {
+  id: string;
+  App_Methods: string;
+  Unapportion: number;
+  is_locked: number;
+  consolidated_invoice_ref: string;
+  invoice_no: string;
+  Sequence: number | string;
+  Charge_Code: string;
+  Description: string;
+  Branch: string;
+  Creditor: string;
+  Currency: string;
+  Unit_Price: string | number;
+  jch_unit: string;
+  Qty: string | number;
+  Amount: string | number;
+  Tax_Code: string;
+  Tax_Amount: string | number;
+  Home_Amount: string | number;
+  cost_items: ConsolCostItemDto[];
+}
+
+interface ConsolShipmentLineRow {
+  id: string;
+  Shipment_No: string;
+  Description: string;
+  Container_Count: string;
+  Chargeable_Weight: string;
+  GW: string;
+  CBM: string;
+  Currency: string;
+  Unit_Price: string;
+  Unit: string;
+  Qty: string;
+  Amount: string | number;
+  Tax_Code: string;
+  Tax_Amount: string;
+  Home_Amount: string | number;
+}
+
 const loading = ref(false);
-const arRows = ref<ShipmentBillingChargeRow[]>([]);
-const apRows = ref<ShipmentBillingChargeRow[]>([]);
+const apRows = ref<ConsolCostLineRow[]>([]);
+const activeRowId = ref<string | null>(null);
 const summary = ref<ConsolBillingSummary>({
   grossProfitMargin: 0,
   ar: 0,
@@ -29,62 +69,184 @@ const summary = ref<ConsolBillingSummary>({
 });
 
 const jkPk = computed(() => String(props.inputData.jk_pk || props.inputData.pk || '').trim());
+const activeRow = computed(() => apRows.value.find(r => r.id === activeRowId.value) ?? null);
+
+const activeShipmentLines = computed<ConsolShipmentLineRow[]>(() => {
+  const items = activeRow.value?.cost_items ?? [];
+  return items.map((line, index) => ({
+    id: String(line.jr_pk || line.js_pk || index),
+    Shipment_No: line.shipment_no || '',
+    Description: line.jr_desc || '',
+    Container_Count: '',
+    Chargeable_Weight: '',
+    GW: '',
+    CBM: '',
+    Currency: line.currency || '',
+    Unit_Price: '',
+    Unit: '',
+    Qty: '',
+    Amount: line.os_cost_amount ?? '',
+    Tax_Code: '',
+    Tax_Amount: '',
+    Home_Amount: line.local_cost_amount ?? ''
+  }));
+});
 
 function renderText(value: unknown) {
   return h('span', null, value == null || value === '' ? '' : String(value));
 }
 
-function makeColumns(kind: 'AR' | 'AP'): DataTableColumns<ShipmentBillingChargeRow> {
-  return [
-    {
-      title: 'Status',
-      key: 'is_locked',
-      width: 90,
-      render: row =>
-        h(
-          NTag,
-          { size: 'small', type: getBillingLockTagType(row.is_locked) },
-          { default: () => getBillingLockLabel(row.is_locked) }
-        )
-    },
-    { title: 'Invoice No.', key: 'invoice_no', width: 130, ellipsis: { tooltip: true } },
-    {
-      title: 'Charge Code',
-      key: 'charge_code',
-      width: 110,
-      render: row => renderText(row.charge_code || row.Charge_Code)
-    },
-    { title: 'Description', key: 'Description', minWidth: 160, ellipsis: { tooltip: true } },
-    {
-      title: 'Branch',
-      key: 'branch_code',
-      width: 90,
-      render: row => renderText(row.branch_code || row.Branch)
-    },
-    {
-      title: kind === 'AR' ? 'Debtor' : 'Creditor',
-      key: 'party_code',
-      width: 120,
-      ellipsis: { tooltip: true },
-      render: row => renderText(row.party_code)
-    },
-    { title: 'Currency', key: 'Currency', width: 80 },
-    { title: 'Type', key: 'JR_InvoiceType', width: 80 },
-    { title: 'Amount', key: 'Amount', width: 100 },
-    {
-      title: 'Tax',
-      key: 'Tax_Code',
-      width: 100,
-      render: row => renderText(getBillingTaxCodeLabel(row.Tax_Code))
-    },
-    { title: 'Tax Amt', key: 'Tax_Amount', width: 90 },
-    { title: 'Exch Rate', key: 'Exchange_Rate', width: 90 },
-    { title: 'Home Amt', key: 'Home_Amount', width: 100 }
-  ];
+function calcUnapportion(item: ConsolBillingCostLineItem) {
+  const home = Number(item.local_cost_amount ?? 0);
+  const allocated = (item.cost_items ?? []).reduce((sum, line) => sum + Number(line.local_cost_amount ?? 0), 0);
+  return Number((home - allocated).toFixed(2));
 }
 
-const arColumns = computed(() => makeColumns('AR'));
-const apColumns = computed(() => makeColumns('AP'));
+function mapCostLine(item: ConsolBillingCostLineItem): ConsolCostLineRow {
+  const draft = String(item.draft ?? 'Y').toUpperCase();
+  return {
+    id: String(item.e6_pk || ''),
+    App_Methods: item.apportionment_method || '',
+    Unapportion: calcUnapportion(item),
+    is_locked: draft === 'N' ? 1 : 0,
+    /** Trans No. — no matching field on ConsolBillingCostLineItem yet */
+    consolidated_invoice_ref: '',
+    invoice_no: item.invoice_num || '',
+    Sequence: item.sequence ?? '',
+    Charge_Code: item.charge_code || '',
+    Description: item.description || '',
+    Branch: '',
+    Creditor: item.creditor_code || '',
+    Currency: item.currency || '',
+    Unit_Price: '',
+    jch_unit: '',
+    Qty: '',
+    Amount: item.os_cost_amount ?? '',
+    Tax_Code: item.vat_class || '',
+    Tax_Amount: item.os_gst_amount ?? '',
+    Home_Amount: item.local_cost_amount ?? '',
+    cost_items: item.cost_items ?? []
+  };
+}
+
+function toggleMore(row: ConsolCostLineRow) {
+  activeRowId.value = activeRowId.value === row.id ? null : row.id;
+}
+
+/** AP headers aligned with first-cargo ConsolidationBillingChargeLines tblCHeaders */
+const apColumns = computed<DataTableColumns<ConsolCostLineRow>>(() => [
+  {
+    title: 'List',
+    key: 'list',
+    width: 72,
+    align: 'center',
+    render: row =>
+      h(
+        NButton,
+        {
+          size: 'tiny',
+          type: 'primary',
+          secondary: activeRowId.value !== row.id,
+          onClick: () => toggleMore(row)
+        },
+        { default: () => 'More' }
+      )
+  },
+  {
+    title: 'App Methods',
+    key: 'App_Methods',
+    width: 110,
+    render: row => renderText(row.App_Methods)
+  },
+  {
+    title: 'Unapportion',
+    key: 'Unapportion',
+    width: 100,
+    render: row => {
+      const abs = Math.abs(Number(row.Unapportion ?? 0));
+      return h(
+        'span',
+        { style: abs > 0.01 ? 'color: var(--error-color)' : undefined },
+        formatBillingAmount(row.Unapportion)
+      );
+    }
+  },
+  {
+    title: 'Status',
+    key: 'is_locked',
+    width: 90,
+    align: 'center',
+    render: row =>
+      h(
+        NTag,
+        { size: 'small', type: getBillingLockTagType(row.is_locked) },
+        { default: () => getBillingLockLabel(row.is_locked) }
+      )
+  },
+  { title: 'Trans No.', key: 'consolidated_invoice_ref', width: 100, ellipsis: { tooltip: true } },
+  { title: 'Supplier Inv. No.', key: 'invoice_no', width: 220, ellipsis: { tooltip: true } },
+  { title: 'Sequence', key: 'Sequence', width: 80 },
+  { title: 'Charge Code', key: 'Charge_Code', width: 110, ellipsis: { tooltip: true } },
+  { title: 'Description', key: 'Description', width: 200, ellipsis: { tooltip: true } },
+  { title: 'Branch', key: 'Branch', width: 80 },
+  { title: 'Creditor', key: 'Creditor', width: 120, ellipsis: { tooltip: true } },
+  { title: 'Currency', key: 'Currency', width: 90 },
+  { title: 'Unit Price', key: 'Unit_Price', width: 100 },
+  { title: 'Unit', key: 'jch_unit', width: 110 },
+  { title: 'Qty', key: 'Qty', width: 70 },
+  {
+    title: 'Amount',
+    key: 'Amount',
+    width: 100,
+    render: row => renderText(formatBillingAmount(row.Amount))
+  },
+  {
+    title: 'Tax Code',
+    key: 'Tax_Code',
+    width: 120,
+    render: row => renderText(getBillingTaxCodeLabel(row.Tax_Code))
+  },
+  {
+    title: 'Tax Amount',
+    key: 'Tax_Amount',
+    width: 110,
+    render: row => renderText(formatBillingAmount(row.Tax_Amount))
+  },
+  {
+    title: 'Home Amount',
+    key: 'Home_Amount',
+    width: 120,
+    render: row => renderText(formatBillingAmount(row.Home_Amount))
+  }
+]);
+
+/** More panel headers aligned with first-cargo ConsolidationChargeShipmentDetailTable */
+const shipmentLineColumns: DataTableColumns<ConsolShipmentLineRow> = [
+  { title: 'Shipment No.', key: 'Shipment_No', width: 160, ellipsis: { tooltip: true } },
+  { title: 'Description', key: 'Description', width: 200, ellipsis: { tooltip: true } },
+  { title: 'Container Count', key: 'Container_Count', width: 130 },
+  { title: 'Chargeable Weight', key: 'Chargeable_Weight', width: 140 },
+  { title: 'Gross Weight', key: 'GW', width: 120 },
+  { title: 'CBM', key: 'CBM', width: 80 },
+  { title: 'Currency', key: 'Currency', width: 90 },
+  { title: 'Unit Price', key: 'Unit_Price', width: 100 },
+  { title: 'Unit', key: 'Unit', width: 90 },
+  { title: 'Qty', key: 'Qty', width: 80 },
+  {
+    title: 'Amount',
+    key: 'Amount',
+    width: 100,
+    render: row => renderText(formatBillingAmount(row.Amount))
+  },
+  { title: 'Tax Code', key: 'Tax_Code', width: 120 },
+  { title: 'Tax Amount', key: 'Tax_Amount', width: 110 },
+  {
+    title: 'Home Amount',
+    key: 'Home_Amount',
+    width: 120,
+    render: row => renderText(formatBillingAmount(row.Home_Amount))
+  }
+];
 
 async function loadSummary() {
   const pk = jkPk.value;
@@ -103,25 +265,26 @@ async function loadSummary() {
   }
 }
 
-async function loadChargeLines(chargeType: 'AR' | 'AP') {
+async function loadApCostLines() {
   const pk = jkPk.value;
   if (!pk) return;
   const { data } = await consolBillingChargeLine({
     jkPk: pk,
-    chargeType,
+    chargeType: 'AP',
     skipCount: 0,
     maxResultCount: 1000
   });
-  const mapped = (data?.items ?? []).map(item => mapChargeLineItem(item, chargeType));
-  if (chargeType === 'AR') arRows.value = mapped;
-  else apRows.value = mapped;
+  apRows.value = (data?.items ?? []).map(mapCostLine);
+  if (activeRowId.value && !apRows.value.some(r => r.id === activeRowId.value)) {
+    activeRowId.value = null;
+  }
 }
 
 async function loadAll() {
   if (!jkPk.value) return;
   loading.value = true;
   try {
-    await Promise.all([loadSummary(), loadChargeLines('AR'), loadChargeLines('AP')]);
+    await Promise.all([loadSummary(), loadApCostLines()]);
   } catch {
     window.$message?.error('Failed to load consolidation billing.');
   } finally {
@@ -176,30 +339,34 @@ watch(jkPk, (pk, prev) => {
       </NGi>
     </NGrid>
 
-    <NCard size="small" class="mb-16px" title="AR Charge Lines">
-      <NDataTable
-        size="small"
-        :bordered="true"
-        :columns="arColumns"
-        :data="arRows"
-        :row-key="(row: ShipmentBillingChargeRow) => row.id"
-        :scroll-x="1400"
-        :max-height="280"
-        striped
-      />
-    </NCard>
-
-    <NCard size="small" title="AP Charge Lines">
+    <NCard size="small" title="AP">
       <NDataTable
         size="small"
         :bordered="true"
         :columns="apColumns"
         :data="apRows"
-        :row-key="(row: ShipmentBillingChargeRow) => row.id"
-        :scroll-x="1400"
-        :max-height="280"
+        :row-key="(row: ConsolCostLineRow) => row.id"
+        :scroll-x="2300"
+        :max-height="320"
         striped
       />
+      <NCard
+        v-if="activeRow"
+        size="small"
+        class="mt-12px"
+        :title="`Shipment Allocation — ${activeRow.Charge_Code || activeRow.Description || activeRow.id}`"
+      >
+        <NDataTable
+          size="small"
+          :bordered="true"
+          :columns="shipmentLineColumns"
+          :data="activeShipmentLines"
+          :pagination="false"
+          :row-key="(row: ConsolShipmentLineRow) => row.id"
+          :scroll-x="2000"
+          striped
+        />
+      </NCard>
     </NCard>
   </NSpin>
 </template>
