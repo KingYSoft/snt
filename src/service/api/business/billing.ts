@@ -83,12 +83,17 @@ export interface AccTransactionHeader {
   id: string;
   ah_pk: string;
   oh_fullname?: string;
+  /** 合单侧：已过账 = N，否则 Y；shipment 侧常为 null */
+  draft?: string | null;
+  /** 合单侧：归属当前合单的分摊本位币金额（负数惯例）；shipment 侧常为 null */
+  apportioned_local_amount?: number | null;
   ah_ledger?: string;
   ah_transactionnum?: string;
   ah_desc?: string;
   ah_invoicedate?: string;
   ah_duedate?: string;
   ah_invoiceamount?: number;
+  ah_gstamount?: number;
   ah_rx_nktransactioncurrency?: string;
   ah_postdate?: string;
   ah_fullypaiddate?: string;
@@ -96,6 +101,9 @@ export interface AccTransactionHeader {
   ah_matchstatus?: string;
   ah_outstandingamount?: number;
   ah_systemcreatebranch?: string;
+  ah_systemcreatedepartment?: string;
+  ah_systemlastedituser?: string;
+  ah_systemlastedittimeutc?: string;
   ah_invoiceapproved?: number;
   ah_iscancelled?: number;
   ah_oh?: string;

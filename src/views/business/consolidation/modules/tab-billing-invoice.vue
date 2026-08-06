@@ -3,6 +3,7 @@ import { computed, h, ref, watch } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 import { NButton, NDataTable, NInput, NModal, NPagination, NSelect, NSpace, NSpin, NTag } from 'naive-ui';
 import { getBillingTaxCodeLabel } from '@/constants/billingTaxCodeItems';
+import { formatBillingAmount } from '@/utils/billing/billingDecimal';
 import {
   consolBillingChargesByInvoice,
   consolBillingDraftPage,
@@ -19,17 +20,14 @@ const invoicePage = ref(1);
 const invoicePageSize = ref(100);
 const invoiceTotal = ref(0);
 const invoiceSearchNo = ref('');
-const invoiceChargeType = ref<'AR' | 'AP'>('AR');
+const invoiceChargeType = ref<'AP'>('AP');
 
 const chargeDetailVisible = ref(false);
 const chargeDetailLoading = ref(false);
 const chargeDetailInvoiceNo = ref('');
 const chargeDetailRows = ref<BillingChargeLineItem[]>([]);
 
-const chargeTypeOptions = [
-  { label: 'AR', value: 'AR' },
-  { label: 'AP', value: 'AP' }
-];
+const chargeTypeOptions = [{ label: 'AP', value: 'AP' }];
 
 const jkPk = computed(() => String(props.inputData.jk_pk || props.inputData.pk || '').trim());
 
@@ -43,6 +41,10 @@ function getInvoiceStatusType(status: string): 'default' | 'success' | 'warning'
     default:
       return 'success';
   }
+}
+
+function renderText(value: unknown) {
+  return h('span', null, value == null || value === '' ? '' : String(value));
 }
 
 async function openChargeDetail(invoiceNo?: string | null) {
@@ -65,81 +67,162 @@ async function openChargeDetail(invoiceNo?: string | null) {
   }
 }
 
+/** AP headers aligned with first-cargo SHIP_CONS_AP_INVOICE_LIST_COLUMNS */
 const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
   {
-    title: 'Job Invoice No.',
+    title: 'Status',
+    key: 'status',
+    width: 96,
+    render: (row: AccTransactionHeader) => {
+      const status = getInvoiceHeaderStatus(row);
+      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => status });
+    }
+  },
+  {
+    title: 'Supplier Inv. No.',
     key: 'ah_transactionnum',
-    width: 140,
+    width: 200,
     ellipsis: { tooltip: true },
     render: (row: AccTransactionHeader) => {
       const no = String(row.ah_transactionnum ?? '').trim();
       if (!no) return '';
       return h(
-        'a',
+        NButton,
         {
-          href: 'javascript:void(0)',
-          class: 'invoice-no-link',
+          text: true,
+          type: 'primary',
+          size: 'small',
+          style: { padding: 0, height: 'auto' },
           onClick: (e: MouseEvent) => {
             e.preventDefault();
             e.stopPropagation();
             void openChargeDetail(no);
           }
         },
-        no
+        { default: () => no }
       );
     }
   },
   {
-    title: 'Status',
-    key: 'status',
-    width: 90,
-    render: (row: AccTransactionHeader) => {
-      const status = getInvoiceHeaderStatus(row);
-      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => status });
-    }
-  },
-  { title: 'Account', key: 'oh_fullname', width: 140, ellipsis: { tooltip: true } },
-  { title: 'Ledger', key: 'ah_ledger', width: 100 },
-  {
-    title: 'Post Date',
-    key: 'ah_postdate',
+    title: 'Tax Inv. No.',
+    key: 'tax_inv_no',
     width: 120,
-    render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_postdate)
+    render: () => ''
+  },
+  {
+    title: 'Creditor',
+    key: 'oh_fullname',
+    width: 120,
+    ellipsis: { tooltip: true }
   },
   {
     title: 'Invoice Date',
     key: 'ah_invoicedate',
-    width: 120,
+    width: 110,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_invoicedate)
+  },
+  {
+    title: 'Post Date',
+    key: 'ah_postdate',
+    width: 110,
+    render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_postdate)
+  },
+  {
+    title: 'Due Date',
+    key: 'ah_duedate',
+    width: 110,
+    render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_duedate)
   },
   {
     title: 'Fully Paid Date',
     key: 'ah_fullypaiddate',
-    width: 120,
+    width: 130,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_fullypaiddate)
   },
-  { title: 'Currency', key: 'ah_rx_nktransactioncurrency', width: 80 },
-  { title: 'Invoice Amt', key: 'ah_invoiceamount', width: 100 },
-  { title: 'Payment Status', key: 'ah_matchstatus', width: 120 },
-  { title: 'Branch', key: 'ah_systemcreatebranch', width: 80 },
-  { title: 'Terms', key: 'ah_invoiceterm', width: 140, ellipsis: { tooltip: true } }
+  { title: 'Currency', key: 'ah_rx_nktransactioncurrency', width: 90 },
+  {
+    title: 'Invoice Amount (Tax Incl.)',
+    key: 'ah_invoiceamount',
+    width: 200,
+    minWidth: 200,
+    align: 'right',
+    render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.ah_invoiceamount))
+  },
+  {
+    title: 'Invoice Amount (Tax Excl.)',
+    key: 'inv_amt_tax_excl',
+    width: 200,
+    minWidth: 200,
+    align: 'right',
+    render: () => ''
+  },
+  {
+    title: 'Tax Amount',
+    key: 'ah_gstamount',
+    width: 110,
+    align: 'right',
+    render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.ah_gstamount))
+  },
+  {
+    title: 'Trans. No.',
+    key: 'ah_consolidatedinvoiceref',
+    width: 140,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: 'Modify By',
+    key: 'ah_systemlastedituser',
+    width: 100,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: 'Last Modify Time',
+    key: 'ah_systemlastedittimeutc',
+    width: 150,
+    render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_systemlastedittimeutc)
+  },
+  {
+    title: 'Department',
+    key: 'ah_systemcreatedepartment',
+    width: 110,
+    ellipsis: { tooltip: true }
+  }
 ]);
 
+/** Detail modal headers aligned with first-cargo AP charge edit columns (query fields only) */
 const chargeDetailColumns: DataTableColumns<BillingChargeLineItem> = [
+  { title: 'Sequence', key: 'sequence', width: 80, render: () => '' },
   { title: 'Charge Code', key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
-  { title: 'Description', key: 'jr_desc', minWidth: 160, ellipsis: { tooltip: true } },
-  { title: 'Party', key: 'party_code', width: 120, ellipsis: { tooltip: true } },
-  { title: 'Branch', key: 'branch_code', width: 90 },
-  { title: 'Currency', key: 'currency', width: 80 },
-  { title: 'Type', key: 'jr_invoicetype', width: 80 },
-  { title: 'Amount', key: 'amount', width: 100 },
-  { title: 'Home Amt', key: 'os_amount', width: 100 },
-  { title: 'Exch Rate', key: 'exchange_rate', width: 90 },
+  { title: 'Description', key: 'jr_desc', width: 200, ellipsis: { tooltip: true } },
+  { title: 'Branch', key: 'branch_code', width: 80 },
+  { title: 'Creditor', key: 'party_code', width: 120, ellipsis: { tooltip: true } },
+  { title: 'Currency', key: 'currency', width: 90 },
+  { title: 'Unit Price', key: 'unit_price', width: 100 },
+  { title: 'Unit', key: 'unit', width: 90, render: () => '' },
+  { title: 'Qty', key: 'qty', width: 70 },
   {
-    title: 'Tax',
-    key: 'tax',
+    title: 'Amount',
+    key: 'amount',
     width: 100,
-    render: row => getBillingTaxCodeLabel(row.wht_rate || row.gst_rate)
+    render: row => renderText(formatBillingAmount(row.amount))
+  },
+  {
+    title: 'Tax Code',
+    key: 'tax',
+    width: 120,
+    render: row => getBillingTaxCodeLabel(row.gst_rate || row.wht_rate || row.vat_class)
+  },
+  { title: 'Tax Amount', key: 'tax_amount', width: 110, render: () => '' },
+  {
+    title: 'Exchange Rate',
+    key: 'exchange_rate',
+    width: 120
+  },
+  {
+    title: 'Home Amount',
+    key: 'os_amount',
+    width: 120,
+    render: row => renderText(formatBillingAmount(row.os_amount))
   }
 ];
 
@@ -191,11 +274,6 @@ function handleSearchClear() {
   void loadInvoices();
 }
 
-function handleChargeTypeChange() {
-  invoicePage.value = 1;
-  void loadInvoices();
-}
-
 watch(
   jkPk,
   pk => {
@@ -213,7 +291,7 @@ watch(
         :options="chargeTypeOptions"
         style="width: 88px"
         size="small"
-        @update:value="handleChargeTypeChange"
+        disabled
       />
       <NInput
         v-model:value="invoiceSearchNo"
@@ -233,7 +311,7 @@ watch(
       size="small"
       :loading="invoiceLoading"
       :row-key="(row: AccTransactionHeader) => row.ah_pk"
-      :scroll-x="1500"
+      :scroll-x="2100"
       striped
     />
     <div class="mt-12px flex justify-end">
@@ -249,7 +327,7 @@ watch(
       v-model:show="chargeDetailVisible"
       preset="card"
       :title="chargeDetailTitle"
-      style="width: min(960px, 92vw)"
+      style="width: min(1100px, 94vw)"
       :bordered="false"
       :segmented="{ content: true }"
     >
@@ -260,22 +338,11 @@ watch(
           :columns="chargeDetailColumns"
           :data="chargeDetailRows"
           :pagination="false"
-          :scroll-x="1100"
+          :scroll-x="1700"
+          :max-height="420"
           striped
         />
       </NSpin>
     </NModal>
   </div>
 </template>
-
-<style scoped>
-.invoice-no-link {
-  color: var(--primary-color);
-  text-decoration: none;
-  cursor: pointer;
-}
-
-.invoice-no-link:hover {
-  text-decoration: underline;
-}
-</style>
