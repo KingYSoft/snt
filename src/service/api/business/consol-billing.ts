@@ -2,18 +2,68 @@ import { request } from '@/service/request';
 import type {
   AccTransactionHeader,
   BillingChargeLineItem,
-  BillingChargeLineOutput,
   BillingDraftPageOutput,
   QueryChargesByInvoiceOutput
 } from '@/service/api/business/billing';
 
-/** POST /consolidation/billing/charge-line */
+/** POST /consolidation/billing/charge-line — 仅 AP（JobConsolCost） */
 export interface ConsolBillingChargeLineInput {
   jkPk: string;
-  chargeType: string;
+  /** 仅 AP 有数据；其他值返回空 */
+  chargeType?: string;
   skipCount?: number;
   maxResultCount?: number;
   sorting?: string;
+}
+
+/** 子行：按运单分摊的 JobCharge */
+export interface ConsolCostItemDto {
+  e6_pk?: string;
+  jr_pk?: string;
+  jr_jh?: string;
+  js_pk?: string;
+  shipment_no?: string;
+  jr_desc?: string;
+  local_cost_amount?: number;
+  os_cost_amount?: number;
+  currency?: string;
+  ap_line_pk?: string;
+}
+
+/** 主行：合单级 AP 成本行 JobConsolCost */
+export interface ConsolBillingCostLineItem {
+  e6_pk?: string;
+  sequence?: number;
+  e6_ac?: string;
+  charge_code?: string;
+  charge_desc?: string;
+  description?: string;
+  currency?: string;
+  os_cost_amount?: number;
+  os_gst_amount?: number;
+  exchange_rate?: number;
+  local_cost_amount?: number;
+  creditor_oh?: string;
+  creditor_code?: string;
+  creditor_name?: string;
+  cost_reference?: string;
+  invoice_num?: string;
+  invoice_date?: string;
+  apportionment_method?: string;
+  vat_class?: string;
+  payment_date?: string;
+  payment_type?: string;
+  ap_invoice_pk?: string;
+  ap_invoice_no?: string;
+  ap_invoice_date?: string;
+  ap_invoice_is_cancelled?: number | null;
+  draft?: string;
+  cost_items?: ConsolCostItemDto[];
+}
+
+export interface ConsolBillingCostLineOutput {
+  totalCount: number;
+  items: ConsolBillingCostLineItem[];
 }
 
 /** POST /consolidation/billing/draft-page */
@@ -34,10 +84,10 @@ export interface ConsolBillingSummary {
   home_currency?: string;
 }
 
-export type { AccTransactionHeader, BillingChargeLineItem, BillingChargeLineOutput, BillingDraftPageOutput };
+export type { AccTransactionHeader, BillingChargeLineItem, BillingDraftPageOutput };
 
 export async function consolBillingChargeLine(params: ConsolBillingChargeLineInput) {
-  return request<BillingChargeLineOutput>({
+  return request<ConsolBillingCostLineOutput>({
     url: '/consolidation/billing/charge-line',
     method: 'post',
     data: params
