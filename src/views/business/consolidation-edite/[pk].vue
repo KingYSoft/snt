@@ -16,7 +16,6 @@ import TabContainer from '../consolidation/modules/tab-container.vue';
 import TabRouting from '../consolidation/modules/tab-routing.vue';
 import TabBilling from '../consolidation/modules/tab-billing.vue';
 import TabEDocs from '../consolidation/modules/tab-edocs.vue';
-import TabLogs from '../consolidation/modules/tab-logs.vue';
 
 defineOptions({
   name: 'BusinessConsolidationEdite'
@@ -213,10 +212,6 @@ async function handleSave() {
         <NTabPane :name="5" :tab="$t('page.business.consolidation.tab.eDocs')">
           <NSkeleton v-if="skeletonLoading" text :row="6" />
           <TabEDocs v-else :input-data="inputData" />
-        </NTabPane>
-        <NTabPane :name="6" :tab="$t('page.business.consolidation.tab.logs')">
-          <NSkeleton v-if="skeletonLoading" text :row="6" />
-          <TabLogs v-else :input-data="inputData" />
         </NTabPane>
       </NTabs>
     </NCard>
