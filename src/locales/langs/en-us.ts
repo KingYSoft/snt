@@ -371,6 +371,7 @@ const local: App.I18n.Schema = {
           more: 'More',
           clear: 'Clear',
           masterBillNo: 'Master Bill No.',
+          consolidationNo: 'Consolidation No.',
           transportMode: 'Transport Mode',
           consolMode: 'Consol Mode',
           cancelled: 'Cancelled',
