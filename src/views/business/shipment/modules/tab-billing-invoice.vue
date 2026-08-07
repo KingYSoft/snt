@@ -1,7 +1,19 @@
 <script setup lang="ts">
 import { h, ref, watch, computed } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
-import { NDataTable, NButton, NSpace, NPagination, NInput, NSelect, NTag, NModal, NSpin } from 'naive-ui';
+import {
+  NDataTable,
+  NButton,
+  NSpace,
+  NPagination,
+  NInput,
+  NSelect,
+  NTag,
+  NModal,
+  NSpin,
+  NTabs,
+  NTabPane
+} from 'naive-ui';
 import {
   billingDraftPage,
   voidDraftInvoice,
@@ -12,9 +24,16 @@ import {
   type BillingChargeLineItem
 } from '@/service/api/business/billing';
 import { getBillingTaxCodeLabel } from '@/constants/billingTaxCodeItems';
+import { $t } from '@/locales';
+import { resolveBackendFileUrl } from '@/utils/service';
 import { formatInvoiceDate, getInvoiceHeaderStatus } from './shipment-billing-map';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
+
+interface InvoicePdfPreviewItem {
+  invoice_no: string;
+  url: string;
+}
 
 const invoiceList = ref<AccTransactionHeader[]>([]);
 const invoiceLoading = ref(false);
@@ -31,6 +50,10 @@ const chargeDetailVisible = ref(false);
 const chargeDetailLoading = ref(false);
 const chargeDetailInvoiceNo = ref('');
 const chargeDetailRows = ref<BillingChargeLineItem[]>([]);
+
+const pdfPreviewVisible = ref(false);
+const pdfPreviewItems = ref<InvoicePdfPreviewItem[]>([]);
+const pdfPreviewActive = ref('');
 
 const chargeTypeOptions = [
   { label: 'AR', value: 'AR' },
@@ -160,6 +183,11 @@ const displayList = computed(() => {
 
 const chargeDetailTitle = computed(() => `Invoice ${chargeDetailInvoiceNo.value}`);
 
+const activePdfUrl = computed(() => {
+  const hit = pdfPreviewItems.value.find(item => item.invoice_no === pdfPreviewActive.value);
+  return hit?.url || pdfPreviewItems.value[0]?.url || '';
+});
+
 function getSelectedItems() {
   const keySet = new Set(invoiceSelected.value.map(key => String(key).trim()).filter(Boolean));
   return invoiceList.value.filter(item => keySet.has(String(item.ah_pk ?? '').trim()));
@@ -210,7 +238,7 @@ function handleChargeTypeChange() {
 async function handleVoid() {
   const selectedItems = getSelectedItems();
   if (!selectedItems.length) {
-    window.$message?.warning('Please select at least one record.');
+    window.$message?.warning($t('page.business.shipment.billing.selectRecords'));
     return;
   }
 
@@ -240,29 +268,10 @@ async function handleVoid() {
   }
 }
 
-function resolveInvoicePdfUrl(pdfPath: string) {
-  const path = String(pdfPath ?? '').trim();
-  if (!path) return '';
-  if (/^https?:\/\//i.test(path)) return path;
-
-  const appBase = String(import.meta.env.VITE_APP_BASE_API ?? '')
-    .trim()
-    .replace(/\/$/, '');
-  if (appBase) return `${appBase}${path.startsWith('/') ? path : `/${path}`}`;
-
-  const serviceBase = String(import.meta.env.VITE_SERVICE_BASE_URL ?? '')
-    .trim()
-    .replace(/\/apis\/?$/, '')
-    .replace(/\/$/, '');
-  if (serviceBase) return `${serviceBase}${path.startsWith('/') ? path : `/${path}`}`;
-
-  return path.startsWith('/') ? path : `/${path}`;
-}
-
 async function handlePrint() {
   const selectedItems = getSelectedItems();
   if (!selectedItems.length) {
-    window.$message?.warning('Please select at least one record.');
+    window.$message?.warning($t('page.business.shipment.billing.selectRecords'));
     return;
   }
 
@@ -270,7 +279,7 @@ async function handlePrint() {
     ...new Set(selectedItems.map(item => String(item.ah_transactionnum ?? '').trim()).filter(Boolean))
   ];
   if (!invoiceNos.length) {
-    window.$message?.warning('Selected records have no invoice number.');
+    window.$message?.warning($t('page.business.shipment.billing.noInvoiceNo'));
     return;
   }
 
@@ -280,22 +289,33 @@ async function handlePrint() {
       invoice_nos: invoiceNos,
       ledger_type: invoiceChargeType.value
     });
-    const results = (data?.results ?? []).filter(item => String(item.pdf_path ?? '').trim());
-    if (!results.length) {
-      window.$message?.warning('No PDF generated.');
+    const items = (data?.results ?? [])
+      .map(item => {
+        const invoice_no = String(item.invoice_no ?? '').trim();
+        const url = resolveBackendFileUrl(String(item.pdf_path ?? ''));
+        return invoice_no && url ? { invoice_no, url } : null;
+      })
+      .filter((item): item is InvoicePdfPreviewItem => Boolean(item));
+
+    if (!items.length) {
+      window.$message?.warning($t('page.business.shipment.billing.noPdfGenerated'));
       return;
     }
 
-    results.forEach(item => {
-      const url = resolveInvoicePdfUrl(String(item.pdf_path));
-      if (url) window.open(url, '_blank');
-    });
-    window.$message?.success('PDF generated.');
+    pdfPreviewItems.value = items;
+    pdfPreviewActive.value = items[0].invoice_no;
+    pdfPreviewVisible.value = true;
   } catch {
-    window.$message?.error('Print failed');
+    window.$message?.error($t('page.business.shipment.billing.printFailed'));
   } finally {
     printing.value = false;
   }
+}
+
+function closePdfPreview() {
+  pdfPreviewVisible.value = false;
+  pdfPreviewItems.value = [];
+  pdfPreviewActive.value = '';
 }
 
 watch(
@@ -330,7 +350,9 @@ defineExpose({ loadInvoices });
       <NButton type="primary" size="small" @click="handleSearch">Search</NButton>
       <NButton size="small" :loading="invoiceLoading" @click="loadInvoices">Refresh</NButton>
       <NButton type="error" size="small" ghost :loading="voiding" @click="handleVoid">Void</NButton>
-      <NButton size="small" :loading="printing" @click="handlePrint">Print</NButton>
+      <NButton size="small" :loading="printing" @click="handlePrint">
+        {{ $t('page.business.shipment.billing.print') }}
+      </NButton>
     </NSpace>
     <NDataTable
       v-model:checked-row-keys="invoiceSelected"
@@ -373,6 +395,31 @@ defineExpose({ loadInvoices });
         />
       </NSpin>
     </NModal>
+
+    <NModal
+      :show="pdfPreviewVisible"
+      preset="card"
+      :title="$t('page.business.shipment.billing.printPreview')"
+      style="width: min(1200px, 94vw)"
+      :bordered="false"
+      :mask-closable="false"
+      @update:show="v => !v && closePdfPreview()"
+    >
+      <template #header-extra>
+        <NButton size="small" @click="closePdfPreview">{{ $t('common.close') }}</NButton>
+      </template>
+
+      <NTabs v-if="pdfPreviewItems.length > 1" v-model:value="pdfPreviewActive" type="line" class="mb-12px">
+        <NTabPane
+          v-for="item in pdfPreviewItems"
+          :key="item.invoice_no"
+          :name="item.invoice_no"
+          :tab="item.invoice_no"
+        />
+      </NTabs>
+
+      <iframe v-if="activePdfUrl" class="invoice-pdf-frame" :src="activePdfUrl" title="Invoice PDF" />
+    </NModal>
   </div>
 </template>
 
@@ -385,5 +432,12 @@ defineExpose({ loadInvoices });
 
 .invoice-no-link:hover {
   text-decoration: underline;
+}
+
+.invoice-pdf-frame {
+  width: 100%;
+  height: min(72vh, 780px);
+  border: none;
+  background: #f5f5f5;
 }
 </style>

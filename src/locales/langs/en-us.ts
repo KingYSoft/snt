@@ -655,7 +655,13 @@ const local: App.I18n.Schema = {
           copySuccess: 'Successfully copied records.',
           deleteSuccess: 'Successfully deleted the record.',
           draftSuccess: 'Successfully generated draft.',
-          postSuccess: 'Successfully posted charge line(s).'
+          postSuccess: 'Successfully posted charge line(s).',
+          print: 'Print',
+          printSuccess: 'PDF generated.',
+          printFailed: 'Print failed',
+          noPdfGenerated: 'No PDF generated.',
+          noInvoiceNo: 'Selected records have no invoice number.',
+          printPreview: 'Invoice Print'
         },
         address: {
           newShipper: 'New Shipper',
