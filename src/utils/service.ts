@@ -73,3 +73,30 @@ function createProxyPattern(key?: App.Service.OtherBaseURLKey) {
 
   return `/proxy-${key}`;
 }
+
+/**
+ * Backend base for static files (PDF etc.).
+ * Uses `VITE_SERVICE_BASE_URL` as-is (typically `http://host:port/apis`).
+ */
+export function getBackendOrigin(env: Env.ImportMeta = import.meta.env) {
+  return String(env.VITE_SERVICE_BASE_URL ?? '')
+    .trim()
+    .replace(/\/$/, '');
+}
+
+/**
+ * Join a backend-relative file path (e.g. `/files/pdf/...`) with the configured backend base.
+ * Example: `http://host:port/apis` + `/files/pdf/xxx.pdf`
+ * → `http://host:port/apis/files/pdf/xxx.pdf`
+ */
+export function resolveBackendFileUrl(filePath: string, env: Env.ImportMeta = import.meta.env) {
+  const path = String(filePath ?? '').trim();
+  if (!path) return '';
+  if (/^https?:\/\//i.test(path)) return path;
+
+  const normalizedPath = path.startsWith('/') ? path : `/${path}`;
+  const base = getBackendOrigin(env);
+  if (!base) return normalizedPath;
+
+  return `${base}${normalizedPath}`;
+}

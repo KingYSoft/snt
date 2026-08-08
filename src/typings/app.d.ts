@@ -1022,6 +1022,12 @@ declare namespace App {
               deleteSuccess: string;
               draftSuccess: string;
               postSuccess: string;
+              print: string;
+              printSuccess: string;
+              printFailed: string;
+              noPdfGenerated: string;
+              noInvoiceNo: string;
+              printPreview: string;
             };
             address: {
               newShipper: string;
