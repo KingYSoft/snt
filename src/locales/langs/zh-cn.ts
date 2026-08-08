@@ -651,7 +651,13 @@ const local: App.I18n.Schema = {
           copySuccess: '成功复制记录。',
           deleteSuccess: '成功删除记录。',
           draftSuccess: '成功生成草稿。',
-          postSuccess: '成功过账费用行。'
+          postSuccess: '成功过账费用行。',
+          print: '打印',
+          printSuccess: 'PDF 已生成。',
+          printFailed: '打印失败',
+          noPdfGenerated: '未生成 PDF。',
+          noInvoiceNo: '所选记录没有发票号。',
+          printPreview: '发票打印'
         },
         address: {
           newShipper: '新建发货人',
