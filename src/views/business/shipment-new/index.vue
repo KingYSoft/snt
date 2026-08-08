@@ -11,7 +11,6 @@ import TabAdditionalDetails from '../shipment/modules/tab-additional-details.vue
 import TabRouting from '../shipment/modules/tab-routing.vue';
 import TabBilling from '../shipment/modules/tab-billing.vue';
 import TabEDocs from '../shipment/modules/tab-edocs.vue';
-import TabLogs from '../shipment/modules/tab-logs.vue';
 
 const router = useRouter();
 
@@ -145,10 +144,6 @@ const saveEDocsTab = async () => {
   window.$message?.info('eDocs save is not implemented yet.');
 };
 
-const saveLogsTab = async () => {
-  window.$message?.info('Logs are read-only.');
-};
-
 const onSaveHandle = async () => {
   switch (activedTab.value) {
     case 1:
@@ -165,9 +160,6 @@ const onSaveHandle = async () => {
       break;
     case 5:
       await saveEDocsTab();
-      break;
-    case 6:
-      await saveLogsTab();
       break;
     default:
       break;
@@ -197,9 +189,12 @@ const handleBack = () => {
       <template #header-extra>
         <div class="flex gap-2">
           <NButton @click.stop="handleBack">{{ $t('common.backToHome') }}</NButton>
+          <!--
+ Save temporarily hidden
           <NButton type="primary" :disabled="cardLoading" @click.stop="onSaveHandle">
             {{ $t('common.save') }}
           </NButton>
+          -->
         </div>
       </template>
 
@@ -224,9 +219,6 @@ const handleBack = () => {
         </NTabPane>
         <NTabPane :name="5" :tab="$t('page.business.shipment.tab.eDocs')">
           <TabEDocs :input-data="inputData" />
-        </NTabPane>
-        <NTabPane :name="6" :tab="$t('page.business.shipment.tab.logs')">
-          <TabLogs :input-data="inputData" />
         </NTabPane>
       </NTabs>
     </NCard>
