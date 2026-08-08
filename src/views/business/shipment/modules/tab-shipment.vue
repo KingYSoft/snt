@@ -1259,6 +1259,9 @@ const addrDialogTitle = computed(() => {
             <NFormItemGi :span="24" label="DOC">
               <NInput :value="inputData.shp_doc_rep" @update:value="(v: string) => (inputData.shp_doc_rep = v)" />
             </NFormItemGi>
+            <NFormItemGi :span="24" label="PRICING">
+              <NInput :value="inputData.shp_pricing" @update:value="(v: string) => (inputData.shp_pricing = v)" />
+            </NFormItemGi>
           </NGrid>
         </NGi>
       </NGrid>
@@ -1269,9 +1272,12 @@ const addrDialogTitle = computed(() => {
           (inputData.shp_packing_mode || inputData.shp_container_type) === 'FCL'
         "
       >
+        <!--
+ Container add temporarily hidden
         <div class="mb-8px">
           <NButton type="primary" size="small" @click="addContainer">Container</NButton>
         </div>
+        -->
         <NDataTable
           empty-padding="8px 0 "
           :columns="containerColumns"

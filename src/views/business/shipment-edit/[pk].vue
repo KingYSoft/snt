@@ -17,7 +17,6 @@ import TabAdditionalDetails from '../shipment/modules/tab-additional-details.vue
 import TabRouting from '../shipment/modules/tab-routing.vue';
 import TabBilling from '../shipment/modules/tab-billing.vue';
 import TabEDocs from '../shipment/modules/tab-edocs.vue';
-import TabLogs from '../shipment/modules/tab-logs.vue';
 
 const router = useRouter();
 const route = useRoute();
@@ -389,8 +388,6 @@ const queryData = async () => {
           shp_split_switch_shipment: data.js_js_splitswitchshipment || '',
           shp_is_split_shipment: data.js_issplitshipment || 0,
           shp_one_time_quote: data.js_th_onetimequote || '',
-          shp_carrier_contract_number: getCustomValueData(customValues, 'Contract No.'),
-          shp_contact_no: getCustomValueData(customValues, 'Contract No.'),
           shp_preferred_carrier: data.js_oa_bookedshippinglineaddress || '',
           shp_carrier: data.js_oa_bookedshippinglineaddress || '',
           shp_booking_allocation_line: data.js_rca_bookingallocationline || '',
@@ -413,11 +410,21 @@ const queryData = async () => {
             toNumber(data.js_actualweight, 0),
           shp_vessel: '',
           shp_voyage: '',
-          // custom_values → UI fields (match xV_Name)
+          // custom_values → UI fields (exact xV_Name match only)
           shp_controlling_customer: getCustomValueData(customValues, 'Controlling Customer Full Name'),
+          shp_carrier_contract_number: getCustomValueData(customValues, 'Contract No.'),
+          shp_contact_no: getCustomValueData(customValues, 'Contract No.'),
+          shp_entrusting_party: getCustomValueData(customValues, 'ENTRUSTING PARTY'),
+          shp_reject_release_reason: getCustomValueData(customValues, 'Reject Release Reasons'),
           shp_job_rep_cs_name: getCustomValueData(customValues, 'Customer Service'),
+          shp_cs_email: getCustomValueData(customValues, 'Customer Service Email'),
+          shp_op_at_pol: getCustomValueData(customValues, 'OP AT POL'),
+          shp_op_at_pod: getCustomValueData(customValues, 'OP AT POD'),
           shp_sea_pricing: getCustomValueData(customValues, 'SEA PRICING'),
           shp_op_at_1st_booking_party: getCustomValueData(customValues, 'OP AT 1ST BOOKING PARTY'),
+          shp_op_at_2nd_booking_party: getCustomValueData(customValues, 'OP AT 2ND BOOKING PARTY'),
+          shp_doc_rep: getCustomValueData(customValues, 'DOC'),
+          shp_pricing: getCustomValueData(customValues, 'PRICING'),
           custom_values: customValues,
           // Address objects
           shipper: data.shipper ?? {},
@@ -538,10 +545,6 @@ const saveEDocsTab = async () => {
   window.$message?.info('eDocs save is not implemented yet.');
 };
 
-const saveLogsTab = async () => {
-  window.$message?.info('Logs are read-only.');
-};
-
 const onSaveHandle = async () => {
   // Get formRef from TabShipment component
   const shipmentComp = document.querySelector('[data-shipment-tab]');
@@ -564,9 +567,6 @@ const onSaveHandle = async () => {
       break;
     case 5:
       await saveEDocsTab();
-      break;
-    case 6:
-      await saveLogsTab();
       break;
     default:
       break;
@@ -615,11 +615,14 @@ const handlePrint = async (payload?: { url: string; urls: string[] }) => {
 <template>
   <div class="p-16px">
     <NCard :title="tabTitle">
+      <!--
+ Save temporarily hidden
       <template #header-extra>
         <NButton type="primary" :loading="cardLoading" :disabled="cardLoading" @click.stop="onSaveHandle">
           {{ $t('common.save') }}
         </NButton>
       </template>
+      -->
 
       <NTabs v-model:value="activedTab" type="line" @update:value="handleTabChange">
         <NTabPane :name="1" :tab="$t('page.business.shipment.tab.shipment')">
@@ -653,10 +656,6 @@ const handlePrint = async (payload?: { url: string; urls: string[] }) => {
         <NTabPane :name="5" :tab="$t('page.business.shipment.tab.eDocs')">
           <NSkeleton v-if="skeletonLoading" text :row="5" />
           <TabEDocs v-else :input-data="inputData" />
-        </NTabPane>
-        <NTabPane :name="6" :tab="$t('page.business.shipment.tab.logs')">
-          <NSkeleton v-if="skeletonLoading" text :row="5" />
-          <TabLogs v-else :input-data="inputData" />
         </NTabPane>
       </NTabs>
     </NCard>

@@ -15,21 +15,9 @@ export const packTypeOptions = [
 ];
 
 // --- Container Table ---
-export function createContainerColumns(removeFn: (index: number) => void) {
+export function createContainerColumns(_removeFn: (index: number) => void) {
   return [
-    {
-      title: '',
-      key: 'actions',
-      width: 50,
-      align: 'center' as const,
-      render(_: any, index: number) {
-        return h(
-          NButton,
-          { text: true, type: 'error', size: 'small', onClick: () => removeFn(index) },
-          { default: () => 'Del' }
-        );
-      }
-    },
+    // Del temporarily hidden
     {
       title: 'Container Type',
       key: 'ctr_type',
