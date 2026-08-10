@@ -38,6 +38,7 @@ export interface ConsolBillingCostLineItem {
   charge_code?: string;
   charge_desc?: string;
   description?: string;
+  display_description?: string;
   currency?: string;
   os_cost_amount?: number;
   os_gst_amount?: number;
@@ -51,6 +52,7 @@ export interface ConsolBillingCostLineItem {
   invoice_date?: string;
   apportionment_method?: string;
   vat_class?: string;
+  tax_code?: string;
   payment_date?: string;
   payment_type?: string;
   ap_invoice_pk?: string;
@@ -58,6 +60,12 @@ export interface ConsolBillingCostLineItem {
   ap_invoice_date?: string;
   ap_invoice_is_cancelled?: number | null;
   draft?: string;
+  trans_no?: string;
+  branch_code?: string;
+  branch_name?: string;
+  unit_price?: number | string;
+  unit?: string;
+  qty?: number | string;
   cost_items?: ConsolCostItemDto[];
 }
 

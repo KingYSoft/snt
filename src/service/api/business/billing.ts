@@ -22,6 +22,7 @@ export interface BillingChargeLineItem {
   os_amount: number;
   qty?: number;
   unit_price?: number;
+  unit?: string;
   currency: string;
   party_oh: string;
   party_code?: string;
@@ -93,6 +94,8 @@ export interface AccTransactionHeader {
   ah_invoicedate?: string;
   ah_duedate?: string;
   ah_invoiceamount?: number;
+  amount_tax_incl?: number;
+  amount_tax_excl?: number;
   ah_gstamount?: number;
   ah_rx_nktransactioncurrency?: string;
   ah_postdate?: string;
@@ -102,6 +105,7 @@ export interface AccTransactionHeader {
   ah_outstandingamount?: number;
   ah_systemcreatebranch?: string;
   ah_systemcreatedepartment?: string;
+  dept_code?: string;
   ah_systemlastedituser?: string;
   ah_systemlastedittimeutc?: string;
   ah_invoiceapproved?: number;
@@ -244,6 +248,7 @@ export interface AccTransactionLine {
   al_desc?: string;
   al_lineamount?: number;
   al_osamount?: number;
+  al_gstvat?: number;
   al_rx_nktransactioncurrency?: string;
   al_exchangerate?: number;
   [key: string]: unknown;
