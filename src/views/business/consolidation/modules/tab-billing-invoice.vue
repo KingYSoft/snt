@@ -25,7 +25,11 @@ const invoiceChargeType = ref<'AP'>('AP');
 const chargeDetailVisible = ref(false);
 const chargeDetailLoading = ref(false);
 const chargeDetailInvoiceNo = ref('');
-const chargeDetailRows = ref<BillingChargeLineItem[]>([]);
+interface ChargeDetailRow extends BillingChargeLineItem {
+  tax_amount?: number | string;
+}
+
+const chargeDetailRows = ref<ChargeDetailRow[]>([]);
 
 const chargeTypeOptions = [{ label: 'AP', value: 'AP' }];
 
@@ -58,7 +62,15 @@ async function openChargeDetail(invoiceNo?: string | null) {
 
   try {
     const { data } = await consolBillingChargesByInvoice(no);
-    chargeDetailRows.value = data?.charges ?? [];
+    const lines = data?.lines ?? [];
+    const lineByPk = new Map(lines.map(line => [String(line.al_pk ?? ''), line]));
+    chargeDetailRows.value = (data?.charges ?? []).map((charge, index) => {
+      const line = (charge.line_pk && lineByPk.get(String(charge.line_pk))) || lines[index];
+      return {
+        ...charge,
+        tax_amount: line?.al_gstvat
+      };
+    });
   } catch {
     window.$message?.error('Failed to load invoice charges.');
     chargeDetailRows.value = [];
@@ -142,19 +154,19 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
   { title: 'Currency', key: 'ah_rx_nktransactioncurrency', width: 90 },
   {
     title: 'Invoice Amount (Tax Incl.)',
-    key: 'ah_invoiceamount',
+    key: 'amount_tax_incl',
     width: 200,
     minWidth: 200,
     align: 'right',
-    render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.ah_invoiceamount))
+    render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.amount_tax_incl))
   },
   {
     title: 'Invoice Amount (Tax Excl.)',
-    key: 'inv_amt_tax_excl',
+    key: 'amount_tax_excl',
     width: 200,
     minWidth: 200,
     align: 'right',
-    render: () => ''
+    render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.amount_tax_excl))
   },
   {
     title: 'Tax Amount',
@@ -183,22 +195,26 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
   },
   {
     title: 'Department',
-    key: 'ah_systemcreatedepartment',
+    key: 'dept_code',
     width: 110,
     ellipsis: { tooltip: true }
   }
 ]);
 
-/** Detail modal headers aligned with first-cargo AP charge edit columns (query fields only) */
-const chargeDetailColumns: DataTableColumns<BillingChargeLineItem> = [
-  { title: 'Sequence', key: 'sequence', width: 80, render: () => '' },
+/** Detail modal: Charges[] + Lines[].al_gstvat for Tax Amount */
+const chargeDetailColumns: DataTableColumns<ChargeDetailRow> = [
   { title: 'Charge Code', key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
   { title: 'Description', key: 'jr_desc', width: 200, ellipsis: { tooltip: true } },
   { title: 'Branch', key: 'branch_code', width: 80 },
   { title: 'Creditor', key: 'party_code', width: 120, ellipsis: { tooltip: true } },
   { title: 'Currency', key: 'currency', width: 90 },
-  { title: 'Unit Price', key: 'unit_price', width: 100 },
-  { title: 'Unit', key: 'unit', width: 90, render: () => '' },
+  {
+    title: 'Unit Price',
+    key: 'unit_price',
+    width: 100,
+    render: row => renderText(formatBillingAmount(row.unit_price))
+  },
+  { title: 'Unit', key: 'unit', width: 90 },
   { title: 'Qty', key: 'qty', width: 70 },
   {
     title: 'Amount',
@@ -212,7 +228,12 @@ const chargeDetailColumns: DataTableColumns<BillingChargeLineItem> = [
     width: 120,
     render: row => getBillingTaxCodeLabel(row.gst_rate || row.wht_rate || row.vat_class)
   },
-  { title: 'Tax Amount', key: 'tax_amount', width: 110, render: () => '' },
+  {
+    title: 'Tax Amount',
+    key: 'tax_amount',
+    width: 110,
+    render: row => renderText(formatBillingAmount(row.tax_amount))
+  },
   {
     title: 'Exchange Rate',
     key: 'exchange_rate',

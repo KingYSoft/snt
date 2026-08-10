@@ -7,14 +7,14 @@ import { $t } from '@/locales';
 const props = defineProps<{ inputData: Record<string, any> }>();
 
 const containerColumns: DataTableColumns<any> = [
-  { title: $t('page.business.consolidation.container.containerType'), key: 'jc_f3_nkpacktype', minWidth: 120 },
+  { title: $t('page.business.consolidation.container.containerType'), key: 'container_type_code', minWidth: 120 },
   { title: $t('page.business.consolidation.container.containerNo'), key: 'jc_containernum', minWidth: 140 },
   { title: $t('page.business.consolidation.container.sealNo'), key: 'jc_sealnum', minWidth: 120 },
   { title: $t('page.business.consolidation.container.grossWeight'), key: 'jc_grossweight', minWidth: 120 },
-  { title: $t('page.business.consolidation.container.cbm'), key: 'pac_actual_volume', minWidth: 100 },
-  { title: $t('page.business.consolidation.container.packages'), key: 'pac_package_count', minWidth: 100 },
-  { title: $t('page.business.consolidation.container.packType'), key: 'pac_pack_type', minWidth: 100 },
-  { title: $t('page.business.consolidation.container.description'), key: 'pac_description', minWidth: 160 }
+  { title: $t('page.business.consolidation.container.cbm'), key: 'total_volume', minWidth: 100 },
+  { title: $t('page.business.consolidation.container.packages'), key: 'pack_count', minWidth: 100 },
+  { title: $t('page.business.consolidation.container.packType'), key: 'pack_type', minWidth: 100 },
+  { title: $t('page.business.consolidation.container.description'), key: 'goods_description', minWidth: 160 }
 ];
 
 const containerList = computed<any[]>(() => props.inputData.containers || []);

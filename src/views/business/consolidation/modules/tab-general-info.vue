@@ -211,8 +211,8 @@ const shipmentColumns: DataTableColumns<any> = [
   { title: 'Destination', key: 'js_rl_nkdestination', minWidth: 100 },
   { title: 'House Bill', key: 'js_housebill', minWidth: 120 },
   { title: 'Packages', key: 'js_outerpacks', minWidth: 80 },
-  { title: 'Shipper', key: 'shipperName', minWidth: 140 },
-  { title: 'Consignee', key: 'consigneeName', minWidth: 140 },
+  { title: 'Shipper', key: 'shipper_name', minWidth: 140 },
+  { title: 'Consignee', key: 'consignee_name', minWidth: 140 },
   { title: 'Gross Weight', key: 'js_actualweight', minWidth: 100 }
 ];
 
@@ -372,10 +372,10 @@ defineExpose({
             <NGrid :cols="2" :x-gap="12">
               <NFormItemGi label="Name">
                 <NInput
-                  :value="inputData.local_agent?.add_address_name"
+                  :value="inputData.local_agent?.name"
                   @update:value="
                     (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.add_address_name = v;
+                      if (inputData.local_agent) inputData.local_agent.name = v;
                     }
                   "
                 />
