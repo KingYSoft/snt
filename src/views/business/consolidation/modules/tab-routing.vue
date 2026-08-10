@@ -13,7 +13,7 @@ function formatRoutingDate(value: unknown) {
 }
 
 const routingColumns: DataTableColumns<any> = [
-  { title: $t('page.business.consolidation.routing.consolidationNumber'), key: 'jk_uniqueconsignref', minWidth: 160 },
+  { title: $t('page.business.consolidation.routing.consolidationNumber'), key: 'consol_no', minWidth: 160 },
   { title: $t('page.business.consolidation.routing.routeType'), key: 'jw_transporttype', minWidth: 120 },
   {
     title: $t('page.business.consolidation.routing.vesselName'),
@@ -74,7 +74,7 @@ const routingColumns: DataTableColumns<any> = [
 const routingList = computed<any[]>(() => props.inputData.transport_list || []);
 
 function getRoutingRowKey(row: any) {
-  return row.pk ?? row.id ?? row.jk_uniqueconsignref ?? row.jw_voyageflight ?? JSON.stringify(row);
+  return row.pk ?? row.id ?? row.consol_no ?? row.jw_voyageflight ?? JSON.stringify(row);
 }
 </script>
 
