@@ -43,17 +43,17 @@ interface ConsolShipmentLineRow {
   id: string;
   Shipment_No: string;
   Description: string;
-  Container_Count: string;
-  Chargeable_Weight: string;
+  Container_Count: string | number;
+  Chargeable_Weight: string | number;
   GW: string;
   CBM: string;
   Currency: string;
-  Unit_Price: string;
+  Unit_Price: string | number;
   Unit: string;
-  Qty: string;
+  Qty: string | number;
   Amount: string | number;
   Tax_Code: string;
-  Tax_Amount: string;
+  Tax_Amount: string | number;
   Home_Amount: string | number;
 }
 
@@ -71,23 +71,30 @@ const summary = ref<ConsolBillingSummary>({
 const jkPk = computed(() => String(props.inputData.jk_pk || props.inputData.pk || '').trim());
 const activeRow = computed(() => apRows.value.find(r => r.id === activeRowId.value) ?? null);
 
+function formatWithUnit(value: unknown, unit?: string | null) {
+  if (value == null || value === '') return '';
+  const text = String(value);
+  const u = String(unit ?? '').trim();
+  return u ? `${text} ${u}` : text;
+}
+
 const activeShipmentLines = computed<ConsolShipmentLineRow[]>(() => {
   const items = activeRow.value?.cost_items ?? [];
   return items.map((line, index) => ({
     id: String(line.jr_pk || line.js_pk || index),
     Shipment_No: line.shipment_no || '',
     Description: line.jr_desc || '',
-    Container_Count: '',
-    Chargeable_Weight: '',
-    GW: '',
-    CBM: '',
+    Container_Count: line.container_count ?? '',
+    Chargeable_Weight: line.chargeable_weight ?? '',
+    GW: formatWithUnit(line.gross_weight, line.gross_weight_unit),
+    CBM: formatWithUnit(line.cbm, line.cbm_unit),
     Currency: line.currency || '',
-    Unit_Price: '',
-    Unit: '',
-    Qty: '',
+    Unit_Price: line.unit_price ?? '',
+    Unit: line.unit || '',
+    Qty: line.qty ?? '',
     Amount: line.os_cost_amount ?? '',
-    Tax_Code: '',
-    Tax_Amount: '',
+    Tax_Code: line.tax_desc || line.tax_code || '',
+    Tax_Amount: line.tax_amount ?? '',
     Home_Amount: line.local_cost_amount ?? ''
   }));
 });
@@ -228,7 +235,12 @@ const shipmentLineColumns: DataTableColumns<ConsolShipmentLineRow> = [
   { title: 'Gross Weight', key: 'GW', width: 120 },
   { title: 'CBM', key: 'CBM', width: 80 },
   { title: 'Currency', key: 'Currency', width: 90 },
-  { title: 'Unit Price', key: 'Unit_Price', width: 100 },
+  {
+    title: 'Unit Price',
+    key: 'Unit_Price',
+    width: 100,
+    render: row => renderText(formatBillingAmount(row.Unit_Price))
+  },
   { title: 'Unit', key: 'Unit', width: 90 },
   { title: 'Qty', key: 'Qty', width: 80 },
   {
@@ -238,7 +250,12 @@ const shipmentLineColumns: DataTableColumns<ConsolShipmentLineRow> = [
     render: row => renderText(formatBillingAmount(row.Amount))
   },
   { title: 'Tax Code', key: 'Tax_Code', width: 120 },
-  { title: 'Tax Amount', key: 'Tax_Amount', width: 110 },
+  {
+    title: 'Tax Amount',
+    key: 'Tax_Amount',
+    width: 110,
+    render: row => renderText(formatBillingAmount(row.Tax_Amount))
+  },
   {
     title: 'Home Amount',
     key: 'Home_Amount',

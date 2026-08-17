@@ -28,6 +28,18 @@ export interface ConsolCostItemDto {
   os_cost_amount?: number;
   currency?: string;
   ap_line_pk?: string;
+  container_count?: number | string;
+  gross_weight?: number | string;
+  gross_weight_unit?: string;
+  cbm?: number | string;
+  cbm_unit?: string;
+  chargeable_weight?: number | string;
+  unit_price?: number | string;
+  unit?: string;
+  qty?: number | string;
+  tax_code?: string;
+  tax_desc?: string;
+  tax_amount?: number | string;
 }
 
 /** 主行：合单级 AP 成本行 JobConsolCost */
