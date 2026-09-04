@@ -30,7 +30,7 @@ function shipmentRowKey(row: ShipmentListItem) {
   return `__shipment_${String(row.js_pk ?? '')}_${String(row.js_uniqueconsignref ?? '')}`.replace(/_{2,}/g, '_');
 }
 
-// --- ETD date range ---
+// --- ETD date range（与应收应付一致：起止两个日期；默认当年 3.1–3.31） ---
 function formatDate(date: Date): string {
   const year = date.getFullYear();
   const month = String(date.getMonth() + 1).padStart(2, '0');
@@ -38,22 +38,16 @@ function formatDate(date: Date): string {
   return `${year}-${month}-${day}`;
 }
 
-function defaultEtdRange(): [number, number] {
-  const end = new Date();
-  const start = new Date(end);
-  start.setMonth(start.getMonth() - 1);
-  return [start.getTime(), end.getTime()];
-}
-
-const etdRange = ref<[number, number]>(defaultEtdRange());
-
-function etdRangeToStr(): { start: string; end: string } {
-  if (!etdRange.value) return { start: '', end: '' };
+function defaultEtdDates() {
+  const year = new Date().getFullYear();
   return {
-    start: formatDate(new Date(etdRange.value[0])),
-    end: formatDate(new Date(etdRange.value[1]))
+    start: formatDate(new Date(year, 2, 1)),
+    end: formatDate(new Date(year, 2, 31))
   };
 }
+
+const etdStart = ref<string | null>(defaultEtdDates().start);
+const etdEnd = ref<string | null>(defaultEtdDates().end);
 
 // --- Search state ---
 const searchKey = ref('js_uniqueconsignref');
@@ -90,8 +84,11 @@ const pageSizeRef = ref(20);
 
 function buildFilters() {
   const filters: Array<any> = [];
-  const { start, end } = etdRangeToStr();
-  filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
+  const start = String(etdStart.value ?? '').trim();
+  const end = String(etdEnd.value ?? '').trim();
+  if (start && end) {
+    filters.push({ key: 'js_e_dep', op: 'between', val: '', start, end });
+  }
   if (searchVal.value) {
     filters.push({
       key: searchKey.value,
@@ -252,7 +249,9 @@ function handleSearch() {
 function handleReset() {
   searchVal.value = '';
   searchOp.value = 'Contain';
-  etdRange.value = defaultEtdRange();
+  const dates = defaultEtdDates();
+  etdStart.value = dates.start;
+  etdEnd.value = dates.end;
   checkedRowKeys.value = [];
   selectedRowsById.value = new Map();
   getDataByPage(1);
@@ -388,13 +387,24 @@ function handleBatchExport() {
   <div class="h-full flex-col-stretch gap-16px overflow-hidden">
     <NCard :bordered="false" class="flex-shrink-0">
       <NSpace align="center" :wrap="false">
-        <NDatePicker
-          v-model:value="etdRange"
-          type="daterange"
-          clearable
-          :placeholder="$t('page.business.shipment.table.etd')"
-          style="width: 260px"
-        />
+        <div class="flex items-center gap-8px">
+          <span class="shrink-0 text-14px">{{ $t('page.business.shipment.table.etd') }}</span>
+          <NDatePicker
+            v-model:formatted-value="etdStart"
+            type="date"
+            value-format="yyyy-MM-dd"
+            clearable
+            style="width: 140px"
+          />
+          <span class="text-14px text-#999">-</span>
+          <NDatePicker
+            v-model:formatted-value="etdEnd"
+            type="date"
+            value-format="yyyy-MM-dd"
+            clearable
+            style="width: 140px"
+          />
+        </div>
         <NSelect v-model:value="searchKey" :options="searchKeyOptions" style="width: 150px" />
         <NSelect v-model:value="searchOp" :options="opOptions" style="width: 120px" />
         <NInput
