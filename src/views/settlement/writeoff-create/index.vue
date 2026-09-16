@@ -378,9 +378,9 @@ const summaryTotalHomeAmount = computed(() =>
   summaryRows.value.reduce((a: number, r: any) => a + (Number(r.homeAmount) || 0), 0)
 );
 watch(
-  () => [selectedOutstandingTotal.value, form.value.settleAmount],
-  () => {
-    form.value.balance = (Number(form.value.settleAmount) || 0) - selectedOutstandingTotal.value;
+  () => selectedOutstandingTotal.value,
+  outstandingTotal => {
+    form.value.balance = Number(outstandingTotal) || 0;
   },
   { immediate: true }
 );
@@ -393,45 +393,48 @@ watch(lineLedgerScope, () => {
 });
 
 // Line columns
-const lineColumns = [
-  { type: 'selection' as const },
+const lineColumns = computed(() => [
+  {
+    type: 'selection' as const,
+    disabled: () => editorLocked.value
+  },
   { key: 'index', title: '#', width: 50, align: 'center' as const, render: (_: any, i: number) => i + 1 },
-  { key: 'ledger', title: 'Ledger', width: 80, align: 'center' as const },
-  { key: 'job_no', title: 'Job No.', width: 120, ellipsis: { tooltip: true } },
-  { key: 'tax_invoice_no', title: 'Tax Invoice No.', width: 140, ellipsis: { tooltip: true } },
-  { key: 'invoice_number', title: 'Invoice Number', width: 140, ellipsis: { tooltip: true } },
-  { key: 'billing_date', title: 'Billing Date', width: 120 },
-  { key: 'charge_desc', title: 'Charge Desc.', width: 140, ellipsis: { tooltip: true } },
+  { key: 'ledger', title: te('ledger'), width: 80, align: 'center' as const },
+  { key: 'job_no', title: te('jobNo'), width: 120, ellipsis: { tooltip: true } },
+  { key: 'tax_invoice_no', title: te('taxInvoiceNo'), width: 140, ellipsis: { tooltip: true } },
+  { key: 'invoice_number', title: te('invoiceNumber'), width: 140, ellipsis: { tooltip: true } },
+  { key: 'billing_date', title: te('billingDate'), width: 120 },
+  { key: 'charge_desc', title: te('chargeDesc'), width: 140, ellipsis: { tooltip: true } },
   {
     key: 'outstanding',
-    title: 'Outstanding',
+    title: te('outstanding'),
     width: 120,
     align: 'right' as const,
     render: (r: any) => formatNum(r.outstanding)
   },
   {
     key: 'settlement_amount_original',
-    title: 'Settled (Original)',
+    title: te('settlementAmountOriginal'),
     width: 200,
     align: 'right' as const,
     render: (r: any) => formatNum(r.settlement_amount_original)
   },
-  { key: 'currency', title: 'Currency', width: 80, align: 'center' as const },
+  { key: 'currency', title: te('currency'), width: 80, align: 'center' as const },
   {
     key: 'ex_rate',
-    title: 'Ex. Rate',
+    title: te('exRate'),
     width: 100,
     align: 'right' as const,
     render: (r: any) => formatNum(r.ex_rate, 6)
   },
   {
     key: 'settlement_amount_home',
-    title: 'Settled (Home)',
+    title: te('settlementAmountHome'),
     width: 180,
     align: 'right' as const,
     render: (r: any) => formatNum(r.settlement_amount_home)
   }
-];
+]);
 
 // Save
 function toIso(val: string) {

@@ -889,7 +889,16 @@ const local: App.I18n.Schema = {
           currency: 'Currency',
           chargeDescFilter: 'Charge Desc.',
           pleaseSelect: 'Please select',
-          pleaseInput: 'Please input'
+          pleaseInput: 'Please input',
+          ledger: 'Ledger',
+          jobNo: 'Job No.',
+          taxInvoiceNo: 'Tax Invoice No.',
+          invoiceNumber: 'Invoice Number',
+          billingDate: 'Billing Date',
+          chargeDesc: 'Charge Desc.',
+          outstanding: 'Outstanding',
+          settlementAmountOriginal: 'Settlement Amount (Original)',
+          settlementAmountHome: 'Settlement Amount (Home)'
         }
       }
     },
