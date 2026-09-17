@@ -196,13 +196,13 @@ const bankSelectOptions = computed(() => {
   const acc = form.value.bankAccount;
   const base = bankOptions.value;
   if (!acc) return base;
-  const code = String(acc.ab_code ?? '').trim();
-  if (!code) return base;
-  if (base.some(o => o.value === code)) return base;
+  const pk = String(acc.ab_pk ?? '').trim();
+  if (!pk) return base;
+  if (base.some(o => o.value === pk)) return base;
   return [
     {
-      label: String(acc.ab_bankname ?? code),
-      value: code,
+      label: String(acc.ab_bankname ?? pk),
+      value: pk,
       data: acc
     },
     ...base
@@ -215,14 +215,21 @@ async function handleSearchBank(query: string) {
   try {
     const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName });
     const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
-    bankOptions.value = list.map((item, i) => {
-      const code = String(item.ab_code ?? '').trim() || `row-${i}`;
-      return {
-        label: String(item.ab_bankname ?? code),
-        value: code,
-        data: item
-      };
-    });
+    bankOptions.value = list
+      .map((item, i) => {
+        const pk = String(item.ab_pk ?? '').trim();
+        if (!pk) return null;
+        return {
+          label: String(item.ab_bankname ?? item.ab_code ?? pk),
+          value: pk,
+          data: {
+            ab_pk: pk,
+            ab_code: String(item.ab_code ?? '').trim(),
+            ab_bankname: String(item.ab_bankname ?? '')
+          }
+        };
+      })
+      .filter(Boolean) as Array<{ label: string; value: string; data: WriteOffBankRow }>;
   } catch {
     bankOptions.value = [];
   } finally {
@@ -238,7 +245,7 @@ function getBankOptionByValue(value: string) {
   const fromList = bankOptions.value.find(b => b.value === value);
   if (fromList) return fromList;
   const acc = form.value.bankAccount;
-  if (acc && String(acc.ab_code ?? '').trim() === value) {
+  if (acc && String(acc.ab_pk ?? '').trim() === value) {
     return {
       label: String(acc.ab_bankname ?? value),
       value,
@@ -360,6 +367,14 @@ const selectedLines = computed(() => {
 const selectedOutstandingTotal = computed(() =>
   selectedLines.value.reduce((a: number, r: any) => a + (Number(r.outstanding) || 0), 0)
 );
+/** 勾选行结欠本币合计（原币 × 汇率） */
+const selectedOutstandingHomeTotal = computed(() =>
+  selectedLines.value.reduce((a: number, r: any) => {
+    const os = Number(r.outstanding) || 0;
+    const ex = Number(r.ex_rate) || 1;
+    return a + os * ex;
+  }, 0)
+);
 const summaryRows = computed(() => {
   const map = new Map<string, any>();
   for (const row of selectedLines.value as any[]) {
@@ -455,42 +470,48 @@ async function handleSave() {
     window.$message?.warning('Select company.');
     return;
   }
-  if (!form.value.bankAccount) {
+  const bankPk = String(form.value.bankAccount?.ab_pk ?? '').trim();
+  if (!bankPk) {
     window.$message?.warning('Select bank account.');
     return;
   }
-  const amt = Number(form.value.settleAmount) || 0;
-  if (amt <= 0) {
+  /** 结算金额按本币 */
+  const amtHome = Number(form.value.settleAmount) || 0;
+  if (amtHome <= 0) {
     window.$message?.warning('Amount > 0 required.');
     return;
   }
 
-  const sorted = [...selectedLines.value].sort(
-    (a: any, b: any) => (Number(a.outstanding) || 0) - (Number(b.outstanding) || 0)
-  );
-  let rem = amt;
-  const wMap = new Map<number, number>();
+  const sorted = [...selectedLines.value].sort((a: any, b: any) => {
+    const aHome = (Number(a.outstanding) || 0) * (Number(a.ex_rate) || 1);
+    const bHome = (Number(b.outstanding) || 0) * (Number(b.ex_rate) || 1);
+    return aHome - bHome;
+  });
+  let remHome = amtHome;
+  const wHomeMap = new Map<number, number>();
   for (const item of sorted) {
-    const os = Math.max(Number((item as any).outstanding) || 0, 0);
-    const w = Math.min(rem, os);
-    wMap.set(allLines.value.indexOf(item), w);
-    rem -= w;
-    if (rem <= 0) rem = 0;
+    const ex = Number((item as any).ex_rate) || 1;
+    const osHome = Math.max((Number((item as any).outstanding) || 0) * ex, 0);
+    const wHome = Math.min(remHome, osHome);
+    wHomeMap.set(allLines.value.indexOf(item), wHome);
+    remHome -= wHome;
+    if (remHome <= 0) remHome = 0;
   }
   const lines = selectedLines.value.map((row: any) => {
-    const idx = allLines.value.indexOf(row),
-      os = Math.max(Number(row.outstanding) || 0, 0),
-      ex = Number(row.ex_rate) || 1,
-      wo = wMap.get(idx) ?? 0;
+    const idx = allLines.value.indexOf(row);
+    const ex = Number(row.ex_rate) || 1;
+    const osHome = Math.max((Number(row.outstanding) || 0) * ex, 0);
+    const woHome = wHomeMap.get(idx) ?? 0;
+    const remainHome = Math.max(osHome - woHome, 0);
     return {
       tthPk: String(row.tth_pk ?? row.id ?? ''),
       ledger: row.ledger ?? '',
       jobNo: row.job_no ?? '',
       invoiceNumber: row.invoice_number ?? '',
-      writeOffAmountOriginal: wo,
-      writeOffAmountHome: wo * ex,
-      currentOutstandingOriginal: Math.max(os - wo, 0),
-      currentOutstandingHome: Math.max(os - wo, 0) * ex
+      writeOffAmountHome: woHome,
+      writeOffAmountOriginal: ex ? woHome / ex : 0,
+      currentOutstandingHome: remainHome,
+      currentOutstandingOriginal: ex ? remainHome / ex : 0
     };
   });
   saving.value = true;
@@ -501,12 +522,12 @@ async function handleSave() {
       billingParty: billingPartyForSave,
       billingPartyName: form.value.settleCompanyName,
       description: form.value.description,
-      bankAccountId: String(form.value.bankAccount?.ab_code ?? ''),
+      bankAccountId: bankPk,
       bankAccountName: form.value.bankAccountName,
       settleDate: toIso(form.value.settleDate),
       refNo: form.value.refNo,
       chequeNo: form.value.chequeNo,
-      settleAmount: amt,
+      settleAmount: amtHome,
       exRateMode: form.value.exRateMode,
       lines
     });
@@ -619,7 +640,7 @@ void loadCurrencyOptions();
                 <div class="flex items-center gap-8px">
                   <span class="shrink-0 w-80px text-right text-12px">{{ te('bankAccount') }}:</span>
                   <NSelect
-                    :value="form.bankAccount?.ab_code ?? null"
+                    :value="form.bankAccount?.ab_pk ?? null"
                     :options="bankSelectOptions"
                     :loading="bankLoading"
                     filterable
@@ -673,7 +694,7 @@ void loadCurrencyOptions();
                   readonly
                   @click="
                     () => {
-                      if (!editorLocked) form.settleAmount = selectedOutstandingTotal;
+                      if (!editorLocked) form.settleAmount = selectedOutstandingHomeTotal;
                     }
                   "
                 >

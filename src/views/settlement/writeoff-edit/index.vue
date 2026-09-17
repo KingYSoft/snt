@@ -184,13 +184,13 @@ const bankSelectOptions = computed(() => {
   const acc = form.value.bankAccount;
   const base = bankOptions.value;
   if (!acc) return base;
-  const code = String(acc.ab_code ?? '').trim();
-  if (!code) return base;
-  if (base.some(o => o.value === code)) return base;
+  const pk = String(acc.ab_pk ?? '').trim();
+  if (!pk) return base;
+  if (base.some(o => o.value === pk)) return base;
   return [
     {
-      label: String(acc.ab_bankname ?? code),
-      value: code,
+      label: String(acc.ab_bankname ?? pk),
+      value: pk,
       data: acc
     },
     ...base
@@ -203,14 +203,21 @@ async function handleSearchBank(query: string) {
   try {
     const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName });
     const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
-    bankOptions.value = list.map((item, index) => {
-      const code = String(item.ab_code ?? '').trim() || `row-${index}`;
-      return {
-        label: String(item.ab_bankname ?? code),
-        value: code,
-        data: item
-      };
-    });
+    bankOptions.value = list
+      .map(item => {
+        const pk = String(item.ab_pk ?? '').trim();
+        if (!pk) return null;
+        return {
+          label: String(item.ab_bankname ?? item.ab_code ?? pk),
+          value: pk,
+          data: {
+            ab_pk: pk,
+            ab_code: String(item.ab_code ?? '').trim(),
+            ab_bankname: String(item.ab_bankname ?? '')
+          }
+        };
+      })
+      .filter(Boolean) as Array<{ label: string; value: string; data: WriteOffBankRow }>;
   } catch (error) {
     console.error(error);
     bankOptions.value = [];
@@ -227,7 +234,7 @@ function getBankOptionByValue(value: string) {
   const fromList = bankOptions.value.find(b => b.value === value);
   if (fromList) return fromList;
   const acc = form.value.bankAccount;
-  if (acc && String(acc.ab_code ?? '').trim() === value) {
+  if (acc && String(acc.ab_pk ?? '').trim() === value) {
     return {
       label: String(acc.ab_bankname ?? value),
       value,
@@ -453,19 +460,14 @@ onMounted(async () => {
     form.value.matchNumber = String(matchLink.ap_matchgroupnum ?? h.ah_transactionnum ?? '');
 
     const ahOh = String(h.ah_oh ?? h.aH_OH ?? '').trim();
-    const nameFromHeader = String(h.oh_fullname ?? h.oH_FullName ?? h.companyName ?? h.billingPartyName ?? '').trim();
-    const nameFallback = String(h.ah_desc ?? h.ah_jobnumber ?? h.ah_consolidatedinvoiceref ?? '').trim();
-    const legacyBp = String(h.billingParty ?? '').trim();
-    const ohCode = String(
-      h.oH_Code ?? h.oh_code ?? legacyBp ?? h.ah_originaltransactionnum ?? h.ah_jobnumber ?? ahOh
-    ).trim();
+    const ohCode = String(h.oH_Code ?? h.oh_code ?? '').trim();
 
-    form.value.settleCompanyName = nameFromHeader || nameFallback || ohCode;
-    if (ahOh || ohCode || form.value.settleCompanyName) {
+    form.value.settleCompanyName = String(h.oh_fullname ?? '').trim();
+    if (ahOh || form.value.settleCompanyName) {
       form.value.settleCompany = {
-        aH_OH: ahOh || ohCode,
-        oH_FullName: form.value.settleCompanyName || ohCode,
-        oH_Code: ohCode || ahOh
+        aH_OH: ahOh,
+        oH_FullName: form.value.settleCompanyName,
+        oH_Code: ohCode
       };
     } else {
       form.value.settleCompany = null;
@@ -475,8 +477,8 @@ onMounted(async () => {
     form.value.settleAmount = Number(h.ah_invoiceamount ?? h.ah_ostotal ?? 0);
     lineLedgerScope.value = String(h.ah_ledger ?? 'AR').toUpperCase();
 
-    form.value.refNo = String(h.ah_chequeorreference ?? h.ah_transactionreference ?? h.refNo ?? '');
-    form.value.chequeNo = String(h.ah_chequedrawer ?? h.chequeNo ?? '');
+    form.value.refNo = String(h.ah_transactionreference ?? '').trim();
+    form.value.chequeNo = String(h.ah_chequeorreference ?? '').trim();
 
     const dateRaw = matchLink.ap_matchdate ?? h.ah_fullypaiddate ?? h.ah_invoicedate ?? '';
     if (dateRaw) {
@@ -485,13 +487,17 @@ onMounted(async () => {
     }
 
     if (bank) {
+      const bankPk = String(bank.ab_pk ?? bank.ab_Pk ?? '').trim();
       const code = String(bank.ab_code ?? bank.ab_Code ?? '').trim();
       const bname = String(bank.ab_bankname ?? bank.ab_BankName ?? '').trim();
-      if (code) {
-        const row: WriteOffBankRow = { ab_code: code, ab_bankname: bname };
+      if (bankPk) {
+        const row: WriteOffBankRow = { ab_pk: bankPk, ab_code: code, ab_bankname: bname };
         form.value.bankAccount = row;
         form.value.bankAccountName = bname;
-        bankOptions.value = [{ label: bname || code, value: code, data: row }];
+        bankOptions.value = [{ label: bname || code || bankPk, value: bankPk, data: row }];
+      } else {
+        form.value.bankAccount = null;
+        form.value.bankAccountName = '';
       }
     } else {
       form.value.bankAccount = null;
@@ -565,7 +571,7 @@ onMounted(async () => {
                   <div class="flex items-center gap-8px">
                     <span class="shrink-0 w-80px text-right text-12px">{{ te('bankAccount') }}:</span>
                     <NSelect
-                      :value="form.bankAccount?.ab_code ?? null"
+                      :value="form.bankAccount?.ab_pk ?? null"
                       :options="bankSelectOptions"
                       :loading="bankLoading"
                       filterable

@@ -79,9 +79,9 @@ export function orgAddressRowSelectValue(row: OrgAddressRow | null | undefined):
   return row?.oH_Code ?? '';
 }
 
-/** 保存核销等接口的 billingParty（公司编码，与后端约定为准） */
+/** 保存核销等接口的 billingParty：组织头主键 aH_OH */
 export function orgAddressRowBillingParty(row: OrgAddressRow | null | undefined): string {
-  return String(row?.oH_Code ?? '').trim();
+  return String(row?.aH_OH ?? '').trim();
 }
 
 /** POST query-outstandingInvoices 的 billingParty：使用组织头主键 aH_OH */
@@ -174,7 +174,8 @@ export interface WriteOffBankParams {
 
 /** 核销银行行（与接口 data[] 一致） */
 export interface WriteOffBankRow {
-  ab_code: string;
+  ab_pk: string;
+  ab_code?: string;
   ab_bankname: string;
 }
 
