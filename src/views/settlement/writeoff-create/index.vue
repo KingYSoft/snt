@@ -31,6 +31,7 @@ import {
   orgAddressRowBillingParty,
   orgAddressOutstandingBillingParty,
   mapOutstandingInvoiceToTableRow,
+  mapWriteOffBankRow,
   type OrgAddressRow,
   type OutstandingInvoicesParams,
   type WriteOffBankRow
@@ -196,13 +197,13 @@ const bankSelectOptions = computed(() => {
   const acc = form.value.bankAccount;
   const base = bankOptions.value;
   if (!acc) return base;
-  const code = String(acc.ab_code ?? '').trim();
-  if (!code) return base;
-  if (base.some(o => o.value === code)) return base;
+  const pk = String(acc.ab_pk ?? '').trim();
+  if (!pk) return base;
+  if (base.some(o => o.value === pk)) return base;
   return [
     {
-      label: String(acc.ab_bankname ?? code),
-      value: code,
+      label: String(acc.ab_bankname ?? pk),
+      value: pk,
       data: acc
     },
     ...base
@@ -215,14 +216,17 @@ async function handleSearchBank(query: string) {
   try {
     const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName });
     const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
-    bankOptions.value = list.map((item, i) => {
-      const code = String(item.ab_code ?? '').trim() || `row-${i}`;
-      return {
-        label: String(item.ab_bankname ?? code),
-        value: code,
-        data: item
-      };
-    });
+    bankOptions.value = list
+      .map(item => {
+        const row = mapWriteOffBankRow(item);
+        if (!row) return null;
+        return {
+          label: String(row.ab_bankname || row.ab_code || row.ab_pk),
+          value: row.ab_pk,
+          data: row
+        };
+      })
+      .filter(Boolean) as Array<{ label: string; value: string; data: WriteOffBankRow }>;
   } catch {
     bankOptions.value = [];
   } finally {
@@ -238,7 +242,7 @@ function getBankOptionByValue(value: string) {
   const fromList = bankOptions.value.find(b => b.value === value);
   if (fromList) return fromList;
   const acc = form.value.bankAccount;
-  if (acc && String(acc.ab_code ?? '').trim() === value) {
+  if (acc && String(acc.ab_pk ?? '').trim() === value) {
     return {
       label: String(acc.ab_bankname ?? value),
       value,
@@ -378,9 +382,9 @@ const summaryTotalHomeAmount = computed(() =>
   summaryRows.value.reduce((a: number, r: any) => a + (Number(r.homeAmount) || 0), 0)
 );
 watch(
-  () => [selectedOutstandingTotal.value, form.value.settleAmount],
-  () => {
-    form.value.balance = (Number(form.value.settleAmount) || 0) - selectedOutstandingTotal.value;
+  () => selectedOutstandingTotal.value,
+  outstandingTotal => {
+    form.value.balance = Number(outstandingTotal) || 0;
   },
   { immediate: true }
 );
@@ -393,45 +397,48 @@ watch(lineLedgerScope, () => {
 });
 
 // Line columns
-const lineColumns = [
-  { type: 'selection' as const },
+const lineColumns = computed(() => [
+  {
+    type: 'selection' as const,
+    disabled: () => editorLocked.value
+  },
   { key: 'index', title: '#', width: 50, align: 'center' as const, render: (_: any, i: number) => i + 1 },
-  { key: 'ledger', title: 'Ledger', width: 80, align: 'center' as const },
-  { key: 'job_no', title: 'Job No.', width: 120, ellipsis: { tooltip: true } },
-  { key: 'tax_invoice_no', title: 'Tax Invoice No.', width: 140, ellipsis: { tooltip: true } },
-  { key: 'invoice_number', title: 'Invoice Number', width: 140, ellipsis: { tooltip: true } },
-  { key: 'billing_date', title: 'Billing Date', width: 120 },
-  { key: 'charge_desc', title: 'Charge Desc.', width: 140, ellipsis: { tooltip: true } },
+  { key: 'ledger', title: te('ledger'), width: 80, align: 'center' as const },
+  { key: 'job_no', title: te('jobNo'), width: 120, ellipsis: { tooltip: true } },
+  { key: 'tax_invoice_no', title: te('taxInvoiceNo'), width: 140, ellipsis: { tooltip: true } },
+  { key: 'invoice_number', title: te('invoiceNumber'), width: 140, ellipsis: { tooltip: true } },
+  { key: 'billing_date', title: te('billingDate'), width: 120 },
+  { key: 'charge_desc', title: te('chargeDesc'), width: 140, ellipsis: { tooltip: true } },
   {
     key: 'outstanding',
-    title: 'Outstanding',
+    title: te('outstanding'),
     width: 120,
     align: 'right' as const,
     render: (r: any) => formatNum(r.outstanding)
   },
   {
     key: 'settlement_amount_original',
-    title: 'Settled (Original)',
+    title: te('settlementAmountOriginal'),
     width: 200,
     align: 'right' as const,
     render: (r: any) => formatNum(r.settlement_amount_original)
   },
-  { key: 'currency', title: 'Currency', width: 80, align: 'center' as const },
+  { key: 'currency', title: te('currency'), width: 80, align: 'center' as const },
   {
     key: 'ex_rate',
-    title: 'Ex. Rate',
+    title: te('exRate'),
     width: 100,
     align: 'right' as const,
     render: (r: any) => formatNum(r.ex_rate, 6)
   },
   {
     key: 'settlement_amount_home',
-    title: 'Settled (Home)',
+    title: te('settlementAmountHome'),
     width: 180,
     align: 'right' as const,
     render: (r: any) => formatNum(r.settlement_amount_home)
   }
-];
+]);
 
 // Save
 function toIso(val: string) {
@@ -455,12 +462,14 @@ async function handleSave() {
     window.$message?.warning('Select company.');
     return;
   }
-  if (!form.value.bankAccount) {
+  const bankPk = String(form.value.bankAccount?.ab_pk ?? '').trim();
+  if (!bankPk) {
     window.$message?.warning('Select bank account.');
     return;
   }
-  const amt = Number(form.value.settleAmount) || 0;
-  if (amt <= 0) {
+  /** 结算金额按本币 */
+  const amtHome = Number(form.value.settleAmount) || 0;
+  if (amtHome <= 0) {
     window.$message?.warning('Amount > 0 required.');
     return;
   }
@@ -468,29 +477,31 @@ async function handleSave() {
   const sorted = [...selectedLines.value].sort(
     (a: any, b: any) => (Number(a.outstanding) || 0) - (Number(b.outstanding) || 0)
   );
-  let rem = amt;
-  const wMap = new Map<number, number>();
+  let remHome = amtHome;
+  const wHomeMap = new Map<number, number>();
   for (const item of sorted) {
-    const os = Math.max(Number((item as any).outstanding) || 0, 0);
-    const w = Math.min(rem, os);
-    wMap.set(allLines.value.indexOf(item), w);
-    rem -= w;
-    if (rem <= 0) rem = 0;
+    const osHome = Math.max(Number((item as any).outstanding) || 0, 0);
+    const wHome = Math.min(remHome, osHome);
+    wHomeMap.set(allLines.value.indexOf(item), wHome);
+    remHome -= wHome;
+    if (remHome <= 0) remHome = 0;
   }
   const lines = selectedLines.value.map((row: any) => {
-    const idx = allLines.value.indexOf(row),
-      os = Math.max(Number(row.outstanding) || 0, 0),
-      ex = Number(row.ex_rate) || 1,
-      wo = wMap.get(idx) ?? 0;
+    const idx = allLines.value.indexOf(row);
+    const ex = Number(row.ex_rate) || 1;
+    const osHome = Math.max(Number(row.outstanding) || 0, 0);
+    const woHome = wHomeMap.get(idx) ?? 0;
+    const remainHome = Math.max(osHome - woHome, 0);
     return {
       tthPk: String(row.tth_pk ?? row.id ?? ''),
       ledger: row.ledger ?? '',
       jobNo: row.job_no ?? '',
       invoiceNumber: row.invoice_number ?? '',
-      writeOffAmountOriginal: wo,
-      writeOffAmountHome: wo * ex,
-      currentOutstandingOriginal: Math.max(os - wo, 0),
-      currentOutstandingHome: Math.max(os - wo, 0) * ex
+      writeOffAmountHome: woHome,
+      /** 原币金额 = 本币金额 ÷ 汇率 */
+      writeOffAmountOriginal: ex ? woHome / ex : 0,
+      currentOutstandingHome: remainHome,
+      currentOutstandingOriginal: ex ? remainHome / ex : 0
     };
   });
   saving.value = true;
@@ -501,12 +512,12 @@ async function handleSave() {
       billingParty: billingPartyForSave,
       billingPartyName: form.value.settleCompanyName,
       description: form.value.description,
-      bankAccountId: String(form.value.bankAccount?.ab_code ?? ''),
+      bankAccountId: bankPk,
       bankAccountName: form.value.bankAccountName,
       settleDate: toIso(form.value.settleDate),
       refNo: form.value.refNo,
       chequeNo: form.value.chequeNo,
-      settleAmount: amt,
+      settleAmount: amtHome,
       exRateMode: form.value.exRateMode,
       lines
     });
@@ -619,7 +630,7 @@ void loadCurrencyOptions();
                 <div class="flex items-center gap-8px">
                   <span class="shrink-0 w-80px text-right text-12px">{{ te('bankAccount') }}:</span>
                   <NSelect
-                    :value="form.bankAccount?.ab_code ?? null"
+                    :value="form.bankAccount?.ab_pk ?? null"
                     :options="bankSelectOptions"
                     :loading="bankLoading"
                     filterable

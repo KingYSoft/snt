@@ -885,7 +885,16 @@ const local: App.I18n.Schema = {
           currency: '币种',
           chargeDescFilter: '费用描述',
           pleaseSelect: '请选择',
-          pleaseInput: '请输入'
+          pleaseInput: '请输入',
+          ledger: '账套',
+          jobNo: '工作单号',
+          taxInvoiceNo: '税务发票号',
+          invoiceNumber: '发票号',
+          billingDate: '账单日期',
+          chargeDesc: '费用描述',
+          outstanding: '结欠金额',
+          settlementAmountOriginal: '结算金额（原币）',
+          settlementAmountHome: '结算金额（本币）'
         }
       }
     },

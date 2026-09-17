@@ -74,19 +74,19 @@ export function orgAddressRowLabel(row: OrgAddressRow | null | undefined): strin
   return `${row.oH_FullName} (${row.oH_Code})`;
 }
 
-/** 下拉 option value（公司编码） */
+/** 下拉 option value：组织头主键 aH_OH */
 export function orgAddressRowSelectValue(row: OrgAddressRow | null | undefined): string {
-  return row?.oH_Code ?? '';
+  return String(row?.aH_OH ?? '').trim();
 }
 
-/** 保存核销等接口的 billingParty（公司编码，与后端约定为准） */
-export function orgAddressRowBillingParty(row: OrgAddressRow | null | undefined): string {
-  return String(row?.oH_Code ?? '').trim();
-}
-
-/** POST query-outstandingInvoices 的 billingParty：使用组织头主键 aH_OH */
+/** POST query-outstandingInvoices 的 billingParty：组织头主键 aH_OH */
 export function orgAddressOutstandingBillingParty(row: OrgAddressRow | null | undefined): string {
   return String(row?.aH_OH ?? '').trim();
+}
+
+/** 保存核销等接口的 billingParty：组织头主键 aH_OH，不要传公司编码 */
+export function orgAddressRowBillingParty(row: OrgAddressRow | null | undefined): string {
+  return orgAddressOutstandingBillingParty(row);
 }
 
 /** 未结清发票查询（POST /match-transactions/query-outstandingInvoices） */
@@ -172,10 +172,22 @@ export interface WriteOffBankParams {
   settleCompanyName: string;
 }
 
-/** 核销银行行（与接口 data[] 一致） */
+/** 核销银行行（与接口 data[] 一致；保存/回显用 ab_pk） */
 export interface WriteOffBankRow {
+  ab_pk: string;
   ab_code: string;
   ab_bankname: string;
+}
+
+export function mapWriteOffBankRow(item: Record<string, any> | null | undefined): WriteOffBankRow | null {
+  if (!item) return null;
+  const pk = String(item.ab_pk ?? item.abPk ?? item.ab_Pk ?? '').trim();
+  if (!pk) return null;
+  return {
+    ab_pk: pk,
+    ab_code: String(item.ab_code ?? item.abCode ?? item.ab_Code ?? '').trim(),
+    ab_bankname: String(item.ab_bankname ?? item.abBankName ?? item.ab_BankName ?? '')
+  };
 }
 
 // ==================== 工具函数 ====================
