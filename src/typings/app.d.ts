@@ -1257,6 +1257,15 @@ declare namespace App {
               chargeDescFilter: string;
               pleaseSelect: string;
               pleaseInput: string;
+              ledger: string;
+              jobNo: string;
+              taxInvoiceNo: string;
+              invoiceNumber: string;
+              billingDate: string;
+              chargeDesc: string;
+              outstanding: string;
+              settlementAmountOriginal: string;
+              settlementAmountHome: string;
             };
           };
         };
