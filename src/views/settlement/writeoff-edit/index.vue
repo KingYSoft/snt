@@ -29,6 +29,7 @@ import {
   orgAddressRowSelectValue,
   orgAddressOutstandingBillingParty,
   mapOutstandingInvoiceToTableRow,
+  mapWriteOffBankRow,
   type OrgAddressRow,
   type OutstandingInvoicesParams,
   type WriteOffBankRow
@@ -184,13 +185,13 @@ const bankSelectOptions = computed(() => {
   const acc = form.value.bankAccount;
   const base = bankOptions.value;
   if (!acc) return base;
-  const code = String(acc.ab_code ?? '').trim();
-  if (!code) return base;
-  if (base.some(o => o.value === code)) return base;
+  const pk = String(acc.ab_pk ?? '').trim();
+  if (!pk) return base;
+  if (base.some(o => o.value === pk)) return base;
   return [
     {
-      label: String(acc.ab_bankname ?? code),
-      value: code,
+      label: String(acc.ab_bankname ?? pk),
+      value: pk,
       data: acc
     },
     ...base
@@ -203,14 +204,17 @@ async function handleSearchBank(query: string) {
   try {
     const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName });
     const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
-    bankOptions.value = list.map((item, index) => {
-      const code = String(item.ab_code ?? '').trim() || `row-${index}`;
-      return {
-        label: String(item.ab_bankname ?? code),
-        value: code,
-        data: item
-      };
-    });
+    bankOptions.value = list
+      .map(item => {
+        const row = mapWriteOffBankRow(item);
+        if (!row) return null;
+        return {
+          label: String(row.ab_bankname || row.ab_code || row.ab_pk),
+          value: row.ab_pk,
+          data: row
+        };
+      })
+      .filter(Boolean) as Array<{ label: string; value: string; data: WriteOffBankRow }>;
   } catch (error) {
     console.error(error);
     bankOptions.value = [];
@@ -227,7 +231,7 @@ function getBankOptionByValue(value: string) {
   const fromList = bankOptions.value.find(b => b.value === value);
   if (fromList) return fromList;
   const acc = form.value.bankAccount;
-  if (acc && String(acc.ab_code ?? '').trim() === value) {
+  if (acc && String(acc.ab_pk ?? '').trim() === value) {
     return {
       label: String(acc.ab_bankname ?? value),
       value,
@@ -452,15 +456,15 @@ onMounted(async () => {
 
     form.value.matchNumber = String(matchLink.ap_matchgroupnum ?? h.ah_transactionnum ?? '');
 
-    const ahOh = String(h.ah_oh ?? '').trim();
+    const ahOh = String(h.ah_oh ?? h.aH_OH ?? '').trim();
     const ohCode = String(h.oH_Code ?? h.oh_code ?? '').trim();
 
-    form.value.settleCompanyName = String(h.oh_fullname ?? '').trim();
-    if (ahOh || ohCode || form.value.settleCompanyName) {
+    form.value.settleCompanyName = String(h.oh_fullname ?? h.oH_FullName ?? '').trim();
+    if (ahOh) {
       form.value.settleCompany = {
-        aH_OH: ahOh || ohCode,
+        aH_OH: ahOh,
         oH_FullName: form.value.settleCompanyName,
-        oH_Code: ohCode || ahOh
+        oH_Code: ohCode
       };
     } else {
       form.value.settleCompany = null;
@@ -480,13 +484,16 @@ onMounted(async () => {
     }
 
     if (bank) {
-      const code = String(bank.ab_code ?? bank.ab_Code ?? '').trim();
-      const bname = String(bank.ab_bankname ?? bank.ab_BankName ?? '').trim();
-      if (code) {
-        const row: WriteOffBankRow = { ab_code: code, ab_bankname: bname };
+      const row = mapWriteOffBankRow(bank);
+      if (row) {
         form.value.bankAccount = row;
-        form.value.bankAccountName = bname;
-        bankOptions.value = [{ label: bname || code, value: code, data: row }];
+        form.value.bankAccountName = row.ab_bankname;
+        bankOptions.value = [
+          { label: row.ab_bankname || row.ab_code || row.ab_pk, value: row.ab_pk, data: row }
+        ];
+      } else {
+        form.value.bankAccount = null;
+        form.value.bankAccountName = '';
       }
     } else {
       form.value.bankAccount = null;
@@ -560,7 +567,7 @@ onMounted(async () => {
                   <div class="flex items-center gap-8px">
                     <span class="shrink-0 w-80px text-right text-12px">{{ te('bankAccount') }}:</span>
                     <NSelect
-                      :value="form.bankAccount?.ab_code ?? null"
+                      :value="form.bankAccount?.ab_pk ?? null"
                       :options="bankSelectOptions"
                       :loading="bankLoading"
                       filterable
