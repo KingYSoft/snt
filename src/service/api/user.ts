@@ -36,3 +36,18 @@ export function switchBranch(data: { company_pk: string | null; branch_pk: strin
     data
   });
 }
+
+/** POST /user/changePassword */
+export interface UserChangePasswordInput {
+  oldPassword: string;
+  newPassword: string;
+  confirmPassword: string;
+}
+
+export function changePassword(data: UserChangePasswordInput) {
+  return request({
+    url: '/user/changePassword',
+    method: 'post',
+    data
+  });
+}

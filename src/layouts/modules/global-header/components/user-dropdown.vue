@@ -5,6 +5,7 @@ import { useAuthStore } from '@/store/modules/auth';
 import { $t } from '@/locales';
 import SvgIcon from '@/components/custom/svg-icon.vue';
 import SwitchBranch from '@/components/business/switch-branch.vue';
+import ChangePassword from '@/components/business/change-password.vue';
 
 defineOptions({
   name: 'UserDropdown'
@@ -14,6 +15,8 @@ const appStore = useAppStore();
 const authStore = useAuthStore();
 
 const showSwitchDialog = ref(false);
+const showChangePasswordDialog = ref(false);
+const showPopover = ref(false);
 
 function logout() {
   window.$dialog?.info({
@@ -28,12 +31,18 @@ function logout() {
 }
 
 function changePassword() {
-  window.$message?.info('Change password feature will be implemented soon');
+  showPopover.value = false;
+  showChangePasswordDialog.value = true;
+}
+
+function openSwitchDialog() {
+  showPopover.value = false;
+  showSwitchDialog.value = true;
 }
 </script>
 
 <template>
-  <NPopover placement="bottom-end" trigger="click" :width="300">
+  <NPopover v-model:show="showPopover" placement="bottom-end" trigger="click" :width="300">
     <template #trigger>
       <div class="cursor-pointer">
         <NAvatar :style="{ backgroundColor: '#074684', color: 'white' }" :size="32" class="user-avatar">
@@ -85,23 +94,23 @@ function changePassword() {
       </div>
       <!-- Actions -->
       <div class="dropdown-actions">
-        <div class="dropdown-action-item" @click="showSwitchDialog = true">
+        <div class="dropdown-action-item" @click="openSwitchDialog">
           <SvgIcon icon="ph:building" class="info-icon" />
           <span>Switch Company / Branch</span>
         </div>
         <div class="dropdown-action-item" @click="changePassword">
           <SvgIcon icon="ph:lock" class="info-icon" />
-          <span>Change Password</span>
+          <span>{{ $t('common.changePassword.title') }}</span>
         </div>
         <div class="dropdown-action-item logout-item" @click="logout">
           <SvgIcon icon="ph:sign-out" class="info-icon logout-icon" />
           <span>{{ $t('common.logout') }}</span>
         </div>
       </div>
-
-      <SwitchBranch v-model:show="showSwitchDialog" />
     </div>
   </NPopover>
+  <SwitchBranch v-model:show="showSwitchDialog" />
+  <ChangePassword v-model:show="showChangePasswordDialog" />
 </template>
 
 <style scoped>

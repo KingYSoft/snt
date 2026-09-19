@@ -48,6 +48,15 @@ const local: App.I18n.Schema = {
     updateSuccess: '更新成功',
     userCenter: '个人中心',
     view: '查看',
+    changePassword: {
+      title: '修改密码',
+      oldPassword: '旧密码',
+      newPassword: '新密码',
+      confirmNewPassword: '确认新密码',
+      minLength: '密码不能少于6位',
+      mismatch: '两次输入的新密码不一致',
+      success: '密码修改成功'
+    },
     op: {
       equal: '等于',
       notEqual: '不等于',
