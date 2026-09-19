@@ -362,6 +362,15 @@ declare namespace App {
 
         userCenter: string;
         view: string;
+        changePassword: {
+          title: string;
+          oldPassword: string;
+          newPassword: string;
+          confirmNewPassword: string;
+          minLength: string;
+          mismatch: string;
+          success: string;
+        };
         op: {
           equal: string;
           notEqual: string;

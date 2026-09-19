@@ -48,6 +48,15 @@ const local: App.I18n.Schema = {
     updateSuccess: 'Update Success',
     userCenter: 'User Center',
     view: 'View',
+    changePassword: {
+      title: 'Change Password',
+      oldPassword: 'Old Password',
+      newPassword: 'New Password',
+      confirmNewPassword: 'Confirm New Password',
+      minLength: 'Password must be at least 6 characters',
+      mismatch: 'Passwords do not match',
+      success: 'Password changed successfully'
+    },
     op: {
       equal: 'Equal',
       notEqual: 'Not Equal',
