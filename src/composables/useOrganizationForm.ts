@@ -147,10 +147,10 @@ export function useOrganizationForm() {
 
   function showOrganizationEmptyDialog() {
     window.$dialog?.warning({
-      title: 'Organization Not Exists.',
-      content: 'This organization not exists. You can new organization or close page.',
-      positiveText: 'New Organization',
-      negativeText: 'Close',
+      title: $t('page.maintain.organization.notExistsTitle'),
+      content: $t('page.maintain.organization.notExistsMessage'),
+      positiveText: $t('page.maintain.organization.newOrganization'),
+      negativeText: $t('common.close'),
       onPositiveClick: newOrganizationHandle,
       onNegativeClick: closeOrganizationPageHandle
     });

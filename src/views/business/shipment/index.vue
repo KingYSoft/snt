@@ -272,11 +272,11 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
       break;
     }
     case 'merge': {
-      window.$message?.warning($t('page.business.shipment.menu.merge') + ' - Coming soon');
+      window.$message?.warning(`${$t('page.business.shipment.menu.merge')} - ${$t('common.lookForward')}`);
       break;
     }
     case 'split': {
-      window.$message?.warning($t('page.business.shipment.menu.split') + ' - Coming soon');
+      window.$message?.warning(`${$t('page.business.shipment.menu.split')} - ${$t('common.lookForward')}`);
       break;
     }
     case 'copy': {
@@ -287,7 +287,7 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
           getData();
         }
       } catch {
-        window.$message?.error('Copy failed');
+        window.$message?.error($t('page.business.shipment.messages.copyFailed'));
       }
       break;
     }
@@ -303,7 +303,7 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
             window.$message?.success($t('common.modifySuccess'));
             getData();
           } catch {
-            window.$message?.error('Deactivate failed');
+            window.$message?.error($t('page.business.shipment.messages.deactivateFailed'));
           }
         }
       });
@@ -321,7 +321,7 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
             window.$message?.success($t('common.modifySuccess'));
             getData();
           } catch {
-            window.$message?.error('Reopen failed');
+            window.$message?.error($t('page.business.shipment.messages.reopenFailed'));
           }
         }
       });
@@ -340,9 +340,9 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
           template_code: 'SHIPMENT',
           version_no: '1.0'
         });
-        window.$message?.success('PDF generated');
+        window.$message?.success($t('page.business.shipment.messages.pdfGenerated'));
       } catch {
-        window.$message?.error('PDF generation failed');
+        window.$message?.error($t('page.business.shipment.messages.pdfFailed'));
       }
       break;
     }

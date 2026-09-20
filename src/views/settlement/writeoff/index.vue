@@ -47,14 +47,14 @@ const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsByPk = ref(new Map<string, MatchTransactionRecord>());
 
 const field1KeyOptions = computed(() => [
-  { label: 'ETD', value: 'etd' },
-  { label: 'Payment Date', value: 'payment_date' }
+  { label: t('page.settlement.matchTransactions.etd'), value: 'etd' },
+  { label: t('page.settlement.matchTransactions.paymentDate'), value: 'payment_date' }
 ]);
 const field2KeyOptions = computed(() => [
-  { label: 'Job Number', value: 'job_number' },
-  { label: 'Shipper', value: 'shipper' },
-  { label: 'Match Number', value: 'match_number' },
-  { label: 'Description', value: 'description' }
+  { label: t('page.settlement.matchTransactions.jobNumber'), value: 'job_number' },
+  { label: t('page.business.shipment.table.shipperName'), value: 'shipper' },
+  { label: t('page.settlement.matchTransactions.editor.matchNumber'), value: 'match_number' },
+  { label: t('page.settlement.matchTransactions.description'), value: 'description' }
 ]);
 
 const pageRef = ref(1);
@@ -285,7 +285,7 @@ getData();
             <NSelect v-model:value="filters.field2.key" :options="field2KeyOptions" class="w-160px shrink-0" />
             <NInput
               v-model:value="filters.field2.value"
-              placeholder="Job No. / Shipper / Match No."
+              :placeholder="t('page.settlement.matchTransactions.keywordPlaceholder')"
               clearable
               class="min-w-0 flex-1"
               @keyup.enter="getDataByPage(1)"
@@ -301,23 +301,25 @@ getData();
               {{ t('common.reset') }}
             </NButton>
             <NButton quaternary @click="showMoreFilters = !showMoreFilters">
-              {{ showMoreFilters ? 'Hide' : 'More' }}
+              {{ showMoreFilters ? t('page.settlement.matchTransactions.hideMoreFilters') : t('page.settlement.matchTransactions.moreFilters') }}
             </NButton>
           </NSpace>
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
-          <NInput v-model:value="filters.match_number" placeholder="Match Number" clearable />
+          <NInput v-model:value="filters.match_number" :placeholder="t('page.settlement.matchTransactions.editor.matchNumber')" clearable />
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
-          <NInput v-model:value="filters.billing_party" placeholder="Billing Party" clearable />
+          <NInput v-model:value="filters.billing_party" :placeholder="t('page.settlement.matchTransactions.billingParty')" clearable />
         </NGi>
       </NGrid>
     </NCard>
     <NCard :bordered="false" class="flex-1-hidden overflow-auto">
       <NSpace vertical :size="12">
         <NSpace>
-          <NButton type="primary" @click="$router.push({ name: 'settlement_writeoff-create' })">New Receipt</NButton>
-          <NButton @click="handleExportSelected">Export</NButton>
+          <NButton type="primary" @click="$router.push({ name: 'settlement_writeoff-create' })">
+            {{ t('page.settlement.matchTransactions.newReceipt') }}
+          </NButton>
+          <NButton @click="handleExportSelected">{{ t('page.settlement.matchTransactions.export') }}</NButton>
         </NSpace>
         <NDataTable
           :checked-row-keys="checkedRowKeys"

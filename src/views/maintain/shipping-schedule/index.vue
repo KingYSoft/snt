@@ -5,7 +5,7 @@ defineOptions({ name: 'PageMaintainShippingSchedule' });
 <template>
   <div class="p-16px">
     <NCard :title="$t('route.maintain_shipping_schedule')">
-      <NEmpty description="Coming soon" />
+      <NEmpty :description="$t('common.lookForward')" />
     </NCard>
   </div>
 </template>

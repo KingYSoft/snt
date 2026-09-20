@@ -177,7 +177,7 @@ async function handleSave() {
     }
   } catch (error) {
     console.error('Save failed:', error);
-    window.$message?.error('Save failed');
+    window.$message?.error($t('page.business.consolidation.detail.saveFailed'));
   } finally {
     saving.value = false;
   }

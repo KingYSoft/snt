@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { h, ref, watch, nextTick, computed } from 'vue';
+import { $t } from '@/locales';
 import { NInput, NPopover, NDataTable, NButton, NSpace, NProgress } from 'naive-ui';
 
 export interface RemoteTableMenuProps {
@@ -271,7 +272,7 @@ const tableColumns = computed(() => {
         :value="inputText"
         clearable
         size="small"
-        :placeholder="label || 'Search...'"
+        :placeholder="label || $t('common.search')"
         @focus="handleFocus"
         @blur="handleBlur"
         @clear="handleClear"
@@ -323,13 +324,13 @@ const tableColumns = computed(() => {
       />
 
       <div v-if="!loading && tableData.length === 0" class="remote-table-menu__empty">
-        {{ emptyText || label || 'No Data' }}
+        {{ emptyText || label || $t('common.noData') }}
       </div>
 
       <div class="remote-table-menu__footer">
         <NSpace>
-          <NButton v-if="showNew" type="primary" size="tiny" @click="handleNew">New</NButton>
-          <NButton size="tiny" @click="handleCancel">Cancel</NButton>
+          <NButton v-if="showNew" type="primary" size="tiny" @click="handleNew">{{ $t('common.add') }}</NButton>
+          <NButton size="tiny" @click="handleCancel">{{ $t('common.cancel') }}</NButton>
         </NSpace>
       </div>
     </div>

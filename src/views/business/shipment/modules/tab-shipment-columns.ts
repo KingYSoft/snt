@@ -1,5 +1,6 @@
 import { h } from 'vue';
 import { NButton, NInput, NInputNumber, NSelect, NCheckbox } from 'naive-ui';
+import { $t } from '@/locales';
 
 // --- Shared options ---
 export const containerTypeItemOptions = [
@@ -19,7 +20,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
   return [
     // Del temporarily hidden
     {
-      title: 'Container Type',
+      title: $t('page.business.consolidation.container.containerType'),
       key: 'ctr_type',
       width: 130,
       render(row: any) {
@@ -34,7 +35,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'Count',
+      title: $t('page.business.consolidation.container.count'),
       key: 'ctr_count',
       width: 80,
       render(row: any) {
@@ -51,7 +52,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'Container No',
+      title: $t('page.business.consolidation.container.containerNo'),
       key: 'jc_containernum',
       width: 140,
       render(row: any) {
@@ -65,7 +66,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'Seal No',
+      title: $t('page.business.consolidation.container.sealNo'),
       key: 'jc_sealnum',
       width: 120,
       render(row: any) {
@@ -79,7 +80,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'SOC',
+      title: $t('page.business.consolidation.container.soc'),
       key: 'ctr_is_soc',
       width: 60,
       align: 'center' as const,
@@ -93,7 +94,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'Commodity',
+      title: $t('page.business.consolidation.container.commodity'),
       key: 'pac_commodity',
       width: 140,
       render(row: any) {
@@ -107,7 +108,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'Gross Weight',
+      title: $t('page.business.shipment.form.grossWeight'),
       key: 'jc_grossweight',
       width: 110,
       render(row: any) {
@@ -124,7 +125,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'CBM',
+      title: $t('page.business.shipment.form.volume'),
       key: 'pac_actual_volume',
       width: 90,
       render(row: any) {
@@ -141,7 +142,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'No. of Package',
+      title: $t('page.business.shipment.form.totalPackage'),
       key: 'pac_package_count',
       width: 110,
       render(row: any) {
@@ -158,7 +159,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'Pack Type',
+      title: $t('page.business.consolidation.container.packType'),
       key: 'pac_pack_type',
       width: 100,
       render(row: any) {
@@ -173,7 +174,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       }
     },
     {
-      title: 'Description',
+      title: $t('page.business.consolidation.container.description'),
       key: 'pac_description',
       width: 160,
       render(row: any) {
@@ -206,7 +207,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'No. of Package',
+      title: $t('page.business.shipment.form.totalPackage'),
       key: 'pac_package_count',
       width: 110,
       render(row: any) {
@@ -223,7 +224,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Pack Type',
+      title: $t('page.business.consolidation.container.packType'),
       key: 'pac_pack_type',
       width: 100,
       render(row: any) {
@@ -238,7 +239,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Gross Weight',
+      title: $t('page.business.shipment.form.grossWeight'),
       key: 'pac_gross_weight',
       width: 110,
       render(row: any) {
@@ -256,7 +257,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'CBM',
+      title: $t('page.business.shipment.form.volume'),
       key: 'pac_actual_volume',
       width: 90,
       render(row: any) {
@@ -274,7 +275,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Volume Weight',
+      title: $t('page.business.shipment.form.volumeWeight'),
       key: 'pac_volume_weight',
       width: 110,
       render(row: any) {
@@ -286,7 +287,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Chargeable Weight',
+      title: $t('page.business.shipment.form.chargeableWeight'),
       key: 'pac_chargeable_weight',
       width: 130,
       render(row: any) {
@@ -298,7 +299,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Length',
+      title: $t('page.business.shipment.form.length'),
       key: 'pac_length',
       width: 90,
       render(row: any) {
@@ -315,7 +316,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Width',
+      title: $t('page.business.shipment.form.width'),
       key: 'pac_width',
       width: 90,
       render(row: any) {
@@ -332,7 +333,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Height',
+      title: $t('page.business.shipment.form.height'),
       key: 'pac_height',
       width: 90,
       render(row: any) {
@@ -349,7 +350,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'UOM',
+      title: $t('page.business.shipment.form.uom'),
       key: 'pac_uom',
       width: 80,
       render(row: any) {
@@ -364,7 +365,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       }
     },
     {
-      title: 'Description',
+      title: $t('page.business.consolidation.container.description'),
       key: 'pac_description',
       width: 160,
       render(row: any) {

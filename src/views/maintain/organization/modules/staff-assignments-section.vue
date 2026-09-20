@@ -71,27 +71,27 @@ const columns = computed<DataTableColumns<Record<string, any>>>(() => {
     },
     {
       key: 'assigned_person',
-      title: 'Assigned Person',
+      title: $t('page.maintain.organization.assignedPerson'),
       minWidth: 160
     },
     {
       key: 'role',
-      title: 'Role',
+      title: $t('page.maintain.organization.role'),
       minWidth: 140
     },
     {
       key: 'role_description',
-      title: 'Role Description',
+      title: $t('page.maintain.organization.roleDescription'),
       minWidth: 180
     },
     {
       key: 'company',
-      title: 'Company',
+      title: $t('page.maintain.organization.company'),
       minWidth: 140
     },
     {
       key: 'branch',
-      title: 'Branch',
+      title: $t('page.maintain.organization.branch'),
       minWidth: 140
     }
   ];
@@ -126,20 +126,20 @@ const columns = computed<DataTableColumns<Record<string, any>>>(() => {
 
     <NModal v-model:show="showModal" preset="dialog" :title="editingIndex >= 0 ? $t('common.edit') : $t('common.add')">
       <NForm :model="formData" label-placement="left" label-width="120">
-        <NFormItem label="Assigned Person">
+        <NFormItem :label="$t('page.maintain.organization.assignedPerson')">
           <NInput v-model:value="formData.assigned_person" />
         </NFormItem>
-        <NFormItem label="Role">
+        <NFormItem :label="$t('page.maintain.organization.role')">
           <NInput v-model:value="formData.role" />
         </NFormItem>
-        <NFormItem label="Role Description">
+        <NFormItem :label="$t('page.maintain.organization.roleDescription')">
           <NInput v-model:value="formData.role_description" />
         </NFormItem>
         <NGrid :cols="2" :x-gap="12">
-          <NFormItemGi label="Company">
+          <NFormItemGi :label="$t('page.maintain.organization.company')">
             <NInput v-model:value="formData.company" />
           </NFormItemGi>
-          <NFormItemGi label="Branch">
+          <NFormItemGi :label="$t('page.maintain.organization.branch')">
             <NInput v-model:value="formData.branch" />
           </NFormItemGi>
         </NGrid>

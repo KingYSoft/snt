@@ -69,10 +69,10 @@ function handleBack() {
           <NTabPane name="5" tab="AP">
             <ApSection v-model:detail="inputData.detail" :readonly="true" />
           </NTabPane>
-          <NTabPane name="6" tab="Staff Assignments">
+          <NTabPane name="6" :tab="$t('page.maintain.organization.staffAssignments')">
             <StaffAssignmentsSection v-model:staff-assignments="inputData.staff_assignments_list" :readonly="true" />
           </NTabPane>
-          <NTabPane name="9" tab="Logs">
+          <NTabPane name="9" :tab="$t('page.maintain.organization.logs')">
             <!-- Logs content -->
           </NTabPane>
         </NTabs>

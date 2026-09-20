@@ -79,7 +79,7 @@ export function getOrganizationColumns(
     },
     {
       key: 'port_code',
-      title: 'UNLOCO',
+      title: $t('page.maintain.organization.unloco'),
       minWidth: 140,
       render(row) {
         return getFieldValue(row, 'port_code');

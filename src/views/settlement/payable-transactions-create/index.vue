@@ -170,7 +170,7 @@ const columns = [
     }
   },
   {
-    title: 'Status',
+    title: t('page.settlement.transactions.status'),
     key: 'is_locked',
     width: 90,
     align: 'center' as const,
@@ -179,7 +179,7 @@ const columns = [
     }
   },
   {
-    title: 'Sort #',
+    title: t('page.settlement.transactions.sortNo'),
     key: 'jch_sort_num',
     width: 80,
     render(row: ApChargeLine) {
@@ -198,7 +198,7 @@ const columns = [
     }
   },
   {
-    title: 'Trans No',
+    title: t('page.settlement.transactions.transNo'),
     key: 'trans_no',
     width: 130,
     render(row: ApChargeLine) {
@@ -213,7 +213,7 @@ const columns = [
     }
   },
   {
-    title: 'Invoice No',
+    title: t('page.settlement.transactions.invoiceNo'),
     key: 'invoice_no',
     width: 130,
     render(row: ApChargeLine) {
@@ -228,7 +228,7 @@ const columns = [
     }
   },
   {
-    title: 'Charge Code',
+    title: t('page.business.shipment.billing.chargeCode'),
     key: 'Charge_Code',
     width: 140,
     render(row: ApChargeLine) {
@@ -250,7 +250,7 @@ const columns = [
     }
   },
   {
-    title: 'Description',
+    title: t('page.business.shipment.billing.description'),
     key: 'Description',
     width: 150,
     render(row: ApChargeLine) {
@@ -265,7 +265,7 @@ const columns = [
     }
   },
   {
-    title: 'Creditor',
+    title: t('page.settlement.transactions.creditor'),
     key: 'Creditor',
     width: 120,
     render(row: ApChargeLine) {
@@ -280,7 +280,7 @@ const columns = [
     }
   },
   {
-    title: 'Branch',
+    title: t('page.settlement.transactions.branch'),
     key: 'Branch',
     width: 80,
     render(row: ApChargeLine) {
@@ -288,7 +288,7 @@ const columns = [
     }
   },
   {
-    title: 'Currency',
+    title: t('page.settlement.transactions.currency'),
     key: 'Currency',
     width: 100,
     render(row: ApChargeLine) {
@@ -305,7 +305,7 @@ const columns = [
     }
   },
   {
-    title: 'Unit Price',
+    title: t('page.settlement.transactions.unitPrice'),
     key: 'Unit_Price',
     width: 100,
     render(row: ApChargeLine) {
@@ -324,7 +324,7 @@ const columns = [
     }
   },
   {
-    title: 'Unit',
+    title: t('page.settlement.transactions.unit'),
     key: 'jch_unit',
     width: 90,
     render(row: ApChargeLine) {
@@ -341,7 +341,7 @@ const columns = [
     }
   },
   {
-    title: 'Qty',
+    title: t('page.settlement.transactions.qty'),
     key: 'Qty',
     width: 80,
     render(row: ApChargeLine) {
@@ -360,7 +360,7 @@ const columns = [
     }
   },
   {
-    title: 'Amount',
+    title: t('page.settlement.transactions.transAmount'),
     key: 'Amount',
     width: 110,
     align: 'right' as const,
@@ -369,7 +369,7 @@ const columns = [
     }
   },
   {
-    title: 'Tax Code',
+    title: t('page.settlement.transactions.taxCode'),
     key: 'Tax_Code',
     width: 90,
     render(row: ApChargeLine) {
@@ -377,7 +377,7 @@ const columns = [
     }
   },
   {
-    title: 'Tax Amount',
+    title: t('page.settlement.transactions.taxAmount'),
     key: 'Tax_Amount',
     width: 100,
     render(row: ApChargeLine) {
@@ -394,7 +394,7 @@ const columns = [
     }
   },
   {
-    title: 'Est. Cost',
+    title: t('page.settlement.transactions.estCost'),
     key: 'Estimated_Cost',
     width: 100,
     render(row: ApChargeLine) {
@@ -411,7 +411,7 @@ const columns = [
     }
   },
   {
-    title: 'Exch Rate',
+    title: t('page.settlement.transactions.exchRate'),
     key: 'Exchange_Rate',
     width: 100,
     render(row: ApChargeLine) {
@@ -429,7 +429,7 @@ const columns = [
     }
   },
   {
-    title: 'Home Amt',
+    title: t('page.settlement.transactions.homeAmt'),
     key: 'Home_Amount',
     width: 110,
     align: 'right' as const,
@@ -450,7 +450,7 @@ const totalHomeAmount = computed(() => lines.value.reduce((sum, r) => sum + (Num
 // TODO: replace with real API call
 async function handleSave() {
   if (lines.value.length === 0) {
-    window.$message?.warning('Please add at least one line.');
+    window.$message?.warning(t('page.settlement.transactions.addLineWarning'));
     return;
   }
 
@@ -458,10 +458,10 @@ async function handleSave() {
   try {
     // TODO: call createApTransaction API
     await new Promise(resolve => setTimeout(resolve, 500));
-    window.$message?.success('Saved successfully.');
+    window.$message?.success(t('common.saveSuccess'));
     router.push({ name: 'settlement_payable-transactions' });
   } catch {
-    window.$message?.error('Failed to save.');
+    window.$message?.error(t('page.settlement.transactions.saveFailed'));
   } finally {
     saving.value = false;
   }

@@ -5,7 +5,7 @@ defineOptions({ name: 'PageMaintainCarrierContract' });
 <template>
   <div class="p-16px">
     <NCard :title="$t('route.maintain_carrier_contract')">
-      <NEmpty description="Coming soon" />
+      <NEmpty :description="$t('common.lookForward')" />
     </NCard>
   </div>
 </template>

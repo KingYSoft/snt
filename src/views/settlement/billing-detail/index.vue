@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { onMounted, ref } from 'vue';
 import { useRoute } from 'vue-router';
+import { $t } from '@/locales';
 import { getBillingDetail } from '@/service/api/business/billing';
 import { useTabStore } from '@/store/modules/tab';
 
@@ -55,7 +56,7 @@ async function loadBillingDetail() {
       }
     }
   } catch {
-    window.$message?.error('Failed to load billing detail');
+    window.$message?.error($t('page.settlement.billingDetail.loadFailed'));
   } finally {
     loading.value = false;
   }
@@ -68,85 +69,85 @@ async function loadBillingDetail() {
       <NSkeleton v-if="loading" text :row="8" />
       <template v-else-if="detailData">
         <NDescriptions label-placement="left" :column="2" bordered class="mb-12px">
-          <NDescriptionsItem label="Transaction No.">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.transactionNo')">
             {{ formatValue(detailData.ah_transactionnum) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Ledger">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.ledger')">
             {{ formatValue(detailData.ah_ledger) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Type">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.type')">
             {{ formatValue(detailData.ah_transactiontype) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Transaction Category">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.transactionCategory')">
             {{ formatValue(detailData.ah_transactioncategory) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Currency">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.currency')">
             {{ formatValue(detailData.ah_rx_nktransactioncurrency) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Exchange Rate">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.exchangeRate')">
             {{ formatMoney(detailData.ah_exchangerate) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Invoice Amount">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.invoiceAmount')">
             {{ formatMoney(detailData.ah_invoiceamount) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="GST Amount">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.gstAmount')">
             {{ formatMoney(detailData.ah_gstamount) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Withholding Tax">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.withholdingTax')">
             {{ formatMoney(detailData.ah_withholdingtax) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="OS Total">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.osTotal')">
             {{ formatMoney(detailData.ah_ostotal) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Outstanding Amount">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.outstandingAmount')">
             {{ formatMoney(detailData.ah_outstandingamount) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Local Total">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.localTotal')">
             {{ formatMoney(detailData.ah_localtotal) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Invoice Date">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.invoiceDate')">
             {{ formatDate(detailData.ah_invoicedate) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Due Date">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.dueDate')">
             {{ formatDate(detailData.ah_duedate) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Post Date">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.postDate')">
             {{ formatDate(detailData.ah_postdate) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Fully Paid Date">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.fullyPaidDate')">
             {{ formatDate(detailData.ah_fullypaiddate) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Match Status">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.matchStatus')">
             {{ formatValue(detailData.ah_matchstatus) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Job Number">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.jobNumber')">
             {{ formatValue(detailData.ah_jobnumber) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Reference">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.reference')">
             {{ formatValue(detailData.ah_transactionreference) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Cheque/Reference">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.chequeReference')">
             {{ formatValue(detailData.ah_chequeorreference) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Invoice Term">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.invoiceTerm')">
             {{ formatValue(detailData.ah_invoiceterm) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Receipt Type">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.receiptType')">
             {{ formatValue(detailData.ah_receipttype) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Description" :span="2">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.description')" :span="2">
             {{ formatValue(detailData.ah_desc) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Created By">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.createdBy')">
             {{ formatValue(detailData.ah_systemcreateuser) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Created Time">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.createdTime')">
             {{ formatDateTime(detailData.ah_systemcreatetimeutc) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Last Edit By">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.lastEditBy')">
             {{ formatValue(detailData.ah_systemlastedituser) }}
           </NDescriptionsItem>
-          <NDescriptionsItem label="Last Edit Time">
+          <NDescriptionsItem :label="$t('page.settlement.billingDetail.lastEditTime')">
             {{ formatDateTime(detailData.ah_systemlastedittimeutc) }}
           </NDescriptionsItem>
         </NDescriptions>

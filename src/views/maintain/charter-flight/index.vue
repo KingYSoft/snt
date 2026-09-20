@@ -5,7 +5,7 @@ defineOptions({ name: 'PageMaintainCharterFlight' });
 <template>
   <div class="p-16px">
     <NCard :title="$t('route.maintain_charter_flight')">
-      <NEmpty description="Coming soon" />
+      <NEmpty :description="$t('common.lookForward')" />
     </NCard>
   </div>
 </template>
