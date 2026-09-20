@@ -7,7 +7,7 @@ defineOptions({
 <template>
   <div class="p-16px">
     <NCard :title="$t('route.system_user')">
-      <NEmpty description="Coming soon" />
+      <NEmpty :description="$t('common.lookForward')" />
     </NCard>
   </div>
 </template>

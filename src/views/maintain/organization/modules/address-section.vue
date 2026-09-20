@@ -88,12 +88,12 @@ const columns: DataTableColumns = [
   },
   {
     key: 'code',
-    title: 'Code',
+    title: $t('page.maintain.organization.code'),
     width: 140
   },
   {
     key: 'short_code',
-    title: 'Short Code',
+    title: $t('page.maintain.organization.shortCode'),
     width: 140
   },
   {
@@ -103,7 +103,7 @@ const columns: DataTableColumns = [
   },
   {
     key: 'address1',
-    title: 'Address Details',
+    title: $t('page.maintain.organization.addressDetails'),
     minWidth: 220
   },
   {

@@ -388,7 +388,7 @@ async function confirmDelete() {
       await deleteBilling([item.pk]);
       window.$message?.success($t('page.business.shipment.billing.deleteSuccess'));
     } catch {
-      window.$message?.error('Delete failed');
+      window.$message?.error($t('page.business.shipment.billing.deleteFailed'));
       return;
     }
   }
@@ -440,7 +440,7 @@ function copyRows(type: 'AR' | 'AP', targetType: 'AR' | 'AP') {
 
 async function saveBillingCharges(): Promise<boolean> {
   if (!props.inputData.pk) {
-    window.$message?.warning('Shipment PK is required.');
+    window.$message?.warning($t('page.business.shipment.billing.pkRequired'));
     return false;
   }
 
@@ -458,7 +458,7 @@ async function saveBillingCharges(): Promise<boolean> {
     });
     return Boolean(data);
   } catch {
-    window.$message?.error('Failed to save billing records.');
+    window.$message?.error($t('page.business.shipment.billing.saveFailed'));
     return false;
   }
 }
@@ -496,7 +496,7 @@ async function handlePost(type: 'AR' | 'AP') {
     ];
 
     if (!pks.length) {
-      window.$message?.warning('Failed to get charge line PKs after save.');
+      window.$message?.warning($t('page.business.shipment.billing.chargeLinePkFailed'));
       return;
     }
 
@@ -506,7 +506,7 @@ async function handlePost(type: 'AR' | 'AP') {
     if (type === 'AR') tblSelectedAR.value = [];
     else tblSelectedAP.value = [];
   } catch {
-    window.$message?.error('Post failed');
+    window.$message?.error($t('page.business.shipment.billing.postFailed'));
   } finally {
     postLoadingType.value = null;
   }

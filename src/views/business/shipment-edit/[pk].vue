@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { ref, h, computed } from 'vue';
+import { ref, h, computed, watch } from 'vue';
 import { useRouter, useRoute } from 'vue-router';
 import { NCard, NButton, NTabs, NTabPane, NSkeleton } from 'naive-ui';
 import { $t } from '@/locales';
 import { useTabStore } from '@/store/modules/tab';
+import { useAppStore } from '@/store/modules/app';
 import {
   shipmentSave,
   getShipmentDetail,
@@ -22,6 +23,7 @@ import TabEDocs from '../shipment/modules/tab-edocs.vue';
 const router = useRouter();
 const route = useRoute();
 const tabStore = useTabStore();
+const appStore = useAppStore();
 
 const skeletonLoading = ref(true);
 const cardLoading = ref(false);
@@ -71,7 +73,18 @@ const defaultData = () => ({
 
 const inputData = ref<Record<string, any>>(defaultData());
 
-const tabTitle = computed(() => `Edit Shipment - ${inputData.value?.shp_consign_no}`);
+function updateTabLabel() {
+  if (!inputData.value.shp_consign_no) return;
+  tabStore.setTabLabel($t('page.business.shipment.tab.shipment') + ` - ${inputData.value.shp_consign_no}`);
+}
+
+const tabTitle = computed(() => {
+  void appStore.locale;
+  const consignNo = inputData.value?.shp_consign_no;
+  return consignNo ? `${$t('route.business_shipment-edit')} - ${consignNo}` : $t('route.business_shipment-edit');
+});
+
+watch(() => appStore.locale, updateTabLabel);
 
 // --- Port query ---
 const queryPortList = ref<Array<{ rl_code: string; rl_port_name: string }>>([]);
@@ -468,10 +481,7 @@ const queryData = async () => {
         };
         skeletonLoading.value = false;
         console.log('Mapped inputData:', inputData.value);
-        // Update tab label with shipment_no
-        if (inputData.value.shp_consign_no) {
-          tabStore.setTabLabel($t('page.business.shipment.tab.shipment') + ` - ${inputData.value.shp_consign_no}`);
-        }
+        updateTabLabel();
       } else {
         showShipmentEmptyDialog();
       }
@@ -538,7 +548,7 @@ const saveRoutingTab = async () => {
 const refreshBillingSummary = ref(false);
 const saveBillingTab = async (): Promise<boolean> => {
   if (!inputData.value.pk) {
-    window.$message?.warning('Shipment PK is required.');
+    window.$message?.warning($t('page.business.shipment.billing.pkRequired'));
     return false;
   }
 
@@ -552,19 +562,19 @@ const saveBillingTab = async (): Promise<boolean> => {
     });
     if (data) {
       refreshBillingSummary.value = true;
-      window.$message?.success('Successfully saved billing records.');
+      window.$message?.success($t('page.business.shipment.messages.billingSaveSuccess'));
       return true;
     }
     return false;
   } catch (error) {
     console.error('Failed to save billing:', error);
-    window.$message?.error('Failed to save billing records.');
+    window.$message?.error($t('page.business.shipment.messages.billingSaveFailed'));
     return false;
   }
 };
 
 const saveEDocsTab = async () => {
-  window.$message?.info('eDocs save is not implemented yet.');
+  window.$message?.info($t('page.business.shipment.messages.edocsNotImplemented'));
 };
 
 const onSaveHandle = async () => {

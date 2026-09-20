@@ -106,7 +106,7 @@ const saveAdditionalDetailsTab = async () => {
 
 const saveRoutingTab = async () => {
   if (!inputData.value.pk) {
-    window.$message?.warning('Shipment PK is required.');
+    window.$message?.warning($t('page.business.shipment.billing.pkRequired'));
     return;
   }
   await saveShipmentTab();
@@ -115,7 +115,7 @@ const saveRoutingTab = async () => {
 const refreshBillingSummary = ref(false);
 const saveBillingTab = async (): Promise<boolean> => {
   if (!inputData.value.pk) {
-    window.$message?.warning('Shipment PK is required.');
+    window.$message?.warning($t('page.business.shipment.billing.pkRequired'));
     return false;
   }
 
@@ -129,19 +129,19 @@ const saveBillingTab = async (): Promise<boolean> => {
     });
     if (data) {
       refreshBillingSummary.value = true;
-      window.$message?.success('Successfully saved billing records.');
+      window.$message?.success($t('page.business.shipment.messages.billingSaveSuccess'));
       return true;
     }
     return false;
   } catch (error) {
     console.error('Failed to save billing:', error);
-    window.$message?.error('Failed to save billing records.');
+    window.$message?.error($t('page.business.shipment.messages.billingSaveFailed'));
     return false;
   }
 };
 
 const saveEDocsTab = async () => {
-  window.$message?.info('eDocs save is not implemented yet.');
+  window.$message?.info($t('page.business.shipment.messages.edocsNotImplemented'));
 };
 
 const onSaveHandle = async () => {

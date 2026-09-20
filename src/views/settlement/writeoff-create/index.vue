@@ -307,7 +307,7 @@ async function fetchOutstandingLines() {
   if (editorLocked.value) return;
   const cn = orgAddressOutstandingBillingParty(form.value.settleCompany);
   if (!cn) {
-    window.$message?.warning('Select company first.');
+    window.$message?.warning(t('page.settlement.writeoff.create.pleaseSelectCompany2'));
     allLines.value = [];
     checkedLineKeys.value = [];
     linePagination.itemCount = 0;
@@ -332,7 +332,7 @@ async function fetchOutstandingLines() {
     checkedLineKeys.value = [];
     linePagination.itemCount = Number.isFinite(total) ? total : items.length;
   } catch {
-    window.$message?.error('Failed to load.');
+    window.$message?.error(t('page.settlement.transactions.saveFailed'));
     allLines.value = [];
     checkedLineKeys.value = [];
     linePagination.itemCount = 0;
@@ -345,14 +345,14 @@ async function onSearchLines() {
   if (editorLocked.value) return;
   const cn = orgAddressOutstandingBillingParty(form.value.settleCompany);
   if (!cn) {
-    window.$message?.warning('Select company first.');
+    window.$message?.warning(t('page.settlement.writeoff.create.pleaseSelectCompany2'));
     return;
   }
   linePagination.page = 1;
   try {
     await fetchOutstandingLines();
   } catch {
-    window.$message?.error('Failed to load.');
+    window.$message?.error(t('page.settlement.transactions.saveFailed'));
   }
 }
 
@@ -450,27 +450,27 @@ function toIso(val: string) {
 async function handleSave() {
   if (editorLocked.value || saving.value) return;
   if (!selectedLines.value.length) {
-    window.$message?.warning('Select at least one line.');
+    window.$message?.warning(t('page.settlement.writeoff.create.selectItemsFirst'));
     return;
   }
   if (!form.value.settleCompany) {
-    window.$message?.warning('Select company.');
+    window.$message?.warning(t('page.settlement.writeoff.create.pleaseSelectCompany2'));
     return;
   }
   const billingPartyForSave = orgAddressRowBillingParty(form.value.settleCompany);
   if (!billingPartyForSave) {
-    window.$message?.warning('Select company.');
+    window.$message?.warning(t('page.settlement.writeoff.create.pleaseSelectCompany2'));
     return;
   }
   const bankPk = String(form.value.bankAccount?.ab_pk ?? '').trim();
   if (!bankPk) {
-    window.$message?.warning('Select bank account.');
+    window.$message?.warning(t('page.settlement.writeoff.create.selectBankAccount'));
     return;
   }
   /** 结算金额按本币 */
   const amtHome = Number(form.value.settleAmount) || 0;
   if (amtHome <= 0) {
-    window.$message?.warning('Amount > 0 required.');
+    window.$message?.warning(t('page.settlement.writeoff.create.amountMustBePositive'));
     return;
   }
 
@@ -528,9 +528,9 @@ async function handleSave() {
     const mn = res?.data?.matchNumber ?? res?.data?.match_number ?? '';
     if (mn) form.value.matchNumber = String(mn);
     editorLocked.value = true;
-    window.$message?.success('Saved.');
+    window.$message?.success(t('page.settlement.writeoff.create.saveSuccess'));
   } catch {
-    window.$message?.error('Failed to save.');
+    window.$message?.error(t('page.settlement.transactions.saveFailed'));
   } finally {
     saving.value = false;
   }
