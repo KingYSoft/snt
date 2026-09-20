@@ -1156,6 +1156,10 @@ declare namespace App {
               uom: string;
             };
             section: {
+              shipper: string;
+              consignee: string;
+              sameAsConsignee: string;
+              loose: string;
               notifyParty: string;
               notifyParty1: string;
               additionalDetails: string;

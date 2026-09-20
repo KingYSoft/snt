@@ -734,6 +734,10 @@ const local: App.I18n.Schema = {
           }
         },
         section: {
+          shipper: '发货人',
+          consignee: '收货人',
+          sameAsConsignee: '同收货人',
+          loose: '散货',
           notifyParty: '通知方',
           notifyParty1: '通知方1',
           additionalDetails: '附加详情',

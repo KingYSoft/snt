@@ -28,6 +28,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
           value: row.ctr_type,
           options: containerTypeItemOptions,
           size: 'small',
+          placeholder: $t('common.pleaseSelect'),
           'onUpdate:value': (v: string) => {
             row.ctr_type = v;
           }
@@ -59,6 +60,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
         return h(NInput, {
           value: row.jc_containernum,
           size: 'small',
+          placeholder: $t('common.pleaseInput'),
           'onUpdate:value': (v: string) => {
             row.jc_containernum = v;
           }
@@ -73,6 +75,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
         return h(NInput, {
           value: row.jc_sealnum,
           size: 'small',
+          placeholder: $t('common.pleaseInput'),
           'onUpdate:value': (v: string) => {
             row.jc_sealnum = v;
           }
@@ -101,6 +104,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
         return h(NInput, {
           value: row.pac_commodity,
           size: 'small',
+          placeholder: $t('common.pleaseInput'),
           'onUpdate:value': (v: string) => {
             row.pac_commodity = v;
           }
@@ -167,6 +171,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
           value: row.pac_pack_type,
           options: packTypeOptions,
           size: 'small',
+          placeholder: $t('common.pleaseSelect'),
           'onUpdate:value': (v: string) => {
             row.pac_pack_type = v;
           }
@@ -181,6 +186,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
         return h(NInput, {
           value: row.pac_description,
           size: 'small',
+          placeholder: $t('common.pleaseInput'),
           'onUpdate:value': (v: string) => {
             row.pac_description = v;
           }
@@ -202,7 +208,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
         return h(
           NButton,
           { text: true, type: 'error', size: 'small', onClick: () => removeFn(index) },
-          { default: () => 'Del' }
+          { default: () => $t('common.delete') }
         );
       }
     },
@@ -232,6 +238,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
           value: row.pac_pack_type,
           options: packTypeOptions,
           size: 'small',
+          placeholder: $t('common.pleaseSelect'),
           'onUpdate:value': (v: string) => {
             row.pac_pack_type = v;
           }
@@ -358,6 +365,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
           value: row.pac_uom || 'M3',
           options: [{ label: 'M3', value: 'M3' }],
           size: 'small',
+          placeholder: $t('common.pleaseSelect'),
           'onUpdate:value': (v: string) => {
             row.pac_uom = v;
           }
@@ -372,6 +380,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
         return h(NInput, {
           value: row.pac_description,
           size: 'small',
+          placeholder: $t('common.pleaseInput'),
           'onUpdate:value': (v: string) => {
             row.pac_description = v;
           }

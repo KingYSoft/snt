@@ -19,6 +19,7 @@ import {
   NCheckbox
 } from 'naive-ui';
 import { $t } from '@/locales';
+import { useAppStore } from '@/store/modules/app';
 import { shipmentQueryOrgAddress, shipmentSaveOrgAddress, userQueryAll } from '@/service/api/business/shipment';
 import RemoteTableMenu from '@/components/business/remote-table-menu.vue';
 import { createContainerColumns, createLooseColumns, packTypeOptions } from './tab-shipment-columns';
@@ -36,6 +37,8 @@ const props = defineProps<{
 const emit = defineEmits<{
   (e: 'queryPort', query: string): void;
 }>();
+
+const appStore = useAppStore();
 
 const formRef = ref<InstanceType<typeof NForm> | null>(null);
 defineExpose({ formRef });
@@ -528,7 +531,10 @@ function removeContainer(index: number) {
   props.inputData.containers_list?.splice(index, 1);
 }
 
-const containerColumns = createContainerColumns(removeContainer);
+const containerColumns = computed(() => {
+  void appStore.locale;
+  return createContainerColumns(removeContainer);
+});
 
 function addContainer() {
   if (!props.inputData.containers_list) {
@@ -554,7 +560,10 @@ function removeLoose(index: number) {
   props.inputData.loose_list?.splice(index, 1);
 }
 
-const looseColumns = createLooseColumns(removeLoose, jsPackingW);
+const looseColumns = computed(() => {
+  void appStore.locale;
+  return createLooseColumns(removeLoose, jsPackingW);
+});
 
 function addLoose() {
   if (!props.inputData.loose_list) {
@@ -676,7 +685,9 @@ const addrDialogTitle = computed(() => {
           <NSpace vertical :size="16">
             <div>
               <NDivider class="!my-0">
-                <span class="text-12px font-bold uppercase opacity-70">Shipper</span>
+                <span class="text-12px font-bold uppercase opacity-70">
+                  {{ $t('page.business.shipment.section.shipper') }}
+                </span>
               </NDivider>
               <NGrid :cols="24" :y-gap="6" class="mt-4px">
                 <NFormItemGi
@@ -687,6 +698,7 @@ const addrDialogTitle = computed(() => {
                   :rule="rules.shipper_name"
                 >
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.shipper?.oh_fullname ?? ''"
                     @update:value="
                       (v: string) => {
@@ -698,6 +710,7 @@ const addrDialogTitle = computed(() => {
                 </NFormItemGi>
                 <NFormItemGi :span="24" :label="$t('page.business.shipment.address.address1')">
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.shipper?.oa_address1 ?? ''"
                     @update:value="
                       (v: string) => {
@@ -709,6 +722,7 @@ const addrDialogTitle = computed(() => {
                 </NFormItemGi>
                 <NFormItemGi :span="24" :label="$t('page.business.shipment.address.address2')">
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.shipper?.oa_address2 ?? ''"
                     @update:value="
                       (v: string) => {
@@ -722,7 +736,9 @@ const addrDialogTitle = computed(() => {
             </div>
             <div>
               <NDivider class="!my-0">
-                <span class="text-12px font-bold uppercase opacity-70">Consignee</span>
+                <span class="text-12px font-bold uppercase opacity-70">
+                  {{ $t('page.business.shipment.section.consignee') }}
+                </span>
               </NDivider>
               <NGrid :cols="24" :y-gap="6" class="mt-4px">
                 <NFormItemGi
@@ -733,6 +749,7 @@ const addrDialogTitle = computed(() => {
                   :rule="rules.consignee_name"
                 >
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.consignee?.oh_fullname ?? ''"
                     @update:value="
                       (v: string) => {
@@ -744,6 +761,7 @@ const addrDialogTitle = computed(() => {
                 </NFormItemGi>
                 <NFormItemGi :span="24" :label="$t('page.business.shipment.address.address1')">
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.consignee?.oa_address1 ?? ''"
                     @update:value="
                       (v: string) => {
@@ -755,6 +773,7 @@ const addrDialogTitle = computed(() => {
                 </NFormItemGi>
                 <NFormItemGi :span="24" :label="$t('page.business.shipment.address.address2')">
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.consignee?.oa_address2 ?? ''"
                     @update:value="
                       (v: string) => {
@@ -768,12 +787,15 @@ const addrDialogTitle = computed(() => {
             </div>
             <div>
               <NDivider class="!my-0">
-                <span class="text-12px font-bold uppercase opacity-70">Notify Party</span>
+                <span class="text-12px font-bold uppercase opacity-70">
+                  {{ $t('page.business.shipment.section.notifyParty') }}
+                </span>
               </NDivider>
               <div class="mb-6px mt-4px flex items-center justify-end gap-8px"></div>
               <NGrid :cols="24" :y-gap="6">
                 <NFormItemGi class="mt-10px" :span="24" :label="$t('page.business.shipment.form.name')">
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.notify_party?.oh_fullname ?? ''"
                     @update:value="
                       (v: string) => {
@@ -786,11 +808,12 @@ const addrDialogTitle = computed(() => {
                 </NFormItemGi>
                 <NFormItemGi :span="24">
                   <NCheckbox :checked="notifySameAsConsignee" @update:checked="onNotifySameAsConsignee">
-                    Same as Consignee
+                    {{ $t('page.business.shipment.section.sameAsConsignee') }}
                   </NCheckbox>
                 </NFormItemGi>
                 <NFormItemGi :span="24" :label="$t('page.business.shipment.address.address1')">
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.notify_party?.oa_address1 ?? ''"
                     @update:value="
                       (v: string) => {
@@ -803,6 +826,7 @@ const addrDialogTitle = computed(() => {
                 </NFormItemGi>
                 <NFormItemGi :span="24" :label="$t('page.business.shipment.address.address2')">
                   <NInput
+                    :placeholder="$t('common.pleaseInput')"
                     :value="inputData.notify_party?.oa_address2 ?? ''"
                     @update:value="
                       (v: string) => {
@@ -821,15 +845,27 @@ const addrDialogTitle = computed(() => {
         <!-- Col 2: Logistics & physical -->
         <NGi :span="6">
           <NGrid :cols="24" :y-gap="6">
-            <NFormItemGi :span="24" :label="$t('page.business.shipment.form.transportMode')" path="shp_transport_mode" :rule="rules.shp_transport_mode">
+            <NFormItemGi
+              :span="24"
+              :label="$t('page.business.shipment.form.transportMode')"
+              path="shp_transport_mode"
+              :rule="rules.shp_transport_mode"
+            >
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_transport_mode"
                 :options="transportModeOptions"
                 @update:value="(v: string) => (inputData.shp_transport_mode = v)"
               />
             </NFormItemGi>
-            <NFormItemGi :span="24" :label="$t('page.business.shipment.form.packingMode')" path="shp_packing_mode" :rule="rules.shp_packing_mode">
+            <NFormItemGi
+              :span="24"
+              :label="$t('page.business.shipment.form.packingMode')"
+              path="shp_packing_mode"
+              :rule="rules.shp_packing_mode"
+            >
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_packing_mode || inputData.shp_container_type"
                 :options="containerTypeOptions"
                 @update:value="
@@ -840,8 +876,14 @@ const addrDialogTitle = computed(() => {
                 "
               />
             </NFormItemGi>
-            <NFormItemGi :span="24" :label="$t('page.business.shipment.form.origin')" path="shp_origin" :rule="rules.shp_origin">
+            <NFormItemGi
+              :span="24"
+              :label="$t('page.business.shipment.form.origin')"
+              path="shp_origin"
+              :rule="rules.shp_origin"
+            >
               <NAutoComplete
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_origin"
                 :options="portOptions"
                 clearable
@@ -850,8 +892,14 @@ const addrDialogTitle = computed(() => {
                 @update:value="(v: string) => (inputData.shp_origin = v)"
               />
             </NFormItemGi>
-            <NFormItemGi :span="24" :label="$t('page.business.shipment.form.destination')" path="shp_destination" :rule="rules.shp_destination">
+            <NFormItemGi
+              :span="24"
+              :label="$t('page.business.shipment.form.destination')"
+              path="shp_destination"
+              :rule="rules.shp_destination"
+            >
               <NAutoComplete
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_destination"
                 :options="portOptions"
                 clearable
@@ -862,7 +910,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <!--
  <NFormItemGi :span="24" :label="$t('page.business.shipment.form.load')">
-              <NAutoComplete
+              <NAutoComplete :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_load_port"
                 :options="portOptions"
                 clearable
@@ -872,7 +920,7 @@ const addrDialogTitle = computed(() => {
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.discharge')">
-              <NAutoComplete
+              <NAutoComplete :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_discharge_port"
                 :options="portOptions"
                 clearable
@@ -910,6 +958,7 @@ const addrDialogTitle = computed(() => {
                   @update:value="(v: number | null) => (inputData.shp_actual_weight = v ?? 0)"
                 />
                 <NSelect
+                  :placeholder="$t('common.pleaseSelect')"
                   :value="inputData.shp_unit_of_weight"
                   :options="weightUnitOptions"
                   :consistent-menu-width="false"
@@ -928,6 +977,7 @@ const addrDialogTitle = computed(() => {
                   @update:value="(v: number | null) => (inputData.shp_actual_volume = v ?? 0)"
                 />
                 <NSelect
+                  :placeholder="$t('common.pleaseSelect')"
                   :value="inputData.shp_unit_of_volume"
                   :options="volumeUnitOptions"
                   :consistent-menu-width="false"
@@ -940,6 +990,7 @@ const addrDialogTitle = computed(() => {
               <NSpace :wrap="false" :size="4" class="w-full">
                 <NInputNumber :value="inputData.shp_volume_weight" readonly :show-button="false" style="width: 100%" />
                 <NSelect
+                  :placeholder="$t('common.pleaseSelect')"
                   :value="inputData.shp_unit_of_weight"
                   :options="weightUnitOptions"
                   :consistent-menu-width="false"
@@ -957,6 +1008,7 @@ const addrDialogTitle = computed(() => {
                   style="width: 100%"
                 />
                 <NSelect
+                  :placeholder="$t('common.pleaseSelect')"
                   :value="inputData.shp_unit_of_weight"
                   :options="weightUnitOptions"
                   :consistent-menu-width="false"
@@ -975,6 +1027,7 @@ const addrDialogTitle = computed(() => {
                   @update:value="(v: number | null) => (inputData.js_outerpacks = v ?? 0)"
                 />
                 <NSelect
+                  :placeholder="$t('common.pleaseSelect')"
                   :value="inputData.shp_pack_type"
                   :options="packTypeOptions"
                   :consistent-menu-width="false"
@@ -983,8 +1036,14 @@ const addrDialogTitle = computed(() => {
                 />
               </NSpace>
             </NFormItemGi>
-            <NFormItemGi :span="24" :label="$t('page.business.shipment.form.inco')" path="shp_inco" :rule="rules.shp_inco">
+            <NFormItemGi
+              :span="24"
+              :label="$t('page.business.shipment.form.inco')"
+              path="shp_inco"
+              :rule="rules.shp_inco"
+            >
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_inco || inputData.shp_inco_terms"
                 :options="incoTermOptions"
                 @update:value="
@@ -995,8 +1054,14 @@ const addrDialogTitle = computed(() => {
                 "
               />
             </NFormItemGi>
-            <NFormItemGi :span="24" :label="$t('page.business.shipment.form.freightTerms')" path="shp_freight_terms" :rule="rules.shp_freight_terms">
+            <NFormItemGi
+              :span="24"
+              :label="$t('page.business.shipment.form.freightTerms')"
+              path="shp_freight_terms"
+              :rule="rules.shp_freight_terms"
+            >
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_freight_terms"
                 :options="_freightTermsOptions"
                 @update:value="(v: string) => (inputData.shp_freight_terms = v)"
@@ -1010,20 +1075,28 @@ const addrDialogTitle = computed(() => {
           <NGrid :cols="24" :y-gap="6">
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.jobStatus')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_shipment_status"
                 @update:value="(v: string) => (inputData.shp_shipment_status = v)"
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.phase')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_phase"
                 :options="phaseOptions"
                 clearable
                 @update:value="(v: string) => (inputData.shp_phase = v)"
               />
             </NFormItemGi>
-            <NFormItemGi :span="24" :label="$t('page.business.shipment.form.releaseType')" path="shp_release_type" :rule="rules.shp_release_type">
+            <NFormItemGi
+              :span="24"
+              :label="$t('page.business.shipment.form.releaseType')"
+              path="shp_release_type"
+              :rule="rules.shp_release_type"
+            >
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_release_type"
                 :options="releaseTypeOptions"
                 @update:value="(v: string) => (inputData.shp_release_type = v)"
@@ -1031,6 +1104,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.serviceLevel')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_service_level"
                 :options="serviceLevelOptions"
                 @update:value="(v: string) => (inputData.shp_service_level = v)"
@@ -1038,6 +1112,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.deliveryMode')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.js_hblcontainerpackmodeoverride"
                 :options="deliveryModeOptions"
                 clearable
@@ -1060,6 +1135,7 @@ const addrDialogTitle = computed(() => {
                   "
                 />
                 <NSelect
+                  :placeholder="$t('common.pleaseSelect')"
                   :value="inputData.shp_goods_value_currency"
                   :options="currencyOptions"
                   style="width: 80px"
@@ -1082,6 +1158,7 @@ const addrDialogTitle = computed(() => {
                   "
                 />
                 <NSelect
+                  :placeholder="$t('common.pleaseSelect')"
                   :value="inputData.shp_insurance_currency"
                   :options="currencyOptions"
                   style="width: 80px"
@@ -1091,6 +1168,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.goodDesc')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_goods_description"
                 type="textarea"
                 :rows="2"
@@ -1099,6 +1177,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.marksNo')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_marks_nos || inputData.shp_marks_numbers"
                 type="textarea"
                 :rows="2"
@@ -1112,24 +1191,28 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.controllingCustomer')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_controlling_customer"
                 @update:value="(v: string) => (inputData.shp_controlling_customer = v)"
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.contractNumber')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_carrier_contract_number"
                 @update:value="(v: string) => (inputData.shp_carrier_contract_number = v)"
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.entrustingParty')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_entrusting_party"
                 @update:value="(v: string) => (inputData.shp_entrusting_party = v)"
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.rejectReleaseReason')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_reject_release_reason"
                 @update:value="(v: string) => (inputData.shp_reject_release_reason = v)"
               />
@@ -1145,7 +1228,7 @@ const addrDialogTitle = computed(() => {
                 @update:formatted-value="(v: string) => (inputData.shp_est_delivery = v)" />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.carrier')">
-              <NInput :value="inputData.shp_preferred_carrier || inputData.shp_carrier" @update:value="
+              <NInput :placeholder="$t('common.pleaseInput')" :value="inputData.shp_preferred_carrier || inputData.shp_carrier" @update:value="
                 (v: string) => {
                   inputData.shp_preferred_carrier = v;
                   inputData.shp_carrier = v;
@@ -1153,31 +1236,31 @@ const addrDialogTitle = computed(() => {
               " />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.commodity')">
-              <NInput :value="inputData.shp_commodity" @update:value="(v: string) => (inputData.shp_commodity = v)" />
+              <NInput :placeholder="$t('common.pleaseInput')" :value="inputData.shp_commodity" @update:value="(v: string) => (inputData.shp_commodity = v)" />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.transitTime')">
               <NSpace :wrap="false" :size="4" class="w-full">
                 <NInputNumber :value="inputData.shp_transit_time" :min="0" :show-button="false" style="width: 100%"
                   @update:value="(v: number | null) => (inputData.shp_transit_time = v ?? 0)" />
-                <NSelect :value="inputData.shp_transit_time_unit" :options="transitTimeUnitOptions"
+                <NSelect :placeholder="$t('common.pleaseSelect')" :value="inputData.shp_transit_time_unit" :options="transitTimeUnitOptions"
                   :consistent-menu-width="false" style="width: 90px"
                   @update:value="(v: string) => (inputData.shp_transit_time_unit = v)" />
               </NSpace>
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.bookingParty')">
-              <NInput :value="inputData.shp_booking_party"
+              <NInput :placeholder="$t('common.pleaseInput')" :value="inputData.shp_booking_party"
                 @update:value="(v: string) => (inputData.shp_booking_party = v)" />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.spotQuoteNo')">
-              <NInput :value="inputData.shp_one_time_quote"
+              <NInput :placeholder="$t('common.pleaseInput')" :value="inputData.shp_one_time_quote"
                 @update:value="(v: string) => (inputData.shp_one_time_quote = v)" />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.shipperRef')">
-              <NInput :value="inputData.shp_booking_reference"
+              <NInput :placeholder="$t('common.pleaseInput')" :value="inputData.shp_booking_reference"
                 @update:value="(v: string) => (inputData.shp_booking_reference = v)" />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.additionalTerms')">
-              <NInput :value="inputData.shp_additional_terms"
+              <NInput :placeholder="$t('common.pleaseInput')" :value="inputData.shp_additional_terms"
                 @update:value="(v: string) => (inputData.shp_additional_terms = v)" />
             </NFormItemGi> 
 -->
@@ -1189,12 +1272,14 @@ const addrDialogTitle = computed(() => {
           <NGrid :cols="24" :y-gap="6">
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.customerService')">
               <NInput
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.shp_job_rep_cs_name"
                 @update:value="(v: string) => (inputData.shp_job_rep_cs_name = v)"
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.csEmail')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_cs_email || null"
                 :options="_csEmailOptions"
                 clearable
@@ -1206,10 +1291,15 @@ const addrDialogTitle = computed(() => {
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.opAtPol')">
-              <NInput :value="inputData.shp_op_at_pol" @update:value="(v: string) => (inputData.shp_op_at_pol = v)" />
+              <NInput
+                :placeholder="$t('common.pleaseInput')"
+                :value="inputData.shp_op_at_pol"
+                @update:value="(v: string) => (inputData.shp_op_at_pol = v)"
+              />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.opAtPod')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_op_at_pod || null"
                 :options="_userOptions"
                 clearable
@@ -1222,6 +1312,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.seaPricing')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_sea_pricing || null"
                 :options="_userOptions"
                 clearable
@@ -1234,6 +1325,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.opAt1stBookingParty')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_op_at_1st_booking_party || null"
                 :options="_userOptions"
                 clearable
@@ -1246,6 +1338,7 @@ const addrDialogTitle = computed(() => {
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.opAt2ndBookingParty')">
               <NSelect
+                :placeholder="$t('common.pleaseSelect')"
                 :value="inputData.shp_op_at_2nd_booking_party || null"
                 :options="_userOptions"
                 clearable
@@ -1257,10 +1350,18 @@ const addrDialogTitle = computed(() => {
               />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.doc')">
-              <NInput :value="inputData.shp_doc_rep" @update:value="(v: string) => (inputData.shp_doc_rep = v)" />
+              <NInput
+                :placeholder="$t('common.pleaseInput')"
+                :value="inputData.shp_doc_rep"
+                @update:value="(v: string) => (inputData.shp_doc_rep = v)"
+              />
             </NFormItemGi>
             <NFormItemGi :span="24" :label="$t('page.business.shipment.form.pricing')">
-              <NInput :value="inputData.shp_pricing" @update:value="(v: string) => (inputData.shp_pricing = v)" />
+              <NInput
+                :placeholder="$t('common.pleaseInput')"
+                :value="inputData.shp_pricing"
+                @update:value="(v: string) => (inputData.shp_pricing = v)"
+              />
             </NFormItemGi>
           </NGrid>
         </NGi>
@@ -1291,7 +1392,9 @@ const addrDialogTitle = computed(() => {
       <!-- Loose Cargo Table (other modes) -->
       <template v-else>
         <div class="mb-8px">
-          <NButton type="warning" size="small" @click="addLoose">Loose</NButton>
+          <NButton type="warning" size="small" @click="addLoose">
+            {{ $t('page.business.shipment.section.loose') }}
+          </NButton>
         </div>
         <NDataTable
           :columns="looseColumns"
@@ -1308,43 +1411,43 @@ const addrDialogTitle = computed(() => {
       <NForm ref="addrFormRef" label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
         <NGrid :cols="2" :x-gap="12">
           <NFormItemGi :label="$t('page.business.shipment.address.companyName')" path="company_name">
-            <NInput v-model:value="addrInput.company_name" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.company_name" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.code')">
-            <NInput v-model:value="addrInput.code" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.code" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.shortCode')">
-            <NInput v-model:value="addrInput.short_code" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.short_code" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.contact')">
-            <NInput v-model:value="addrInput.contact" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.contact" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.phone')">
-            <NInput v-model:value="addrInput.phone" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.phone" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.email')">
-            <NInput v-model:value="addrInput.email" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.email" />
           </NFormItemGi>
           <NFormItemGi :span="2" :label="$t('page.business.shipment.address.address1')">
-            <NInput v-model:value="addrInput.address1" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.address1" />
           </NFormItemGi>
           <NFormItemGi :span="2" :label="$t('page.business.shipment.address.address2')">
-            <NInput v-model:value="addrInput.address2" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.address2" />
           </NFormItemGi>
           <NFormItemGi :span="2" :label="$t('page.business.shipment.address.address3')">
-            <NInput v-model:value="addrInput.address3" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.address3" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.city')">
-            <NInput v-model:value="addrInput.city" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.city" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.state')">
-            <NInput v-model:value="addrInput.state" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.state" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.postalCode')">
-            <NInput v-model:value="addrInput.postal_code" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.postal_code" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.countryCode')">
-            <NInput v-model:value="addrInput.country_code" />
+            <NInput :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.country_code" />
           </NFormItemGi>
         </NGrid>
       </NForm>

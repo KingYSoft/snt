@@ -738,6 +738,10 @@ const local: App.I18n.Schema = {
           }
         },
         section: {
+          shipper: 'Shipper',
+          consignee: 'Consignee',
+          sameAsConsignee: 'Same as Consignee',
+          loose: 'Loose',
           notifyParty: 'Notify Party',
           notifyParty1: 'Notify Party 1',
           additionalDetails: 'Additional Details',
