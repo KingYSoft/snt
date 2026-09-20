@@ -28,14 +28,14 @@ function getShipmentRowKey(row: any) {
 const transportItems = computed(() => {
   const data = detailData.value || {};
   return [
-    { label: 'Transport', value: data.jk_transportmode },
-    { label: 'Container', value: data.jk_consolmode },
-    { label: 'Consol Type', value: data.jk_releasetype },
-    { label: 'Service Level', value: data.jk_awbservicelevel },
-    { label: 'Freight Terms', value: data.jk_prepaidcollect },
-    { label: 'BOL', value: data.jk_masterbillnum },
-    { label: 'Contract No', value: data.jk_carriercontractnumber },
-    { label: 'Delivery Mode', value: data.jk_agenttype }
+    { label: $t('page.business.consolidation.detail.transport'), value: data.jk_transportmode },
+    { label: $t('page.business.consolidation.detail.container'), value: data.jk_consolmode },
+    { label: $t('page.business.consolidation.detail.consolType'), value: data.jk_releasetype },
+    { label: $t('page.business.consolidation.detail.serviceLevel'), value: data.jk_awbservicelevel },
+    { label: $t('page.business.consolidation.detail.freightTerms'), value: data.jk_prepaidcollect },
+    { label: $t('page.business.consolidation.detail.bolMasterBillNo'), value: data.jk_masterbillnum },
+    { label: $t('page.business.consolidation.detail.contractNo'), value: data.jk_carriercontractnumber },
+    { label: $t('page.business.consolidation.detail.deliveryMode'), value: data.jk_agenttype }
   ];
 });
 
@@ -43,14 +43,14 @@ const transportItems = computed(() => {
 const routingItems = computed(() => {
   const data = detailData.value || {};
   return [
-    { label: 'Origin', value: data.jk_rl_nkorigin },
-    { label: 'Destination', value: data.jk_rl_nkdestination },
-    { label: 'Place of Receipt', value: data.jk_rl_nkplaceofreceipt },
-    { label: 'Place of Delivery', value: data.jk_rl_nkplaceofdelivery },
-    { label: 'Load', value: data.jk_rl_nkloadport },
-    { label: 'Discharge', value: data.jk_rl_nkdischargeport },
-    { label: 'Vessel', value: data.jk_vessel },
-    { label: 'Voyage', value: data.jk_voyage }
+    { label: $t('page.business.consolidation.detail.origin'), value: data.jk_rl_nkorigin },
+    { label: $t('page.business.consolidation.detail.destination'), value: data.jk_rl_nkdestination },
+    { label: $t('page.business.consolidation.detail.placeOfReceipt'), value: data.jk_rl_nkplaceofreceipt },
+    { label: $t('page.business.consolidation.detail.placeOfDelivery'), value: data.jk_rl_nkplaceofdelivery },
+    { label: $t('page.business.consolidation.detail.load'), value: data.jk_rl_nkloadport },
+    { label: $t('page.business.consolidation.detail.discharge'), value: data.jk_rl_nkdischargeport },
+    { label: $t('page.business.consolidation.detail.vessel'), value: data.jk_vessel },
+    { label: $t('page.business.consolidation.detail.voyage'), value: data.jk_voyage }
   ];
 });
 
@@ -58,14 +58,14 @@ const routingItems = computed(() => {
 const scheduleItems = computed(() => {
   const data = detailData.value || {};
   return [
-    { label: 'ETD', value: data.jk_e_dep },
-    { label: 'ETA', value: data.jk_e_arv },
-    { label: 'ATD', value: data.jk_actualdeparture },
-    { label: 'ATA', value: data.jk_actualarrival },
-    { label: 'Carrier', value: data.jk_rl_nkcarrier },
-    { label: 'Carrier Bkg Ref', value: data.jk_bookingreference },
-    { label: 'Booking Agent', value: data.jk_bookingagent },
-    { label: 'Agent Ref', value: data.jk_agentsreference }
+    { label: $t('page.business.consolidation.detail.etd'), value: data.jk_e_dep },
+    { label: $t('page.business.consolidation.detail.eta'), value: data.jk_e_arv },
+    { label: $t('page.business.consolidation.detail.atd'), value: data.jk_actualdeparture },
+    { label: $t('page.business.consolidation.detail.ata'), value: data.jk_actualarrival },
+    { label: $t('page.business.consolidation.detail.carrier'), value: data.jk_rl_nkcarrier },
+    { label: $t('page.business.consolidation.detail.carrierBookingRef'), value: data.jk_bookingreference },
+    { label: $t('page.business.consolidation.detail.bookingAgent'), value: data.jk_bookingagent },
+    { label: $t('page.business.consolidation.detail.agentRef'), value: data.jk_agentsreference }
   ];
 });
 
@@ -73,13 +73,13 @@ const scheduleItems = computed(() => {
 const coloadVgmItems = computed(() => {
   const data = detailData.value || {};
   return [
-    { label: 'Coload Agent', value: data.jk_coloadagent },
-    { label: 'Coload MBL', value: data.jk_coloadmasterbill },
-    { label: 'Coload Ref.', value: data.jk_coloadbookingreference },
-    { label: 'Gate In', value: data.jk_gateindate },
-    { label: 'On Board', value: data.jk_shippedonboarddate },
+    { label: $t('page.business.consolidation.detail.coloadAgent'), value: data.jk_coloadagent },
+    { label: $t('page.business.consolidation.detail.coloadMbl'), value: data.jk_coloadmasterbill },
+    { label: $t('page.business.consolidation.detail.coloadRef'), value: data.jk_coloadbookingreference },
+    { label: $t('page.business.consolidation.detail.gateIn'), value: data.jk_gateindate },
+    { label: $t('page.business.consolidation.detail.onBoard'), value: data.jk_shippedonboarddate },
     {
-      label: 'VGM Data',
+      label: $t('page.business.consolidation.detail.vgmData'),
       value: data.jk_vgmweight ? `${data.jk_vgmweight} ${data.jk_vgmweightunit || 'KG'}` : '-'
     }
   ];
@@ -104,7 +104,7 @@ const shipmentColumns: DataTableColumns<any> = [
     key: 'shp_destination',
     minWidth: 100
   },
-  { title: 'House Bill', key: 'shp_house_bill', minWidth: 120 },
+  { title: $t('page.business.consolidation.detail.houseBill'), key: 'shp_house_bill', minWidth: 120 },
   {
     title: $t('page.business.consolidation.detail.packages'),
     key: 'shp_total_package_count',
@@ -125,7 +125,7 @@ const shipmentColumns: DataTableColumns<any> = [
     key: 'shp_actual_weight',
     minWidth: 120
   },
-  { title: 'Volume Weight', key: 'shp_actual_volume', minWidth: 100 }
+  { title: $t('page.business.consolidation.detail.volumeWeight'), key: 'shp_actual_volume', minWidth: 100 }
 ];
 
 const shipmentTotals = computed(() => {
@@ -146,18 +146,18 @@ const shipmentTotals = computed(() => {
     <!-- Row 1: Local Agent | Overseas Agent | Dates -->
     <NGrid :cols="1" :x-gap="12">
       <NGi>
-        <NCard title="Dates" size="small">
+        <NCard :title="$t('page.business.consolidation.detail.dates')" size="small">
           <NDescriptions label-placement="left" :column="4" bordered>
-            <NDescriptionsItem label="SO Confirm">
+            <NDescriptionsItem :label="$t('page.business.consolidation.detail.soConfirm')">
               {{ formatValue(detailData.jk_consolcutoffdate) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="VGM Cut-Off">
+            <NDescriptionsItem :label="$t('page.business.consolidation.detail.vgmCutOff')">
               {{ formatValue(detailData.jk_vgmcutoffdate) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="Doc Cut-Off">
+            <NDescriptionsItem :label="$t('page.business.consolidation.detail.docCutOff')">
               {{ formatValue(detailData.jk_doccutoffdate) }}
             </NDescriptionsItem>
-            <NDescriptionsItem label="Port Cargo Cut-Off">
+            <NDescriptionsItem :label="$t('page.business.consolidation.detail.portCargoCutOff')">
               {{ formatValue(detailData.jk_portcargocutoffdate) }}
             </NDescriptionsItem>
           </NDescriptions>
@@ -168,7 +168,7 @@ const shipmentTotals = computed(() => {
     <!-- Row 2: Transport | Routing | Schedule & Agents | Coload & VGM -->
     <NGrid :cols="4" :x-gap="12">
       <NGi>
-        <NCard title="Transport" size="small">
+        <NCard :title="$t('page.business.consolidation.detail.transport')" size="small">
           <NDescriptions label-placement="left" :column="1" bordered>
             <NDescriptionsItem v-for="item in transportItems" :key="item.label" :label="item.label">
               {{ formatValue(item.value) }}
@@ -177,7 +177,7 @@ const shipmentTotals = computed(() => {
         </NCard>
       </NGi>
       <NGi>
-        <NCard title="Routing" size="small">
+        <NCard :title="$t('page.business.consolidation.tab.routing')" size="small">
           <NDescriptions label-placement="left" :column="1" bordered>
             <NDescriptionsItem v-for="item in routingItems" :key="item.label" :label="item.label">
               {{ formatValue(item.value) }}
@@ -186,7 +186,7 @@ const shipmentTotals = computed(() => {
         </NCard>
       </NGi>
       <NGi>
-        <NCard title="Schedule & Agents" size="small">
+        <NCard :title="$t('page.business.consolidation.detail.scheduleAgents')" size="small">
           <NDescriptions label-placement="left" :column="1" bordered>
             <NDescriptionsItem v-for="item in scheduleItems" :key="item.label" :label="item.label">
               {{ formatValue(item.value) }}
@@ -195,7 +195,7 @@ const shipmentTotals = computed(() => {
         </NCard>
       </NGi>
       <NGi>
-        <NCard title="Coload & VGM" size="small">
+        <NCard :title="$t('page.business.consolidation.detail.coloadVgm')" size="small">
           <NDescriptions label-placement="left" :column="1" bordered>
             <NDescriptionsItem v-for="item in coloadVgmItems" :key="item.label" :label="item.label">
               {{ formatValue(item.value) }}
@@ -221,26 +221,26 @@ const shipmentTotals = computed(() => {
       <!-- Totals Summary -->
       <div v-if="shipmentList.length > 0" class="mt-8px flex gap-24px border-t border-[#e5e7eb] pt-8px text-14px">
         <span>
-          Total:
+          {{ $t('page.business.consolidation.detail.total') }}:
           <strong>{{ shipmentTotals.count }}</strong>
-          Ship.
+          {{ $t('page.business.consolidation.detail.shipCount') }}
         </span>
         <span>
-          Packs:
+          {{ $t('page.business.consolidation.detail.packs') }}:
           <strong>{{ shipmentTotals.packs }}</strong>
         </span>
         <span>
-          Gross:
+          {{ $t('page.business.consolidation.detail.gross') }}:
           <strong>{{ shipmentTotals.gross }}</strong>
           KG
         </span>
         <span>
-          Volume:
+          {{ $t('page.business.consolidation.detail.volume') }}:
           <strong>{{ shipmentTotals.volume }}</strong>
           M3
         </span>
         <span>
-          Chargeable:
+          {{ $t('page.business.consolidation.detail.chargeable') }}:
           <strong>{{ shipmentTotals.chargeable }}</strong>
           KGS
         </span>

@@ -47,14 +47,14 @@ export function getMatchTransactionColumns(
     },
     {
       key: 'ledger',
-      title: 'Ledger',
+      title: t('page.settlement.matchTransactions.ledger'),
       width: 80,
       align: 'center',
       ellipsis: { tooltip: true }
     },
     {
       key: 'matchNumber',
-      title: 'Transaction No.',
+      title: t('page.settlement.matchTransactions.transactionNo'),
       width: 160,
       ellipsis: { tooltip: true },
       render: row =>
@@ -72,35 +72,35 @@ export function getMatchTransactionColumns(
     },
     {
       key: 'billingParty',
-      title: 'Company',
+      title: t('page.settlement.matchTransactions.company'),
       width: 240,
       ellipsis: { tooltip: true },
       render: row => companyCell(row)
     },
     {
       key: 'currency',
-      title: 'Currency',
+      title: t('page.settlement.matchTransactions.currency'),
       width: 80,
       align: 'center',
       ellipsis: { tooltip: true }
     },
     {
       key: 'settledAmount',
-      title: 'Amount',
+      title: t('page.settlement.matchTransactions.amount'),
       width: 130,
       align: 'right',
       render: row => h('span', {}, formatSettledAmount(row.settledAmount))
     },
     {
       key: 'paymentDate',
-      title: 'Payment Date',
+      title: t('page.settlement.matchTransactions.paymentDate'),
       width: 120,
       ellipsis: { tooltip: true },
       render: row => (row.paymentDate ? String(row.paymentDate).split('T')[0] : '-')
     },
     {
       key: 'description',
-      title: 'Description',
+      title: t('page.settlement.matchTransactions.description'),
       minWidth: 160,
       ellipsis: { tooltip: true }
     },

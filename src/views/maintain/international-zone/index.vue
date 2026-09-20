@@ -5,7 +5,7 @@ defineOptions({ name: 'PageMaintainInternationalZone' });
 <template>
   <div class="p-16px">
     <NCard :title="$t('route.maintain_international_zone')">
-      <NEmpty description="Coming soon" />
+      <NEmpty :description="$t('common.lookForward')" />
     </NCard>
   </div>
 </template>

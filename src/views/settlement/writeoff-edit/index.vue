@@ -310,14 +310,14 @@ async function onSearchLines() {
   if (editorLocked.value) return;
   const billingPartyAh = orgAddressOutstandingBillingParty(form.value.settleCompany);
   if (!billingPartyAh) {
-    window.$message?.warning('Please select settlement company first.');
+    window.$message?.warning(t('page.settlement.writeoff.create.pleaseSelectCompany'));
     return;
   }
   try {
     await queryOutstandingInvoiceLines(billingPartyAh);
   } catch (error) {
     console.error(error);
-    window.$message?.error('Failed to load outstanding invoices.');
+    window.$message?.error(t('page.settlement.transactions.saveFailed'));
   }
 }
 
@@ -446,7 +446,7 @@ onMounted(async () => {
   try {
     const { data: rawDetail, error } = await matchTransactionsGetDetail({ Pk: pk });
     if (error) {
-      window.$message?.error('Failed to load match data.');
+      window.$message?.error(t('page.settlement.transactions.saveFailed'));
       return;
     }
     const { matchLink, header, transactionLines, bank } = normalizeWriteoffDetailResponse(
@@ -506,7 +506,7 @@ onMounted(async () => {
     checkedLineKeys.value = allLines.value.map((r: any) => r.id);
   } catch (error) {
     console.error(error);
-    window.$message?.error('Failed to load match data.');
+    window.$message?.error(t('page.settlement.transactions.saveFailed'));
   } finally {
     loading.value = false;
   }

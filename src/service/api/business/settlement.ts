@@ -504,9 +504,9 @@ function buildBillingFilters(params: SettlementTransactionQueryParams): Array<{
     const fieldMap: Record<string, string> = {
       creditor_debtor: 'ah_oh',
       creditor_debtor_full_name: 'ah_oh',
-      job_number: 'ah_jobnumber',
+      job_number: 'job_number',
       transaction_num: 'ah_transactionnum',
-      job_invoice_number: 'ah_jobnumber'
+      job_invoice_number: 'job_invoice_number'
     };
     filters.push({
       key: fieldMap[params.keywordField] || params.keywordField,

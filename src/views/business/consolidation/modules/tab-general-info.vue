@@ -19,6 +19,7 @@ import {
   NSelect,
   NSpace
 } from 'naive-ui';
+import { $t } from '@/locales';
 import { consolidationMatchingShipments } from '@/service/api/business/consolidation';
 import { shipmentQueryPortCode } from '@/service/api/business/shipment';
 import { queryServiceLevelPage } from '@/service/api/maintain/service-level';
@@ -193,7 +194,7 @@ watch(
 const shipmentColumns: DataTableColumns<any> = [
   { type: 'selection' },
   {
-    title: 'Shipment No',
+    title: $t('page.business.consolidation.detail.shipmentNo'),
     key: 'js_uniqueconsignref',
     minWidth: 140,
     render(row) {
@@ -207,32 +208,32 @@ const shipmentColumns: DataTableColumns<any> = [
       );
     }
   },
-  { title: 'Origin', key: 'js_rl_nkorigin', minWidth: 100 },
-  { title: 'Destination', key: 'js_rl_nkdestination', minWidth: 100 },
-  { title: 'House Bill', key: 'js_housebill', minWidth: 120 },
-  { title: 'Packages', key: 'js_outerpacks', minWidth: 80 },
-  { title: 'Shipper', key: 'shipper_name', minWidth: 140 },
-  { title: 'Consignee', key: 'consignee_name', minWidth: 140 },
-  { title: 'Gross Weight', key: 'js_actualweight', minWidth: 100 }
+  { title: $t('page.business.consolidation.detail.origin'), key: 'js_rl_nkorigin', minWidth: 100 },
+  { title: $t('page.business.consolidation.detail.destination'), key: 'js_rl_nkdestination', minWidth: 100 },
+  { title: $t('page.business.consolidation.detail.houseBill'), key: 'js_housebill', minWidth: 120 },
+  { title: $t('page.business.consolidation.detail.packages'), key: 'js_outerpacks', minWidth: 80 },
+  { title: $t('page.business.consolidation.detail.shipper'), key: 'shipper_name', minWidth: 140 },
+  { title: $t('page.business.consolidation.detail.consignee'), key: 'consignee_name', minWidth: 140 },
+  { title: $t('page.business.consolidation.detail.grossWeight'), key: 'js_actualweight', minWidth: 100 }
 ];
 
 const matchingColumns: DataTableColumns<any> = [
   { type: 'selection' },
-  { title: 'Shipment No', key: 'shp_consign_no', minWidth: 140 },
-  { title: 'Origin', key: 'shp_origin', minWidth: 100 },
-  { title: 'Destination', key: 'shp_destination', minWidth: 100 },
-  { title: 'House Bill', key: 'shp_house_bill', minWidth: 120 },
-  { title: 'Packages', key: 'shp_total_package_count', minWidth: 80 },
-  { title: 'Shipper', key: 'shipperName', minWidth: 140 },
-  { title: 'Consignee', key: 'consigneeName', minWidth: 140 },
-  { title: 'ETD', key: 'shp_etd', minWidth: 100 },
-  { title: 'Gross Weight', key: 'shp_actual_weight', minWidth: 100 }
+  { title: $t('page.business.consolidation.detail.shipmentNo'), key: 'shp_consign_no', minWidth: 140 },
+  { title: $t('page.business.consolidation.detail.origin'), key: 'shp_origin', minWidth: 100 },
+  { title: $t('page.business.consolidation.detail.destination'), key: 'shp_destination', minWidth: 100 },
+  { title: $t('page.business.consolidation.detail.houseBill'), key: 'shp_house_bill', minWidth: 120 },
+  { title: $t('page.business.consolidation.detail.packages'), key: 'shp_total_package_count', minWidth: 80 },
+  { title: $t('page.business.consolidation.detail.shipper'), key: 'shipperName', minWidth: 140 },
+  { title: $t('page.business.consolidation.detail.consignee'), key: 'consigneeName', minWidth: 140 },
+  { title: $t('page.business.consolidation.detail.etd'), key: 'shp_etd', minWidth: 100 },
+  { title: $t('page.business.consolidation.detail.grossWeight'), key: 'shp_actual_weight', minWidth: 100 }
 ];
 
 function viewShipment(item: any) {
   const pk = String(item?.js_pk ?? '').trim();
   if (!pk) {
-    window.$message?.warning('Shipment id/pk is missing.');
+    window.$message?.warning($t('page.business.consolidation.detail.shipmentPkMissing'));
     return;
   }
   router.push({
@@ -250,7 +251,7 @@ async function fetchMatchingShipments() {
     !formData.value.jk_rl_nkdestination ||
     !etd
   ) {
-    window.$message?.warning('Please fill in Transport, Origin, Destination and ETD fields.');
+    window.$message?.warning($t('page.business.consolidation.detail.matchingFillRequired'));
     return;
   }
 
@@ -300,7 +301,7 @@ function confirmSelectedShipments() {
 
 function detachSelectedShipments() {
   if (selectedDetachShipments.value.length === 0) {
-    window.$message?.warning('Please select shipments to detach.');
+    window.$message?.warning($t('page.business.consolidation.detail.detachSelectFirst'));
     return;
   }
 
@@ -370,7 +371,7 @@ defineExpose({
           </NDivider>
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form mt-4px">
             <NGrid :cols="2" :x-gap="12">
-              <NFormItemGi label="Name">
+              <NFormItemGi :label="$t('page.business.shipment.form.name')">
                 <NInput
                   :value="inputData.local_agent?.name"
                   @update:value="
@@ -380,7 +381,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Contact">
+              <NFormItemGi :label="$t('page.business.shipment.address.contact')">
                 <NInput
                   :value="inputData.local_agent?.e2_contact"
                   @update:value="
@@ -390,7 +391,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Address1">
+              <NFormItemGi :label="$t('page.business.shipment.address.address1')">
                 <NInput
                   :value="inputData.local_agent?.e2_address1"
                   @update:value="
@@ -400,7 +401,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Phone">
+              <NFormItemGi :label="$t('page.business.shipment.address.phone')">
                 <NInput
                   :value="inputData.local_agent?.e2_phone"
                   @update:value="
@@ -410,7 +411,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Address2">
+              <NFormItemGi :label="$t('page.business.shipment.address.address2')">
                 <NInput
                   :value="inputData.local_agent?.e2_address2"
                   @update:value="
@@ -431,7 +432,7 @@ defineExpose({
           </NDivider>
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form mt-4px">
             <NGrid :cols="2" :x-gap="12">
-              <NFormItemGi label="Name">
+              <NFormItemGi :label="$t('page.business.shipment.form.name')">
                 <NInput
                   :value="inputData.overseas_agent?.add_address_name"
                   @update:value="
@@ -441,7 +442,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Contact">
+              <NFormItemGi :label="$t('page.business.shipment.address.contact')">
                 <NInput
                   :value="inputData.overseas_agent?.add_contact"
                   @update:value="
@@ -451,7 +452,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Address1">
+              <NFormItemGi :label="$t('page.business.shipment.address.address1')">
                 <NInput
                   :value="inputData.overseas_agent?.add_address1"
                   @update:value="
@@ -461,7 +462,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Address2">
+              <NFormItemGi :label="$t('page.business.shipment.address.address2')">
                 <NInput
                   :value="inputData.overseas_agent?.add_address2"
                   @update:value="
@@ -471,7 +472,7 @@ defineExpose({
                   "
                 />
               </NFormItemGi>
-              <NFormItemGi label="Phone">
+              <NFormItemGi :label="$t('page.business.shipment.address.phone')">
                 <NInput
                   :value="inputData.overseas_agent?.add_phone"
                   @update:value="
@@ -493,7 +494,7 @@ defineExpose({
         <!-- Column 1: Transport -->
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
-            <NFormItem label="Transport">
+            <NFormItem :label="$t('page.business.consolidation.detail.transport')">
               <NSelect
                 :value="inputData.jk_transportmode"
                 :options="transportOptions"
@@ -505,14 +506,14 @@ defineExpose({
                 "
               />
             </NFormItem>
-            <NFormItem label="Container">
+            <NFormItem :label="$t('page.business.consolidation.detail.container')">
               <NSelect
                 :value="inputData.jk_consolmode"
                 :options="getConsolModeOptions"
                 @update:value="(v: string) => (inputData.jk_consolmode = v)"
               />
             </NFormItem>
-            <NFormItem label="Consol Type">
+            <NFormItem :label="$t('page.business.consolidation.detail.consolType')">
               <NSelect
                 :value="inputData.jk_releasetype"
                 :options="consolTypeOptions"
@@ -520,7 +521,7 @@ defineExpose({
                 @update:value="(v: string) => (inputData.jk_releasetype = v)"
               />
             </NFormItem>
-            <NFormItem label="Service Level">
+            <NFormItem :label="$t('page.business.consolidation.detail.serviceLevel')">
               <NSelect
                 :value="inputData.jk_awbservicelevel"
                 :options="serviceLevelOptions"
@@ -529,26 +530,26 @@ defineExpose({
                 @update:value="(v: string) => (inputData.jk_awbservicelevel = v)"
               />
             </NFormItem>
-            <NFormItem label="Freight Terms">
+            <NFormItem :label="$t('page.business.consolidation.detail.freightTerms')">
               <NSelect
                 :value="inputData.jk_prepaidcollect"
                 :options="freightTermsOptions"
                 @update:value="(v: string) => (inputData.jk_prepaidcollect = v)"
               />
             </NFormItem>
-            <NFormItem label="BOL">
+            <NFormItem :label="$t('page.business.consolidation.detail.bolMasterBillNo')">
               <NInput
                 :value="inputData.jk_masterbillnum"
                 @update:value="(v: string) => (inputData.jk_masterbillnum = v)"
               />
             </NFormItem>
-            <NFormItem label="Contract No">
+            <NFormItem :label="$t('page.business.consolidation.detail.contractNo')">
               <NInput
                 :value="inputData.jk_carriercontractnumber"
                 @update:value="(v: string) => (inputData.jk_carriercontractnumber = v)"
               />
             </NFormItem>
-            <NFormItem label="Delivery Mode">
+            <NFormItem :label="$t('page.business.consolidation.detail.deliveryMode')">
               <NSelect
                 :value="inputData.jk_deliverymode"
                 :options="deliveryModeOptions"
@@ -563,28 +564,28 @@ defineExpose({
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
             <!--
- <NFormItem label="Origin">
+ <NFormItem :label="$t('page.business.consolidation.detail.origin')">
               <NAutoComplete :value="inputData.jk_rl_nkorigin" :options="portOptions" clearable
                 @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkorigin = v)"
                 @update:value="(v: string) => (inputData.jk_rl_nkorigin = v)" />
             </NFormItem>
-            <NFormItem label="Destination">
+            <NFormItem :label="$t('page.business.consolidation.detail.destination')">
               <NAutoComplete :value="inputData.jk_rl_nkdestination" :options="portOptions" clearable
                 @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkdestination = v)"
                 @update:value="(v: string) => (inputData.jk_rl_nkdestination = v)" />
             </NFormItem>
-            <NFormItem label="Receipt">
+            <NFormItem :label="$t('page.business.consolidation.detail.placeOfReceipt')">
               <NAutoComplete :value="inputData.jk_rl_nkplaceofreceipt" :options="portOptions" clearable
                 @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)"
                 @update:value="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)" />
             </NFormItem>
-            <NFormItem label="Delivery">
+            <NFormItem :label="$t('page.business.consolidation.detail.placeOfDelivery')">
               <NAutoComplete :value="inputData.jk_rl_nkplaceofdelivery" :options="portOptions" clearable
                 @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)"
                 @update:value="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)" />
             </NFormItem> 
 -->
-            <NFormItem label="Load">
+            <NFormItem :label="$t('page.business.consolidation.detail.load')">
               <NAutoComplete
                 :value="inputData.jk_rl_nkloadport"
                 :options="portOptions"
@@ -594,7 +595,7 @@ defineExpose({
                 @update:value="(v: string) => (inputData.jk_rl_nkloadport = v)"
               />
             </NFormItem>
-            <NFormItem label="Discharge">
+            <NFormItem :label="$t('page.business.consolidation.detail.discharge')">
               <NAutoComplete
                 :value="inputData.jk_rl_nkdischargeport"
                 :options="portOptions"
@@ -604,13 +605,13 @@ defineExpose({
                 @update:value="(v: string) => (inputData.jk_rl_nkdischargeport = v)"
               />
             </NFormItem>
-            <NFormItem label="Vessel">
+            <NFormItem :label="$t('page.business.consolidation.detail.vessel')">
               <NInput
                 :value="inputData.transport_list?.[0]?.jw_vessel"
                 @update:value="(v: string) => (inputData.jw_vessel = v)"
               />
             </NFormItem>
-            <NFormItem label="Voyage">
+            <NFormItem :label="$t('page.business.consolidation.detail.voyage')">
               <NInput
                 :value="inputData.transport_list?.[0]?.jw_voyageflight"
                 @update:value="(v: string) => (inputData.jw_voyageflight = v)"
@@ -622,7 +623,7 @@ defineExpose({
         <!-- Column 3: Schedule & Agents -->
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
-            <NFormItem label="ETD">
+            <NFormItem :label="$t('page.business.consolidation.detail.etd')">
               <NDatePicker
                 :formatted-value="firstTransportEtd"
                 type="date"
@@ -632,7 +633,7 @@ defineExpose({
                 @update:formatted-value="(v: string) => updateFirstTransportField('jw_etd', v)"
               />
             </NFormItem>
-            <NFormItem label="ETA">
+            <NFormItem :label="$t('page.business.consolidation.detail.eta')">
               <NDatePicker
                 :formatted-value="firstTransportEta"
                 type="date"
@@ -642,7 +643,7 @@ defineExpose({
                 @update:formatted-value="(v: string) => updateFirstTransportField('jw_eta', v)"
               />
             </NFormItem>
-            <NFormItem label="ATD">
+            <NFormItem :label="$t('page.business.consolidation.detail.atd')">
               <NDatePicker
                 :formatted-value="firstTransportAtd"
                 type="date"
@@ -652,7 +653,7 @@ defineExpose({
                 @update:formatted-value="(v: string) => updateFirstTransportField('jw_atd', v)"
               />
             </NFormItem>
-            <NFormItem label="ATA">
+            <NFormItem :label="$t('page.business.consolidation.detail.ata')">
               <NDatePicker
                 :formatted-value="firstTransportAta"
                 type="date"
@@ -662,25 +663,25 @@ defineExpose({
                 @update:formatted-value="(v: string) => updateFirstTransportField('jw_ata', v)"
               />
             </NFormItem>
-            <NFormItem label="Carrier">
+            <NFormItem :label="$t('page.business.consolidation.detail.carrier')">
               <NInput
                 :value="inputData.jk_rl_nkcarrier"
                 @update:value="(v: string) => (inputData.jk_rl_nkcarrier = v)"
               />
             </NFormItem>
-            <NFormItem label="Bkg Ref">
+            <NFormItem :label="$t('page.business.consolidation.detail.carrierBookingRef')">
               <NInput
                 :value="inputData.jk_bookingreference"
                 @update:value="(v: string) => (inputData.jk_bookingreference = v)"
               />
             </NFormItem>
-            <NFormItem label="Bkg Agent">
+            <NFormItem :label="$t('page.business.consolidation.detail.bookingAgent')">
               <NInput
                 :value="inputData.jk_bookingagent"
                 @update:value="(v: string) => (inputData.jk_bookingagent = v)"
               />
             </NFormItem>
-            <NFormItem label="Agent Ref">
+            <NFormItem :label="$t('page.business.consolidation.detail.agentRef')">
               <NInput
                 :value="inputData.jk_agentsreference"
                 @update:value="(v: string) => (inputData.jk_agentsreference = v)"
@@ -692,22 +693,22 @@ defineExpose({
         <!-- Column 4: Coload & VGM -->
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
-            <NFormItem label="Coload Agent">
+            <NFormItem :label="$t('page.business.consolidation.detail.coloadAgent')">
               <NInput :value="inputData.jk_coloadagent" @update:value="(v: string) => (inputData.jk_coloadagent = v)" />
             </NFormItem>
-            <NFormItem label="Coload MBL">
+            <NFormItem :label="$t('page.business.consolidation.detail.coloadMbl')">
               <NInput
                 :value="inputData.jk_coloadmasterbill"
                 @update:value="(v: string) => (inputData.jk_coloadmasterbill = v)"
               />
             </NFormItem>
             <!--
- <NFormItem label="Coload Ref.">
+ <NFormItem :label="$t('page.business.consolidation.detail.coloadRef')">
               <NInput :value="inputData.jk_coloadbookingreference"
                 @update:value="(v: string) => (inputData.jk_coloadbookingreference = v)" />
             </NFormItem> 
 -->
-            <NFormItem label="On Board">
+            <NFormItem :label="$t('page.business.consolidation.detail.onBoard')">
               <NDatePicker
                 :formatted-value="formatTransportDate(inputData.jk_shippedonboarddate)"
                 type="date"
@@ -718,7 +719,7 @@ defineExpose({
               />
             </NFormItem>
             <!--
- <NFormItem label="VGM Data">
+ <NFormItem :label="$t('page.business.consolidation.detail.vgmData')">
               <NSpace :wrap="false" :size="4" class="w-full">
                 <NInputNumber :value="inputData.jk_vgmweight" :min="0" :precision="5" :show-button="false"
                   class="flex-1" @update:value="(v: number | null) => (inputData.jk_vgmweight = v ?? 0)" />
@@ -727,7 +728,7 @@ defineExpose({
               </NSpace>
             </NFormItem> 
 -->
-            <NFormItem label="Phase">
+            <NFormItem :label="$t('page.business.shipment.form.phase')">
               <NSelect
                 :value="inputData.jk_phase"
                 :options="[]"
@@ -797,7 +798,7 @@ defineExpose({
     <NModal
       v-model:show="matchingDialogVisible"
       preset="card"
-      title="Select Matching Shipments"
+      :title="$t('page.business.consolidation.section.shipments')"
       style="width: 1200px"
       :mask-closable="false"
     >
@@ -806,11 +807,11 @@ defineExpose({
           <span class="text-12px">Shipment No.:</span>
           <NInput
             v-model:value="matchingFilter.shipment_number"
-            placeholder="Search..."
+            :placeholder="$t('page.business.consolidation.search.placeholder')"
             clearable
             style="width: 260px"
           />
-          <NButton type="primary" size="small" @click="fetchMatchingShipments">Search</NButton>
+          <NButton type="primary" size="small" @click="fetchMatchingShipments">{{ $t('common.search') }}</NButton>
         </div>
         <NDataTable
           v-model:checked-row-keys="selectedMatchingShipments"
@@ -825,7 +826,7 @@ defineExpose({
       </NSpace>
       <template #footer>
         <NSpace justify="end">
-          <NButton @click="matchingDialogVisible = false">Cancel</NButton>
+          <NButton @click="matchingDialogVisible = false">{{ $t('common.cancel') }}</NButton>
           <NButton type="primary" :disabled="selectedMatchingShipments.length === 0" @click="confirmSelectedShipments">
             Confirm
           </NButton>

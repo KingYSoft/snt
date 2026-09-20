@@ -3,6 +3,7 @@ import { computed, ref, watch } from 'vue';
 import type { SelectOption } from 'naive-ui';
 import { NButton, NForm, NFormItemGi, NGrid, NModal, NSelect, NSpace, NSpin } from 'naive-ui';
 import { useAppStore } from '@/store/modules/app';
+import { $t } from '@/locales';
 import { querySwitchTbl, switchBranch } from '@/service/api/user';
 
 defineOptions({
@@ -126,7 +127,7 @@ watch(diaVis, val => {
 
 async function confirm() {
   if (!selectCompanyPK.value || !selectBranchPK.value) {
-    window.$message?.warning('Please select company and branch');
+    window.$message?.warning($t('common.switchBranch.required'));
     return;
   }
 
@@ -139,7 +140,7 @@ async function confirm() {
     });
 
     if (res) {
-      window.$message?.success('Switch branch successfully');
+      window.$message?.success($t('common.switchBranch.success'));
       diaVis.value = false;
       window.location.reload();
     }
@@ -153,26 +154,26 @@ async function confirm() {
   <NModal
     v-model:show="diaVis"
     preset="card"
-    title="Switch Company / Branch"
+    :title="$t('common.switchBranch.title')"
     style="width: 440px"
     :mask-closable="false"
   >
     <NSpin :show="loading">
       <NForm label-placement="left" label-width="100">
         <NGrid :cols="1" :x-gap="12">
-          <NFormItemGi label="Company">
+          <NFormItemGi :label="$t('common.company')">
             <NSelect
               v-model:value="selectCompanyPK"
               :options="companyItems"
               auto-select-first
               filterable
               clearable
-              placeholder="Select company"
+              :placeholder="$t('common.switchBranch.selectCompany')"
               @update:value="onSelectedCompany"
             />
           </NFormItemGi>
 
-          <NFormItemGi label="Branch">
+          <NFormItemGi :label="$t('common.branch')">
             <NSelect
               v-model:value="selectBranchPK"
               :options="branchItems"
@@ -180,11 +181,11 @@ async function confirm() {
               filterable
               clearable
               :disabled="!selectCompanyPK"
-              placeholder="Select branch"
+              :placeholder="$t('common.switchBranch.selectBranch')"
             />
           </NFormItemGi>
 
-          <NFormItemGi label="Department">
+          <NFormItemGi :label="$t('common.department')">
             <NSelect
               v-model:value="selectDeptPK"
               :options="deptItems"
@@ -192,7 +193,7 @@ async function confirm() {
               filterable
               clearable
               :disabled="!selectBranchPK"
-              placeholder="Select department (optional)"
+              :placeholder="$t('common.switchBranch.selectDepartment')"
             />
           </NFormItemGi>
         </NGrid>
@@ -201,8 +202,8 @@ async function confirm() {
 
     <template #footer>
       <NSpace justify="end">
-        <NButton @click="diaVis = false">Close</NButton>
-        <NButton type="primary" @click="confirm">OK</NButton>
+        <NButton @click="diaVis = false">{{ $t('common.close') }}</NButton>
+        <NButton type="primary" @click="confirm">{{ $t('common.ok') }}</NButton>
       </NSpace>
     </template>
   </NModal>

@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { $t } from '@/locales';
 import { computed } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 
@@ -18,28 +19,28 @@ const props = withDefaults(defineProps<Props>(), {
 
 const termDayColumns: DataTableColumns<Record<string, any>> = [
   { key: 'index', title: '#', width: 60, align: 'center', render: (_, index) => index + 1 },
-  { key: 'job_type', title: 'Job Type', minWidth: 140 },
-  { key: 'branch', title: 'Branch', minWidth: 140 },
-  { key: 'department', title: 'Department', minWidth: 140 },
-  { key: 'direction', title: 'Direction', minWidth: 140 },
-  { key: 'transport_mode', title: 'Transport Mode', minWidth: 140 },
-  { key: 'invoice_type', title: 'Invoice Type', minWidth: 140 },
-  { key: 'invoice_term', title: 'Invoice Term', minWidth: 140 },
-  { key: 'days_months', title: 'Days / Months', minWidth: 140 }
+  { key: 'job_type', title: $t('page.maintain.organization.jobType'), minWidth: 140 },
+  { key: 'branch', title: $t('page.maintain.organization.branch'), minWidth: 140 },
+  { key: 'department', title: $t('page.maintain.organization.department'), minWidth: 140 },
+  { key: 'direction', title: $t('page.maintain.organization.direction'), minWidth: 140 },
+  { key: 'transport_mode', title: $t('page.maintain.organization.transportMode'), minWidth: 140 },
+  { key: 'invoice_type', title: $t('page.maintain.organization.invoiceType'), minWidth: 140 },
+  { key: 'invoice_term', title: $t('page.maintain.organization.invoiceTerm'), minWidth: 140 },
+  { key: 'days_months', title: $t('page.maintain.organization.daysMonths'), minWidth: 140 }
 ];
 
 const invoiceCycleColumns: DataTableColumns<Record<string, any>> = [
   { key: 'index', title: '#', width: 60, align: 'center', render: (_, index) => index + 1 },
-  { key: 'from_day', title: 'From Day', minWidth: 140 },
-  { key: 'to_day', title: 'To Day', minWidth: 140 },
-  { key: 'payment_day', title: 'Payment Day', minWidth: 140 }
+  { key: 'from_day', title: $t('page.maintain.organization.fromDay'), minWidth: 140 },
+  { key: 'to_day', title: $t('page.maintain.organization.toDay'), minWidth: 140 },
+  { key: 'payment_day', title: $t('page.maintain.organization.paymentDay'), minWidth: 140 }
 ];
 
 const periodicColumns: DataTableColumns<Record<string, any>> = [
   { key: 'index', title: '#', width: 60, align: 'center', render: (_, index) => index + 1 },
-  { key: 'job_type', title: 'Job Type', minWidth: 140 },
-  { key: 'service_direction', title: 'Service Direction', minWidth: 160 },
-  { key: 'transport', title: 'Transport', minWidth: 140 }
+  { key: 'job_type', title: $t('page.maintain.organization.jobType'), minWidth: 140 },
+  { key: 'service_direction', title: $t('page.maintain.organization.serviceDirection'), minWidth: 160 },
+  { key: 'transport', title: $t('page.maintain.organization.transport'), minWidth: 140 }
 ];
 
 const termDays = computed(() => detail.value.ar_term_days_list || []);
@@ -49,24 +50,24 @@ const periodicInvoicingConfigs = computed(() => detail.value.ar_periodic_invoici
 
 <template>
   <NForm :model="detail" label-placement="left" label-width="220" :disabled="props.readonly">
-    <NDivider title-placement="left">Credit Control</NDivider>
+    <NDivider title-placement="left">{{ $t('page.maintain.organization.creditControl') }}</NDivider>
     <NGrid :cols="2" :x-gap="16" :y-gap="8">
-      <NFormItemGi label="Credit Limit">
+      <NFormItemGi :label="$t('page.maintain.organization.creditLimit')">
         <NInputNumber v-model:value="detail.ar_credit_limit" class="w-full" clearable />
       </NFormItemGi>
-      <NFormItemGi label="A/C & Credit Review Due">
+      <NFormItemGi :label="$t('page.maintain.organization.acCreditReviewDue')">
         <NInput v-model:value="detail.ar_account_and_credit_review_due" />
       </NFormItemGi>
-      <NFormItemGi label="Temporary Credit Limit Increase">
+      <NFormItemGi :label="$t('page.maintain.organization.tempCreditLimitIncrease')">
         <NInputNumber v-model:value="detail.ar_temp_credit_limit_increase" class="w-full" clearable />
       </NFormItemGi>
-      <NFormItemGi label="Expires At">
+      <NFormItemGi :label="$t('page.maintain.organization.expiresAt')">
         <NInput v-model:value="detail.ar_temp_credit_limit_increase_expiry" />
       </NFormItemGi>
-      <NFormItemGi label="Agreed Payment Method">
+      <NFormItemGi :label="$t('page.maintain.organization.agreedPaymentMethod')">
         <NInput v-model:value="detail.ar_eft_customs_payment_method" />
       </NFormItemGi>
-      <NFormItemGi label="Credit Approved By">
+      <NFormItemGi :label="$t('page.maintain.organization.creditApprovedBy')">
         <NInput v-model:value="detail.ar_credit_approved_by" />
       </NFormItemGi>
     </NGrid>
@@ -78,52 +79,52 @@ const periodicInvoicingConfigs = computed(() => detail.value.ar_periodic_invoici
           :checked-value="1"
           :unchecked-value="0"
         >
-          Use Settlement Group Credit Limit
+          {{ $t('page.maintain.organization.useSettlementGroupCreditLimit') }}
         </NCheckbox>
       </NFormItemGi>
       <NFormItemGi :show-label="false">
         <NCheckbox v-model:checked="detail.ar_credit_on_hold" :checked-value="1" :unchecked-value="0">
-          AR On Credit Hold
+          {{ $t('page.maintain.organization.arOnCreditHold') }}
         </NCheckbox>
       </NFormItemGi>
       <NFormItemGi :show-label="false">
         <NCheckbox v-model:checked="detail.ar_credit_approved" :checked-value="1" :unchecked-value="0">
-          Credit Approved
+          {{ $t('page.maintain.organization.creditApproved') }}
         </NCheckbox>
       </NFormItemGi>
       <NFormItemGi :show-label="false">
         <NCheckbox v-model:checked="detail.ar_combined_statement_invoice" :checked-value="1" :unchecked-value="0">
-          Combined Statement Invoice
+          {{ $t('page.maintain.organization.combinedStatementInvoice') }}
         </NCheckbox>
       </NFormItemGi>
     </NGrid>
 
-    <NDivider title-placement="left">Terms and Other</NDivider>
+    <NDivider title-placement="left">{{ $t('page.maintain.organization.termsAndOther') }}</NDivider>
     <NGrid :cols="2" :x-gap="16" :y-gap="8">
-      <NFormItemGi label="AR Category">
+      <NFormItemGi :label="$t('page.maintain.organization.arCategory')">
         <NInput v-model:value="detail.ar_category" />
       </NFormItemGi>
-      <NFormItemGi label="External Debtor Code">
+      <NFormItemGi :label="$t('page.maintain.organization.externalDebtorCode')">
         <NInput v-model:value="detail.ar_external_debtor_code" />
       </NFormItemGi>
-      <NFormItemGi label="Client Number">
+      <NFormItemGi :label="$t('page.maintain.organization.clientNumber')">
         <NInput v-model:value="detail.ar_client_number" />
       </NFormItemGi>
-      <NFormItemGi label="Credit Rating">
+      <NFormItemGi :label="$t('page.maintain.organization.creditRating')">
         <NInput v-model:value="detail.ar_credit_rating" />
       </NFormItemGi>
-      <NFormItemGi label="Withholding Tax">
+      <NFormItemGi :label="$t('page.maintain.organization.withholdingTax')">
         <NInputNumber v-model:value="detail.ar_withholding_tax" class="w-full" clearable />
       </NFormItemGi>
-      <NFormItemGi label="Currency">
+      <NFormItemGi :label="$t('page.maintain.organization.currency')">
         <NInput v-model:value="detail.ar_currency" />
       </NFormItemGi>
-      <NFormItemGi label="Bank Account">
+      <NFormItemGi :label="$t('page.maintain.organization.bankAccount')">
         <NInput v-model:value="detail.bank_account" />
       </NFormItemGi>
       <NFormItemGi :show-label="false">
         <NCheckbox v-model:checked="detail.is_debtor" :checked-value="1" :unchecked-value="0">
-          Enable AR / Debtor
+          {{ $t('page.maintain.organization.enableArDebtor') }}
         </NCheckbox>
       </NFormItemGi>
     </NGrid>

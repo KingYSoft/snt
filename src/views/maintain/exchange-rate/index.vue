@@ -5,7 +5,7 @@ defineOptions({ name: 'PageMaintainExchangeRate' });
 <template>
   <div class="p-16px">
     <NCard :title="$t('route.maintain_exchange_rate')">
-      <NEmpty description="Coming soon" />
+      <NEmpty :description="$t('common.lookForward')" />
     </NCard>
   </div>
 </template>
