@@ -619,7 +619,7 @@ const local: App.I18n.Schema = {
           notifyParty: 'Notify Party',
           notifyParty1: '通知方1',
           additionalDetails: '附加详情',
-          consolidation: '合并详情',
+          consolidation: '拼箱详情',
           voyageDetails: '航程详情'
         },
         routing: {

@@ -623,7 +623,7 @@ const local: App.I18n.Schema = {
           notifyParty: 'Notify Party',
           notifyParty1: 'Notify Party 1',
           additionalDetails: 'Additional Details',
-          consolidation: 'Consolidation Details',
+          consolidation: 'LCL Details',
           voyageDetails: 'Voyage Details'
         },
         routing: {

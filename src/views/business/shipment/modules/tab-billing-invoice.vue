@@ -42,7 +42,8 @@ const invoicePageSize = ref(100);
 const invoiceTotal = ref(0);
 const invoiceSelected = ref<string[]>([]);
 const invoiceSearchNo = ref('');
-const invoiceChargeType = ref<'AR' | 'AP'>('AR');
+/** 默认 All：请求不传 chargeType */
+const ledgerFilter = ref<'all' | 'AR' | 'AP'>('all');
 const voiding = ref(false);
 const printing = ref(false);
 
@@ -55,7 +56,8 @@ const pdfPreviewVisible = ref(false);
 const pdfPreviewItems = ref<InvoicePdfPreviewItem[]>([]);
 const pdfPreviewActive = ref('');
 
-const chargeTypeOptions = [
+const ledgerFilterOptions = [
+  { label: 'All', value: 'all' },
   { label: 'AR', value: 'AR' },
   { label: 'AP', value: 'AP' }
 ];
@@ -126,7 +128,13 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
       return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => status });
     }
   },
-  { title: 'Account', key: 'oh_fullname', width: 140, ellipsis: { tooltip: true } },
+  {
+    title: 'Account',
+    key: 'oh_fullname',
+    width: 180,
+    ellipsis: { tooltip: true },
+    render: (row: AccTransactionHeader) => String(row.oh_fullname ?? '').trim()
+  },
   { title: 'Ledger', key: 'ah_ledger', width: 100 },
   {
     title: 'Post Date',
@@ -197,13 +205,14 @@ async function loadInvoices() {
   if (!props.inputData.pk) return;
   try {
     invoiceLoading.value = true;
-    const { data } = await billingDraftPage({
+    const payload: Parameters<typeof billingDraftPage>[0] = {
       shpPk: props.inputData.pk,
-      chargeType: invoiceChargeType.value,
       skipCount: (invoicePage.value - 1) * invoicePageSize.value,
       maxResultCount: invoicePageSize.value,
       sorting: 'Id DESC'
-    });
+    };
+    if (ledgerFilter.value !== 'all') payload.chargeType = ledgerFilter.value;
+    const { data } = await billingDraftPage(payload);
     invoiceList.value = data?.items ?? [];
     invoiceTotal.value = data?.totalCount ?? 0;
   } catch {
@@ -229,7 +238,8 @@ function handleSearchClear() {
   loadInvoices();
 }
 
-function handleChargeTypeChange() {
+function handleLedgerFilterChange(value: 'all' | 'AR' | 'AP' | null) {
+  ledgerFilter.value = value || 'all';
   invoicePage.value = 1;
   invoiceSelected.value = [];
   loadInvoices();
@@ -287,7 +297,7 @@ async function handlePrint() {
     printing.value = true;
     const { data } = await generateInvoicePdf({
       invoice_nos: invoiceNos,
-      ledger_type: invoiceChargeType.value
+      ...(ledgerFilter.value !== 'all' ? { ledger_type: ledgerFilter.value } : {})
     });
     const items = (data?.results ?? [])
       .map(item => {
@@ -333,11 +343,12 @@ defineExpose({ loadInvoices });
   <div>
     <NSpace class="mb-12px" align="center">
       <NSelect
-        v-model:value="invoiceChargeType"
-        :options="chargeTypeOptions"
-        style="width: 88px"
+        :value="ledgerFilter"
+        :options="ledgerFilterOptions"
+        :fallback-option="false"
+        style="width: 110px"
         size="small"
-        @update:value="handleChargeTypeChange"
+        @update:value="handleLedgerFilterChange"
       />
       <NInput
         v-model:value="invoiceSearchNo"
