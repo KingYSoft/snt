@@ -44,8 +44,8 @@ watch(
 <template>
   <div class="p-4">
     <NTabs v-model:value="billingTab" type="line" class="mb-12px">
-      <NTabPane name="charge" tab="Charge Line" />
-      <NTabPane name="invoice" tab="Invoice" />
+      <NTabPane name="charge" :tab="$t('page.business.shipment.billing.chargeLine')" />
+      <NTabPane name="invoice" :tab="$t('page.business.shipment.billing.invoice')" />
     </NTabs>
 
     <template v-if="billingTab === 'charge'">

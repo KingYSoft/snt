@@ -12,10 +12,10 @@ function displayText(value: unknown) {
 }
 
 const consolidationColumns = computed<DataTableColumns<Record<string, any>>>(() => [
-  { title: 'Reference', key: 'reference', minWidth: 160, ellipsis: { tooltip: true } },
-  { title: '1st Load', key: 'first_load', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: 'Last Disc', key: 'last_disc', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: 'Master Bill', key: 'master_bill', minWidth: 140, ellipsis: { tooltip: true } }
+  { title: $t('page.business.shipment.section.reference'), key: 'reference', minWidth: 160, ellipsis: { tooltip: true } },
+  { title: $t('page.business.shipment.section.firstLoad'), key: 'first_load', minWidth: 120, ellipsis: { tooltip: true } },
+  { title: $t('page.business.shipment.section.lastDisc'), key: 'last_disc', minWidth: 120, ellipsis: { tooltip: true } },
+  { title: $t('page.business.shipment.section.masterBill'), key: 'master_bill', minWidth: 140, ellipsis: { tooltip: true } }
 ]);
 
 function consolidationRowKey(row: Record<string, any>) {
@@ -28,7 +28,7 @@ function consolidationRowKey(row: Record<string, any>) {
     <NForm label-placement="left" label-width="130">
       <NCard :title="$t('page.business.shipment.section.additionalDetails')" size="small" class="mb-12px">
         <NGrid :cols="4" :x-gap="12">
-          <NFormItemGi label="On Board Date:">
+          <NFormItemGi :label="$t('page.business.shipment.section.onBoardDate')">
             <span>{{ displayText(inputData.shp_on_board_date) }}</span>
           </NFormItemGi>
         </NGrid>
@@ -48,16 +48,16 @@ function consolidationRowKey(row: Record<string, any>) {
 
       <NCard :title="$t('page.business.shipment.section.voyageDetails')" size="small">
         <NGrid :cols="4" :x-gap="12">
-          <NFormItemGi label="Vessel:">
+          <NFormItemGi :label="$t('page.business.shipment.section.vessel')">
             <span>{{ displayText(inputData.shp_vessel || inputData.vessel) }}</span>
           </NFormItemGi>
-          <NFormItemGi label="Voyage:">
+          <NFormItemGi :label="$t('page.business.shipment.section.voyage')">
             <span>{{ displayText(inputData.shp_voyage || inputData.voyage) }}</span>
           </NFormItemGi>
-          <NFormItemGi label="Load Port:">
+          <NFormItemGi :label="$t('page.business.shipment.section.loadPort')">
             <span>{{ displayText(inputData.shp_load_port) }}</span>
           </NFormItemGi>
-          <NFormItemGi label="Discharge Port:">
+          <NFormItemGi :label="$t('page.business.shipment.section.dischargePort')">
             <span>{{ displayText(inputData.shp_discharge_port) }}</span>
           </NFormItemGi>
         </NGrid>

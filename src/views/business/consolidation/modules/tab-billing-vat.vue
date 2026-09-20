@@ -5,7 +5,7 @@ defineProps<{ inputData: Record<string, any> }>();
 </script>
 
 <template>
-  <NCard size="small" title="VAT Invoice">
-    <NEmpty description="No VAT invoice query available" />
+  <NCard size="small" :title="$t('page.business.consolidation.billing.vatEmpty')">
+    <NEmpty :description="$t('page.business.consolidation.billing.vatEmptyDesc')" />
   </NCard>
 </template>
