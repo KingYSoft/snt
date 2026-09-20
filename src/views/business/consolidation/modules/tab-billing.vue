@@ -13,9 +13,9 @@ const billingTab = ref<'charge' | 'invoice' | 'vat'>('charge');
 <template>
   <div class="p-4">
     <NTabs v-model:value="billingTab" type="line" class="mb-12px">
-      <NTabPane name="charge" tab="Charge Line" />
-      <NTabPane name="invoice" tab="Invoice" />
-      <NTabPane name="vat" tab="VAT Inv" />
+      <NTabPane name="charge" :tab="$t('page.business.consolidation.billing.chargeLine')" />
+      <NTabPane name="invoice" :tab="$t('page.business.consolidation.billing.invoice')" />
+      <NTabPane name="vat" :tab="$t('page.business.consolidation.billing.vatInv')" />
     </NTabs>
 
     <TabBillingChargeLines v-if="billingTab === 'charge'" :input-data="inputData" />

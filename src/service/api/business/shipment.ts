@@ -461,6 +461,14 @@ export interface ShipmentCustomValueDto {
   xV_Data?: string;
 }
 
+export interface ShipmentConsolidationOutput {
+  id?: string;
+  reference?: string;
+  first_load?: string;
+  last_disc?: string;
+  master_bill?: string;
+}
+
 /**
  * Shipment detail (extends list item with related data)
  */
@@ -472,6 +480,7 @@ export interface ShipmentDetail extends ShipmentListItem {
   delivery?: JobDocAddressDto;
   containers_list?: ShipmentDetailContainerDto[];
   loose_list?: JobPackLinesDto[];
+  consolidation_list?: ShipmentConsolidationOutput[];
   doc_data?: JobDocumentDataDto;
   custom_values?: ShipmentCustomValueDto[];
 }

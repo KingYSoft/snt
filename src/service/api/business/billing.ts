@@ -73,7 +73,8 @@ export interface BillingCreateInput {
 /** POST /billing/draft-page */
 export interface BillingDraftPageInput {
   shpPk: string;
-  chargeType: string;
+  /** AR / AP；不传则不按账本过滤 */
+  chargeType?: string;
   skipCount?: number;
   maxResultCount?: number;
   sorting?: string;

@@ -465,7 +465,7 @@ function getRowProps(row: SettlementTransactionRecord) {
       <NSpace vertical :size="12">
         <NSpace justify="space-between">
           <NSpace>
-            <NButton type="primary" @click="handleCreate">
+            <NButton v-if="false" type="primary" @click="handleCreate">
               {{ t('common.add') }}
             </NButton>
             <NButton @click="handleExportSelected">

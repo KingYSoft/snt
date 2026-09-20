@@ -10,7 +10,8 @@ import {
   type AccTransactionHeader,
   type BillingChargeLineItem
 } from '@/service/api/business/consol-billing';
-import { formatInvoiceDate, getInvoiceHeaderStatus } from '@/views/business/shipment/modules/shipment-billing-map';
+import { $t } from '@/locales';
+import { formatInvoiceDate, getInvoiceHeaderStatus, getInvoiceHeaderStatusLabel } from '@/views/business/shipment/modules/shipment-billing-map';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 
@@ -72,7 +73,7 @@ async function openChargeDetail(invoiceNo?: string | null) {
       };
     });
   } catch {
-    window.$message?.error('Failed to load invoice charges.');
+    window.$message?.error($t('page.business.consolidation.billing.loadChargesFailed'));
     chargeDetailRows.value = [];
   } finally {
     chargeDetailLoading.value = false;
@@ -82,16 +83,16 @@ async function openChargeDetail(invoiceNo?: string | null) {
 /** AP headers aligned with first-cargo SHIP_CONS_AP_INVOICE_LIST_COLUMNS */
 const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
   {
-    title: 'Status',
+    title: $t('page.business.consolidation.billing.status'),
     key: 'status',
     width: 96,
     render: (row: AccTransactionHeader) => {
       const status = getInvoiceHeaderStatus(row);
-      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => status });
+      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => getInvoiceHeaderStatusLabel(row) });
     }
   },
   {
-    title: 'Supplier Inv. No.',
+    title: $t('page.business.consolidation.billing.supplierInvNo'),
     key: 'ah_transactionnum',
     width: 200,
     ellipsis: { tooltip: true },
@@ -116,44 +117,44 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
     }
   },
   {
-    title: 'Tax Inv. No.',
+    title: $t('page.business.consolidation.billing.taxInvNo'),
     key: 'tax_inv_no',
     width: 120,
     render: () => ''
   },
   {
-    title: 'Creditor',
+    title: $t('page.business.consolidation.billing.creditor'),
     key: 'oh_fullname',
     width: 120,
     ellipsis: { tooltip: true }
   },
   {
-    title: 'Invoice Date',
+    title: $t('page.business.consolidation.billing.invoiceDate'),
     key: 'ah_invoicedate',
     width: 110,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_invoicedate)
   },
   {
-    title: 'Post Date',
+    title: $t('page.business.consolidation.billing.postDate'),
     key: 'ah_postdate',
     width: 110,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_postdate)
   },
   {
-    title: 'Due Date',
+    title: $t('page.business.consolidation.billing.dueDate'),
     key: 'ah_duedate',
     width: 110,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_duedate)
   },
   {
-    title: 'Fully Paid Date',
+    title: $t('page.business.consolidation.billing.fullyPaidDate'),
     key: 'ah_fullypaiddate',
     width: 130,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_fullypaiddate)
   },
-  { title: 'Currency', key: 'ah_rx_nktransactioncurrency', width: 90 },
+  { title: $t('page.business.consolidation.billing.currency'), key: 'ah_rx_nktransactioncurrency', width: 90 },
   {
-    title: 'Invoice Amount (Tax Incl.)',
+    title: $t('page.business.consolidation.billing.invoiceAmtTaxIncl'),
     key: 'amount_tax_incl',
     width: 200,
     minWidth: 200,
@@ -161,7 +162,7 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
     render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.amount_tax_incl))
   },
   {
-    title: 'Invoice Amount (Tax Excl.)',
+    title: $t('page.business.consolidation.billing.invoiceAmtTaxExcl'),
     key: 'amount_tax_excl',
     width: 200,
     minWidth: 200,
@@ -169,32 +170,32 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
     render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.amount_tax_excl))
   },
   {
-    title: 'Tax Amount',
+    title: $t('page.business.consolidation.billing.taxAmount'),
     key: 'ah_gstamount',
     width: 110,
     align: 'right',
     render: (row: AccTransactionHeader) => renderText(formatBillingAmount(row.ah_gstamount))
   },
   {
-    title: 'Trans. No.',
+    title: $t('page.business.consolidation.billing.transNo'),
     key: 'ah_consolidatedinvoiceref',
     width: 140,
     ellipsis: { tooltip: true }
   },
   {
-    title: 'Modify By',
+    title: $t('page.business.consolidation.billing.modifyBy'),
     key: 'ah_systemlastedituser',
     width: 100,
     ellipsis: { tooltip: true }
   },
   {
-    title: 'Last Modify Time',
+    title: $t('page.business.consolidation.billing.lastModifyTime'),
     key: 'ah_systemlastedittimeutc',
     width: 150,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_systemlastedittimeutc)
   },
   {
-    title: 'Department',
+    title: $t('page.business.consolidation.billing.department'),
     key: 'dept_code',
     width: 110,
     ellipsis: { tooltip: true }
@@ -202,50 +203,50 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
 ]);
 
 /** Detail modal: Charges[] + Lines[].al_gstvat for Tax Amount */
-const chargeDetailColumns: DataTableColumns<ChargeDetailRow> = [
-  { title: 'Charge Code', key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
-  { title: 'Description', key: 'jr_desc', width: 200, ellipsis: { tooltip: true } },
-  { title: 'Branch', key: 'branch_code', width: 80 },
-  { title: 'Creditor', key: 'party_code', width: 120, ellipsis: { tooltip: true } },
-  { title: 'Currency', key: 'currency', width: 90 },
+const chargeDetailColumns = computed<DataTableColumns<ChargeDetailRow>>(() => [
+  { title: $t('page.business.consolidation.billing.chargeCode'), key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
+  { title: $t('page.business.consolidation.billing.description'), key: 'jr_desc', width: 200, ellipsis: { tooltip: true } },
+  { title: $t('page.business.consolidation.billing.branch'), key: 'branch_code', width: 80 },
+  { title: $t('page.business.consolidation.billing.creditor'), key: 'party_code', width: 120, ellipsis: { tooltip: true } },
+  { title: $t('page.business.consolidation.billing.currency'), key: 'currency', width: 90 },
   {
-    title: 'Unit Price',
+    title: $t('page.business.consolidation.billing.unitPrice'),
     key: 'unit_price',
     width: 100,
     render: row => renderText(formatBillingAmount(row.unit_price))
   },
-  { title: 'Unit', key: 'unit', width: 90 },
-  { title: 'Qty', key: 'qty', width: 70 },
+  { title: $t('page.business.consolidation.billing.unit'), key: 'unit', width: 90 },
+  { title: $t('page.business.consolidation.billing.qty'), key: 'qty', width: 70 },
   {
-    title: 'Amount',
+    title: $t('page.business.consolidation.billing.amount'),
     key: 'amount',
     width: 100,
     render: row => renderText(formatBillingAmount(row.amount))
   },
   {
-    title: 'Tax Code',
+    title: $t('page.business.consolidation.billing.taxCode'),
     key: 'tax',
     width: 120,
     render: row => getBillingTaxCodeLabel(row.gst_rate || row.wht_rate || row.vat_class)
   },
   {
-    title: 'Tax Amount',
+    title: $t('page.business.consolidation.billing.taxAmount'),
     key: 'tax_amount',
     width: 110,
     render: row => renderText(formatBillingAmount(row.tax_amount))
   },
   {
-    title: 'Exchange Rate',
+    title: $t('page.business.consolidation.billing.exchangeRate'),
     key: 'exchange_rate',
     width: 120
   },
   {
-    title: 'Home Amount',
+    title: $t('page.business.consolidation.billing.homeAmount'),
     key: 'os_amount',
     width: 120,
     render: row => renderText(formatBillingAmount(row.os_amount))
   }
-];
+]);
 
 const displayList = computed(() => {
   const q = invoiceSearchNo.value.trim().toLowerCase();
@@ -257,7 +258,9 @@ const displayList = computed(() => {
   );
 });
 
-const chargeDetailTitle = computed(() => `Invoice ${chargeDetailInvoiceNo.value}`);
+const chargeDetailTitle = computed(() =>
+  $t('page.business.consolidation.billing.invoiceDetail', { no: chargeDetailInvoiceNo.value })
+);
 
 async function loadInvoices() {
   if (!jkPk.value) return;
@@ -273,7 +276,7 @@ async function loadInvoices() {
     invoiceList.value = data?.items ?? [];
     invoiceTotal.value = data?.totalCount ?? 0;
   } catch {
-    window.$message?.error('Failed to load invoice data.');
+    window.$message?.error($t('page.business.consolidation.billing.loadFailed'));
   } finally {
     invoiceLoading.value = false;
   }
@@ -316,14 +319,14 @@ watch(
       />
       <NInput
         v-model:value="invoiceSearchNo"
-        placeholder="Search Invoice No."
+        :placeholder="$t('page.business.consolidation.billing.searchInvoiceNo')"
         clearable
         style="width: 200px"
         @keyup.enter="handleSearch"
         @clear="handleSearchClear"
       />
-      <NButton type="primary" size="small" @click="handleSearch">Search</NButton>
-      <NButton size="small" :loading="invoiceLoading" @click="loadInvoices">Refresh</NButton>
+      <NButton type="primary" size="small" @click="handleSearch">{{ $t('common.search') }}</NButton>
+      <NButton size="small" :loading="invoiceLoading" @click="loadInvoices">{{ $t('common.refresh') }}</NButton>
     </NSpace>
     <NDataTable
       :columns="invoiceColumns"

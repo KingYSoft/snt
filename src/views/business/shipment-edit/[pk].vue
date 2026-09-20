@@ -8,7 +8,8 @@ import {
   shipmentSave,
   getShipmentDetail,
   shipmentPdfGenerate,
-  shipmentQueryPortCode
+  shipmentQueryPortCode,
+  shipmentQueryConsolTransport
 } from '@/service/api/business/shipment';
 import { createOrUpdateBilling } from '@/service/api/business/billing';
 import { mapChargeRowToWriteItem } from '../shipment/modules/shipment-billing-map';
@@ -316,6 +317,26 @@ const queryData = async () => {
         const estimatedDeliveryDate = formatDate(data.js_reviseddeliveryduedate) || formatDate(data.js_deliveryduedate);
         const marksAndNumbers = looseList.find((item: any) => item.pac_marks_and_numbers)?.pac_marks_and_numbers || '';
         const customValues = data.custom_values || [];
+        const consolidationList = Array.isArray(data.consolidation_list)
+          ? data.consolidation_list.map((item: Record<string, any>) => ({
+              id: item.id ?? '',
+              reference: item.reference ?? '',
+              first_load: item.first_load ?? '',
+              last_disc: item.last_disc ?? '',
+              master_bill: item.master_bill ?? ''
+            }))
+          : [];
+
+        let vessel = '';
+        let voyage = '';
+        try {
+          const { data: transport } = await shipmentQueryConsolTransport({ shp_pk: data.js_pk || pk });
+          const firstLeg = transport?.list?.[0];
+          vessel = String(firstLeg?.jw_vessel ?? '');
+          voyage = String(firstLeg?.jw_voyageflight ?? '');
+        } catch {
+          // voyage fields stay empty when transport is unavailable
+        }
 
         // Map ShipmentDetail to shipment save/inputData format
         inputData.value = {
@@ -382,6 +403,7 @@ const queryData = async () => {
           shp_shipped_on_board: data.js_shippedonboard || '',
           shp_shipped_on_board_date: formatDate(data.js_shippedonboarddate),
           shp_on_board_date: formatDate(data.js_shippedonboarddate),
+          js_shippedonboarddate: formatDate(data.js_shippedonboarddate),
           js_hblcontainerpackmodeoverride: data.js_hblcontainerpackmodeoverride || '',
           shp_warehouse_location: data.js_warehouselocation || '',
           shp_coload_master_shipment: data.js_js_coloadmastershipment || '',
@@ -408,8 +430,8 @@ const queryData = async () => {
           shp_vgm:
             containersList.reduce((sum: number, item: any) => sum + toNumber(item.jc_grossweight, 0), 0) ||
             toNumber(data.js_actualweight, 0),
-          shp_vessel: '',
-          shp_voyage: '',
+          shp_vessel: vessel,
+          shp_voyage: voyage,
           // custom_values → UI fields (exact xV_Name match only)
           shp_controlling_customer: getCustomValueData(customValues, 'Controlling Customer Full Name'),
           shp_carrier_contract_number: getCustomValueData(customValues, 'Contract No.'),
@@ -439,7 +461,7 @@ const queryData = async () => {
           ar_charges: [],
           ap_charges: [],
           routing_list: [],
-          consolidation_list: [],
+          consolidation_list: consolidationList,
           doc_data: data.doc_data || {},
           pickup: mapAddressToComponent(data.pickup, 'PICKUP'),
           delivery: mapAddressToComponent(data.delivery, 'DELIVERY')
