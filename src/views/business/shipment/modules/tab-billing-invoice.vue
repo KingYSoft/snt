@@ -26,7 +26,7 @@ import {
 import { getBillingTaxCodeLabel } from '@/constants/billingTaxCodeItems';
 import { $t } from '@/locales';
 import { resolveBackendFileUrl } from '@/utils/service';
-import { formatInvoiceDate, getInvoiceHeaderStatus } from './shipment-billing-map';
+import { formatInvoiceDate, getInvoiceHeaderStatus, getInvoiceHeaderStatusLabel } from './shipment-billing-map';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 
@@ -42,7 +42,8 @@ const invoicePageSize = ref(100);
 const invoiceTotal = ref(0);
 const invoiceSelected = ref<string[]>([]);
 const invoiceSearchNo = ref('');
-const invoiceChargeType = ref<'AR' | 'AP'>('AR');
+/** 默认 All：请求不传 chargeType */
+const ledgerFilter = ref<'all' | 'AR' | 'AP'>('all');
 const voiding = ref(false);
 const printing = ref(false);
 
@@ -55,10 +56,11 @@ const pdfPreviewVisible = ref(false);
 const pdfPreviewItems = ref<InvoicePdfPreviewItem[]>([]);
 const pdfPreviewActive = ref('');
 
-const chargeTypeOptions = [
+const ledgerFilterOptions = computed(() => [
+  { label: $t('page.business.shipment.billing.all'), value: 'all' },
   { label: 'AR', value: 'AR' },
   { label: 'AP', value: 'AP' }
-];
+]);
 
 function getInvoiceStatusType(status: string): 'default' | 'success' | 'warning' | 'error' | 'info' {
   switch (status) {
@@ -85,7 +87,7 @@ async function openChargeDetail(invoiceNo?: string | null) {
     const { data } = await queryChargesByInvoice(no);
     chargeDetailRows.value = data?.charges ?? [];
   } catch {
-    window.$message?.error('Failed to load invoice charges.');
+    window.$message?.error($t('page.business.shipment.billing.loadChargesFailed'));
     chargeDetailRows.value = [];
   } finally {
     chargeDetailLoading.value = false;
@@ -95,7 +97,7 @@ async function openChargeDetail(invoiceNo?: string | null) {
 const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
   { type: 'selection' },
   {
-    title: 'Job Invoice No.',
+    title: $t('page.business.shipment.billing.jobInvoiceNo'),
     key: 'ah_transactionnum',
     width: 140,
     ellipsis: { tooltip: true },
@@ -118,58 +120,64 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
     }
   },
   {
-    title: 'Status',
+    title: $t('page.business.shipment.billing.status'),
     key: 'status',
     width: 90,
     render: (row: AccTransactionHeader) => {
       const status = getInvoiceHeaderStatus(row);
-      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => status });
+      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => getInvoiceHeaderStatusLabel(row) });
     }
   },
-  { title: 'Account', key: 'oh_fullname', width: 140, ellipsis: { tooltip: true } },
-  { title: 'Ledger', key: 'ah_ledger', width: 100 },
   {
-    title: 'Post Date',
+    title: $t('page.business.shipment.billing.account'),
+    key: 'oh_fullname',
+    width: 180,
+    ellipsis: { tooltip: true },
+    render: (row: AccTransactionHeader) => String(row.oh_fullname ?? '').trim()
+  },
+  { title: $t('page.business.shipment.billing.ledger'), key: 'ah_ledger', width: 100 },
+  {
+    title: $t('page.business.shipment.billing.postDate'),
     key: 'ah_postdate',
     width: 120,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_postdate)
   },
   {
-    title: 'Invoice Date',
+    title: $t('page.business.shipment.billing.invoiceDate'),
     key: 'ah_invoicedate',
     width: 120,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_invoicedate)
   },
   {
-    title: 'Fully Paid Date',
+    title: $t('page.business.shipment.billing.fullyPaidDate'),
     key: 'ah_fullypaiddate',
     width: 120,
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_fullypaiddate)
   },
-  { title: 'Currency', key: 'ah_rx_nktransactioncurrency', width: 80 },
-  { title: 'Invoice Amt', key: 'ah_invoiceamount', width: 100 },
-  { title: 'Payment Status', key: 'ah_matchstatus', width: 120 },
-  { title: 'Branch', key: 'ah_systemcreatebranch', width: 80 },
-  { title: 'Terms', key: 'ah_invoiceterm', width: 140, ellipsis: { tooltip: true } }
+  { title: $t('page.business.shipment.billing.currency'), key: 'ah_rx_nktransactioncurrency', width: 80 },
+  { title: $t('page.business.shipment.billing.invoiceAmt'), key: 'ah_invoiceamount', width: 100 },
+  { title: $t('page.business.shipment.billing.paymentStatus'), key: 'ah_matchstatus', width: 120 },
+  { title: $t('page.business.shipment.billing.branch'), key: 'ah_systemcreatebranch', width: 80 },
+  { title: $t('page.business.shipment.billing.terms'), key: 'ah_invoiceterm', width: 140, ellipsis: { tooltip: true } }
 ]);
 
-const chargeDetailColumns: DataTableColumns<BillingChargeLineItem> = [
-  { title: 'Charge Code', key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
-  { title: 'Description', key: 'jr_desc', minWidth: 160, ellipsis: { tooltip: true } },
-  { title: 'Party', key: 'party_code', width: 120, ellipsis: { tooltip: true } },
-  { title: 'Branch', key: 'branch_code', width: 90 },
-  { title: 'Currency', key: 'currency', width: 80 },
-  { title: 'Type', key: 'jr_invoicetype', width: 80 },
-  { title: 'Amount', key: 'amount', width: 100 },
-  { title: 'Home Amt', key: 'os_amount', width: 100 },
-  { title: 'Exch Rate', key: 'exchange_rate', width: 90 },
+const chargeDetailColumns = computed<DataTableColumns<BillingChargeLineItem>>(() => [
+  { title: $t('page.business.shipment.billing.chargeCode'), key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
+  { title: $t('page.business.shipment.billing.description'), key: 'jr_desc', minWidth: 160, ellipsis: { tooltip: true } },
+  { title: $t('page.business.shipment.billing.party'), key: 'party_code', width: 120, ellipsis: { tooltip: true } },
+  { title: $t('page.business.shipment.billing.branch'), key: 'branch_code', width: 90 },
+  { title: $t('page.business.shipment.billing.currency'), key: 'currency', width: 80 },
+  { title: $t('page.business.shipment.billing.type'), key: 'jr_invoicetype', width: 80 },
+  { title: $t('page.business.shipment.billing.amount'), key: 'amount', width: 100 },
+  { title: $t('page.business.shipment.billing.homeAmt'), key: 'os_amount', width: 100 },
+  { title: $t('page.business.shipment.billing.exchRate'), key: 'exchange_rate', width: 90 },
   {
-    title: 'Tax',
+    title: $t('page.business.shipment.billing.tax'),
     key: 'tax',
     width: 100,
     render: row => getBillingTaxCodeLabel(row.wht_rate || row.gst_rate)
   }
-];
+]);
 
 const displayList = computed(() => {
   const q = invoiceSearchNo.value.trim().toLowerCase();
@@ -181,7 +189,9 @@ const displayList = computed(() => {
   );
 });
 
-const chargeDetailTitle = computed(() => `Invoice ${chargeDetailInvoiceNo.value}`);
+const chargeDetailTitle = computed(() =>
+  $t('page.business.shipment.billing.invoiceDetail', { no: chargeDetailInvoiceNo.value })
+);
 
 const activePdfUrl = computed(() => {
   const hit = pdfPreviewItems.value.find(item => item.invoice_no === pdfPreviewActive.value);
@@ -197,17 +207,18 @@ async function loadInvoices() {
   if (!props.inputData.pk) return;
   try {
     invoiceLoading.value = true;
-    const { data } = await billingDraftPage({
+    const payload: Parameters<typeof billingDraftPage>[0] = {
       shpPk: props.inputData.pk,
-      chargeType: invoiceChargeType.value,
       skipCount: (invoicePage.value - 1) * invoicePageSize.value,
       maxResultCount: invoicePageSize.value,
       sorting: 'Id DESC'
-    });
+    };
+    if (ledgerFilter.value !== 'all') payload.chargeType = ledgerFilter.value;
+    const { data } = await billingDraftPage(payload);
     invoiceList.value = data?.items ?? [];
     invoiceTotal.value = data?.totalCount ?? 0;
   } catch {
-    window.$message?.error('Failed to load invoice data.');
+    window.$message?.error($t('page.business.shipment.billing.loadFailed'));
   } finally {
     invoiceLoading.value = false;
   }
@@ -229,7 +240,8 @@ function handleSearchClear() {
   loadInvoices();
 }
 
-function handleChargeTypeChange() {
+function handleLedgerFilterChange(value: 'all' | 'AR' | 'AP' | null) {
+  ledgerFilter.value = value || 'all';
   invoicePage.value = 1;
   invoiceSelected.value = [];
   loadInvoices();
@@ -258,11 +270,11 @@ async function handleVoid() {
       if (invoiceNos.length) await voidPostedInvoice(invoiceNos);
     }
 
-    window.$message?.success('Operation completed.');
+    window.$message?.success($t('page.business.shipment.billing.operationCompleted'));
     invoiceSelected.value = [];
     await loadInvoices();
   } catch {
-    window.$message?.error('Void failed');
+    window.$message?.error($t('page.business.shipment.billing.voidFailed'));
   } finally {
     voiding.value = false;
   }
@@ -287,7 +299,7 @@ async function handlePrint() {
     printing.value = true;
     const { data } = await generateInvoicePdf({
       invoice_nos: invoiceNos,
-      ledger_type: invoiceChargeType.value
+      ...(ledgerFilter.value !== 'all' ? { ledger_type: ledgerFilter.value } : {})
     });
     const items = (data?.results ?? [])
       .map(item => {
@@ -333,23 +345,26 @@ defineExpose({ loadInvoices });
   <div>
     <NSpace class="mb-12px" align="center">
       <NSelect
-        v-model:value="invoiceChargeType"
-        :options="chargeTypeOptions"
-        style="width: 88px"
+        :value="ledgerFilter"
+        :options="ledgerFilterOptions"
+        :fallback-option="false"
+        style="width: 110px"
         size="small"
-        @update:value="handleChargeTypeChange"
+        @update:value="handleLedgerFilterChange"
       />
       <NInput
         v-model:value="invoiceSearchNo"
-        placeholder="Search Invoice No."
+        :placeholder="$t('page.business.shipment.billing.searchInvoiceNo')"
         clearable
         style="width: 200px"
         @keyup.enter="handleSearch"
         @clear="handleSearchClear"
       />
-      <NButton type="primary" size="small" @click="handleSearch">Search</NButton>
-      <NButton size="small" :loading="invoiceLoading" @click="loadInvoices">Refresh</NButton>
-      <NButton type="error" size="small" ghost :loading="voiding" @click="handleVoid">Void</NButton>
+      <NButton type="primary" size="small" @click="handleSearch">{{ $t('common.search') }}</NButton>
+      <NButton size="small" :loading="invoiceLoading" @click="loadInvoices">{{ $t('common.refresh') }}</NButton>
+      <NButton type="error" size="small" ghost :loading="voiding" @click="handleVoid">
+        {{ $t('page.business.shipment.billing.void') }}
+      </NButton>
       <NButton size="small" :loading="printing" @click="handlePrint">
         {{ $t('page.business.shipment.billing.print') }}
       </NButton>
@@ -418,7 +433,12 @@ defineExpose({ loadInvoices });
         />
       </NTabs>
 
-      <iframe v-if="activePdfUrl" class="invoice-pdf-frame" :src="activePdfUrl" title="Invoice PDF" />
+      <iframe
+        v-if="activePdfUrl"
+        class="invoice-pdf-frame"
+        :src="activePdfUrl"
+        :title="$t('page.business.shipment.billing.invoice')"
+      />
     </NModal>
   </div>
 </template>

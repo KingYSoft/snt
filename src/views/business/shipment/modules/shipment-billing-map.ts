@@ -1,3 +1,4 @@
+import { $t } from '@/locales';
 import type {
   AccTransactionHeader,
   BillingChargeLineItem,
@@ -119,7 +120,23 @@ export function mapChargeRowToWriteItem(
 }
 
 export function getBillingLockLabel(isLocked: number) {
-  return isLocked === 0 ? 'Open' : 'Invoiced';
+  return isLocked === 0
+    ? $t('page.business.shipment.billing.statusOpen')
+    : $t('page.business.shipment.billing.statusInvoiced');
+}
+
+export function getInvoiceHeaderStatusLabel(item: AccTransactionHeader) {
+  const status = getInvoiceHeaderStatus(item);
+  switch (status) {
+    case 'Posted':
+      return $t('page.business.shipment.billing.statusPosted');
+    case 'Voided':
+      return $t('page.business.shipment.billing.statusVoided');
+    case 'Canceled':
+      return $t('page.business.shipment.billing.statusCanceled');
+    default:
+      return $t('page.business.shipment.billing.statusDraft');
+  }
 }
 
 export function getBillingLockTagType(isLocked: number): 'default' | 'success' | 'warning' | 'error' | 'info' {

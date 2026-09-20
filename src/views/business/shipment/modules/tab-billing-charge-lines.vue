@@ -181,7 +181,7 @@ const BillingRemoteSelectCell = defineComponent({
           class: 'billing-remote-select-menu',
           style: { minWidth: '280px', maxWidth: '420px' }
         },
-        placeholder: 'Search...',
+        placeholder: $t('page.business.shipment.billing.searchPlaceholder'),
         filter: () => true,
         renderLabel: (option: BillingSelectOption) => renderBillingSelectMenuLabel(option),
         onSearch: (query: string) => {
@@ -535,12 +535,12 @@ function makeColumns(type: 'AR' | 'AP') {
             disabled: row?.is_locked !== 0,
             onClick: () => requestDelete(index, type)
           },
-          { default: () => 'Del' }
+          { default: () => $t('page.business.shipment.billing.del') }
         );
       }
     },
     {
-      title: 'Status',
+      title: $t('page.business.shipment.billing.status'),
       key: 'is_locked',
       width: 90,
       render(row: ShipmentBillingChargeRow) {
@@ -552,7 +552,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Charge Code',
+      title: $t('page.business.shipment.billing.chargeCode'),
       key: 'Charge_Code',
       width: 110,
       render(row: ShipmentBillingChargeRow) {
@@ -584,7 +584,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Description',
+      title: $t('page.business.shipment.billing.description'),
       key: 'Description',
       width: 140,
       render(row: ShipmentBillingChargeRow) {
@@ -601,7 +601,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: isAR ? 'Debtor' : 'Creditor',
+      title: isAR ? $t('page.business.shipment.billing.debtor') : $t('page.business.shipment.billing.creditor'),
       key: accountKey,
       width: 140,
       render(row: ShipmentBillingChargeRow) {
@@ -622,7 +622,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Branch',
+      title: $t('page.business.shipment.billing.branch'),
       key: 'Branch',
       width: 120,
       render(row: ShipmentBillingChargeRow) {
@@ -643,7 +643,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Currency',
+      title: $t('page.business.shipment.billing.currency'),
       key: 'Currency',
       width: 100,
       render(row: ShipmentBillingChargeRow) {
@@ -661,7 +661,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Type',
+      title: $t('page.business.shipment.billing.type'),
       key: 'JR_InvoiceType',
       width: 100,
       render(row: ShipmentBillingChargeRow) {
@@ -678,7 +678,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Amount',
+      title: $t('page.business.shipment.billing.amount'),
       key: 'Amount',
       width: 100,
       render(row: ShipmentBillingChargeRow) {
@@ -696,7 +696,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Tax Code',
+      title: $t('page.business.shipment.billing.taxCode'),
       key: 'Tax_Code',
       width: 100,
       render(row: ShipmentBillingChargeRow) {
@@ -714,13 +714,13 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Tax Amt',
+      title: $t('page.business.shipment.billing.taxAmt'),
       key: 'Tax_Amount',
       width: 90,
       render: (row: ShipmentBillingChargeRow) => h('span', null, row.Tax_Amount || '')
     },
     {
-      title: 'Exch Rate',
+      title: $t('page.business.shipment.billing.exchRate'),
       key: 'Exchange_Rate',
       width: 90,
       render(row: ShipmentBillingChargeRow) {
@@ -738,7 +738,7 @@ function makeColumns(type: 'AR' | 'AP') {
       }
     },
     {
-      title: 'Home Amt',
+      title: $t('page.business.shipment.billing.homeAmt'),
       key: 'Home_Amount',
       width: 100,
       render: (row: ShipmentBillingChargeRow) => h('span', null, row.Home_Amount || '')
@@ -757,11 +757,13 @@ defineExpose({ loadAll, loadBillingData });
     <NCard size="small" class="mb-12px">
       <template #header>
         <NSpace align="center" :wrap="false">
-          <span class="font-bold">AR (Accounts Receivable)</span>
-          <NButton size="small" @click="copyRows('AR', 'AP')">Copy to AP</NButton>
-          <NButton size="small" @click="addChargeLine('AR')">Add</NButton>
+          <span class="font-bold">{{ $t('page.business.shipment.billing.arTitle') }}</span>
+          <NButton size="small" @click="copyRows('AR', 'AP')">
+            {{ $t('page.business.shipment.billing.copyToAP') }}
+          </NButton>
+          <NButton size="small" @click="addChargeLine('AR')">{{ $t('common.add') }}</NButton>
           <NButton type="primary" size="small" :loading="postLoadingType === 'AR'" @click="handlePost('AR')">
-            Post
+            {{ $t('page.business.shipment.billing.post') }}
           </NButton>
         </NSpace>
       </template>
@@ -782,11 +784,13 @@ defineExpose({ loadAll, loadBillingData });
     <NCard size="small">
       <template #header>
         <NSpace align="center" :wrap="false">
-          <span class="font-bold">AP (Accounts Payable)</span>
-          <NButton size="small" @click="copyRows('AP', 'AR')">Copy to AR</NButton>
-          <NButton size="small" @click="addChargeLine('AP')">Add</NButton>
+          <span class="font-bold">{{ $t('page.business.shipment.billing.apTitle') }}</span>
+          <NButton size="small" @click="copyRows('AP', 'AR')">
+            {{ $t('page.business.shipment.billing.copyToAR') }}
+          </NButton>
+          <NButton size="small" @click="addChargeLine('AP')">{{ $t('common.add') }}</NButton>
           <NButton type="primary" size="small" :loading="postLoadingType === 'AP'" @click="handlePost('AP')">
-            Post
+            {{ $t('page.business.shipment.billing.post') }}
           </NButton>
         </NSpace>
       </template>
@@ -807,9 +811,9 @@ defineExpose({ loadAll, loadBillingData });
     <NModal
       v-model:show="confirmDeleteVis"
       preset="dialog"
-      title="Confirm Delete"
-      positive-text="Confirm"
-      negative-text="Cancel"
+      :title="$t('page.business.shipment.billing.confirmDeleteTitle')"
+      :positive-text="$t('common.confirm')"
+      :negative-text="$t('common.cancel')"
       @positive-click="confirmDelete"
     >
       {{ $t('page.business.shipment.billing.confirmDelete') }}
