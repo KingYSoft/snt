@@ -3,22 +3,7 @@
 import { computed, h, ref, watch } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 import { useRouter } from 'vue-router';
-import {
-  NAutoComplete,
-  NButton,
-  NDataTable,
-  NDatePicker,
-  NDivider,
-  NForm,
-  NFormItemGi,
-  NGrid,
-  NGi,
-  NInput,
-  NInputNumber,
-  NModal,
-  NSelect,
-  NSpace
-} from 'naive-ui';
+import { NDataTable, NDivider, NForm, NFormItemGi, NGrid, NGi, NInput } from 'naive-ui';
 import { $t } from '@/locales';
 import { consolidationMatchingShipments } from '@/service/api/business/consolidation';
 import { shipmentQueryPortCode } from '@/service/api/business/shipment';
@@ -192,7 +177,6 @@ watch(
 
 // --- Shipment columns ---
 const shipmentColumns: DataTableColumns<any> = [
-  { type: 'selection' },
   {
     title: $t('page.business.consolidation.detail.shipmentNo'),
     key: 'js_uniqueconsignref',
@@ -372,54 +356,19 @@ defineExpose({
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form mt-4px">
             <NGrid :cols="2" :x-gap="12">
               <NFormItemGi :label="$t('page.business.shipment.form.name')">
-                <NInput
-                  :value="inputData.local_agent?.name"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.name = v;
-                    }
-                  "
-                />
+                <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.local_agent?.name" />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.contact')">
-                <NInput
-                  :value="inputData.local_agent?.e2_contact"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.e2_contact = v;
-                    }
-                  "
-                />
+                <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.local_agent?.e2_contact" />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.address1')">
-                <NInput
-                  :value="inputData.local_agent?.e2_address1"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.e2_address1 = v;
-                    }
-                  "
-                />
+                <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.local_agent?.e2_address1" />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.phone')">
-                <NInput
-                  :value="inputData.local_agent?.e2_phone"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.e2_phone = v;
-                    }
-                  "
-                />
+                <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.local_agent?.e2_phone" />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.address2')">
-                <NInput
-                  :value="inputData.local_agent?.e2_address2"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.local_agent) inputData.local_agent.e2_address2 = v;
-                    }
-                  "
-                />
+                <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.local_agent?.e2_address2" />
               </NFormItemGi>
             </NGrid>
           </NForm>
@@ -434,53 +383,34 @@ defineExpose({
             <NGrid :cols="2" :x-gap="12">
               <NFormItemGi :label="$t('page.business.shipment.form.name')">
                 <NInput
+                  readonly
+                  :placeholder="$t('common.pleaseInput')"
                   :value="inputData.overseas_agent?.add_address_name"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.overseas_agent) inputData.overseas_agent.add_address_name = v;
-                    }
-                  "
                 />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.contact')">
                 <NInput
+                  readonly
+                  :placeholder="$t('common.pleaseInput')"
                   :value="inputData.overseas_agent?.add_contact"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.overseas_agent) inputData.overseas_agent.add_contact = v;
-                    }
-                  "
                 />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.address1')">
                 <NInput
+                  readonly
+                  :placeholder="$t('common.pleaseInput')"
                   :value="inputData.overseas_agent?.add_address1"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.overseas_agent) inputData.overseas_agent.add_address1 = v;
-                    }
-                  "
                 />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.address2')">
                 <NInput
+                  readonly
+                  :placeholder="$t('common.pleaseInput')"
                   :value="inputData.overseas_agent?.add_address2"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.overseas_agent) inputData.overseas_agent.add_address2 = v;
-                    }
-                  "
                 />
               </NFormItemGi>
               <NFormItemGi :label="$t('page.business.shipment.address.phone')">
-                <NInput
-                  :value="inputData.overseas_agent?.add_phone"
-                  @update:value="
-                    (v: string) => {
-                      if (inputData.overseas_agent) inputData.overseas_agent.add_phone = v;
-                    }
-                  "
-                />
+                <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.overseas_agent?.add_phone" />
               </NFormItemGi>
             </NGrid>
           </NForm>
@@ -495,67 +425,28 @@ defineExpose({
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
             <NFormItem :label="$t('page.business.consolidation.detail.transport')">
-              <NSelect
-                :value="inputData.jk_transportmode"
-                :options="transportOptions"
-                @update:value="
-                  (v: string) => {
-                    inputData.jk_transportmode = v;
-                    inputData.jk_consolmode = undefined;
-                  }
-                "
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_transportmode" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.container')">
-              <NSelect
-                :value="inputData.jk_consolmode"
-                :options="getConsolModeOptions"
-                @update:value="(v: string) => (inputData.jk_consolmode = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_consolmode" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.consolType')">
-              <NSelect
-                :value="inputData.jk_releasetype"
-                :options="consolTypeOptions"
-                clearable
-                @update:value="(v: string) => (inputData.jk_releasetype = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_releasetype" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.serviceLevel')">
-              <NSelect
-                :value="inputData.jk_awbservicelevel"
-                :options="serviceLevelOptions"
-                clearable
-                filterable
-                @update:value="(v: string) => (inputData.jk_awbservicelevel = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_awbservicelevel" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.freightTerms')">
-              <NSelect
-                :value="inputData.jk_prepaidcollect"
-                :options="freightTermsOptions"
-                @update:value="(v: string) => (inputData.jk_prepaidcollect = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_prepaidcollect" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.bolMasterBillNo')">
-              <NInput
-                :value="inputData.jk_masterbillnum"
-                @update:value="(v: string) => (inputData.jk_masterbillnum = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_masterbillnum" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.contractNo')">
-              <NInput
-                :value="inputData.jk_carriercontractnumber"
-                @update:value="(v: string) => (inputData.jk_carriercontractnumber = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_carriercontractnumber" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.deliveryMode')">
-              <NSelect
-                :value="inputData.jk_deliverymode"
-                :options="deliveryModeOptions"
-                clearable
-                @update:value="(v: string) => (inputData.jk_deliverymode = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_deliverymode" />
             </NFormItem>
           </NForm>
         </NGi>
@@ -563,58 +454,24 @@ defineExpose({
         <!-- Column 2: Routing -->
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
-            <!--
- <NFormItem :label="$t('page.business.consolidation.detail.origin')">
-              <NAutoComplete :value="inputData.jk_rl_nkorigin" :options="portOptions" clearable
-                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkorigin = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkorigin = v)" />
-            </NFormItem>
-            <NFormItem :label="$t('page.business.consolidation.detail.destination')">
-              <NAutoComplete :value="inputData.jk_rl_nkdestination" :options="portOptions" clearable
-                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkdestination = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkdestination = v)" />
-            </NFormItem>
-            <NFormItem :label="$t('page.business.consolidation.detail.placeOfReceipt')">
-              <NAutoComplete :value="inputData.jk_rl_nkplaceofreceipt" :options="portOptions" clearable
-                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkplaceofreceipt = v)" />
-            </NFormItem>
-            <NFormItem :label="$t('page.business.consolidation.detail.placeOfDelivery')">
-              <NAutoComplete :value="inputData.jk_rl_nkplaceofdelivery" :options="portOptions" clearable
-                @search="(q: string) => queryPort(q)" @select="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkplaceofdelivery = v)" />
-            </NFormItem> 
--->
             <NFormItem :label="$t('page.business.consolidation.detail.load')">
-              <NAutoComplete
-                :value="inputData.jk_rl_nkloadport"
-                :options="portOptions"
-                clearable
-                @search="(q: string) => queryPort(q)"
-                @select="(v: string) => (inputData.jk_rl_nkloadport = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkloadport = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_rl_nkloadport" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.discharge')">
-              <NAutoComplete
-                :value="inputData.jk_rl_nkdischargeport"
-                :options="portOptions"
-                clearable
-                @search="(q: string) => queryPort(q)"
-                @select="(v: string) => (inputData.jk_rl_nkdischargeport = v)"
-                @update:value="(v: string) => (inputData.jk_rl_nkdischargeport = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_rl_nkdischargeport" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.vessel')">
               <NInput
+                readonly
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.transport_list?.[0]?.jw_vessel"
-                @update:value="(v: string) => (inputData.jw_vessel = v)"
               />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.voyage')">
               <NInput
+                readonly
+                :placeholder="$t('common.pleaseInput')"
                 :value="inputData.transport_list?.[0]?.jw_voyageflight"
-                @update:value="(v: string) => (inputData.jw_voyageflight = v)"
               />
             </NFormItem>
           </NForm>
@@ -624,68 +481,28 @@ defineExpose({
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
             <NFormItem :label="$t('page.business.consolidation.detail.etd')">
-              <NDatePicker
-                :formatted-value="firstTransportEtd"
-                type="date"
-                value-format="yyyy-MM-dd"
-                clearable
-                style="width: 100%"
-                @update:formatted-value="(v: string) => updateFirstTransportField('jw_etd', v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="firstTransportEtd || ''" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.eta')">
-              <NDatePicker
-                :formatted-value="firstTransportEta"
-                type="date"
-                value-format="yyyy-MM-dd"
-                clearable
-                style="width: 100%"
-                @update:formatted-value="(v: string) => updateFirstTransportField('jw_eta', v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="firstTransportEta || ''" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.atd')">
-              <NDatePicker
-                :formatted-value="firstTransportAtd"
-                type="date"
-                value-format="yyyy-MM-dd"
-                clearable
-                style="width: 100%"
-                @update:formatted-value="(v: string) => updateFirstTransportField('jw_atd', v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="firstTransportAtd || ''" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.ata')">
-              <NDatePicker
-                :formatted-value="firstTransportAta"
-                type="date"
-                value-format="yyyy-MM-dd"
-                clearable
-                style="width: 100%"
-                @update:formatted-value="(v: string) => updateFirstTransportField('jw_ata', v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="firstTransportAta || ''" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.carrier')">
-              <NInput
-                :value="inputData.jk_rl_nkcarrier"
-                @update:value="(v: string) => (inputData.jk_rl_nkcarrier = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_rl_nkcarrier" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.carrierBookingRef')">
-              <NInput
-                :value="inputData.jk_bookingreference"
-                @update:value="(v: string) => (inputData.jk_bookingreference = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_bookingreference" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.bookingAgent')">
-              <NInput
-                :value="inputData.jk_bookingagent"
-                @update:value="(v: string) => (inputData.jk_bookingagent = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_bookingagent" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.agentRef')">
-              <NInput
-                :value="inputData.jk_agentsreference"
-                @update:value="(v: string) => (inputData.jk_agentsreference = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_agentsreference" />
             </NFormItem>
           </NForm>
         </NGi>
@@ -694,47 +511,20 @@ defineExpose({
         <NGi span="4 m:1">
           <NForm label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
             <NFormItem :label="$t('page.business.consolidation.detail.coloadAgent')">
-              <NInput :value="inputData.jk_coloadagent" @update:value="(v: string) => (inputData.jk_coloadagent = v)" />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_coloadagent" />
             </NFormItem>
             <NFormItem :label="$t('page.business.consolidation.detail.coloadMbl')">
-              <NInput
-                :value="inputData.jk_coloadmasterbill"
-                @update:value="(v: string) => (inputData.jk_coloadmasterbill = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_coloadmasterbill" />
             </NFormItem>
-            <!--
- <NFormItem :label="$t('page.business.consolidation.detail.coloadRef')">
-              <NInput :value="inputData.jk_coloadbookingreference"
-                @update:value="(v: string) => (inputData.jk_coloadbookingreference = v)" />
-            </NFormItem> 
--->
             <NFormItem :label="$t('page.business.consolidation.detail.onBoard')">
-              <NDatePicker
-                :formatted-value="formatTransportDate(inputData.jk_shippedonboarddate)"
-                type="date"
-                value-format="yyyy-MM-dd"
-                clearable
-                style="width: 100%"
-                @update:formatted-value="(v: string) => (inputData.jk_shippedonboarddate = v)"
+              <NInput
+                readonly
+                :placeholder="$t('common.pleaseInput')"
+                :value="formatTransportDate(inputData.jk_shippedonboarddate) || ''"
               />
             </NFormItem>
-            <!--
- <NFormItem :label="$t('page.business.consolidation.detail.vgmData')">
-              <NSpace :wrap="false" :size="4" class="w-full">
-                <NInputNumber :value="inputData.jk_vgmweight" :min="0" :precision="5" :show-button="false"
-                  class="flex-1" @update:value="(v: number | null) => (inputData.jk_vgmweight = v ?? 0)" />
-                <NSelect :value="inputData.jk_vgmweightunit || 'KG'" :options="vgmUnitOptions" style="width: 72px"
-                  @update:value="(v: string) => (inputData.jk_vgmweightunit = v)" />
-              </NSpace>
-            </NFormItem> 
--->
             <NFormItem :label="$t('page.business.shipment.form.phase')">
-              <NSelect
-                :value="inputData.jk_phase"
-                :options="[]"
-                clearable
-                @update:value="(v: string) => (inputData.jk_phase = v)"
-              />
+              <NInput readonly :placeholder="$t('common.pleaseInput')" :value="inputData.jk_phase" />
             </NFormItem>
           </NForm>
         </NGi>
@@ -743,19 +533,7 @@ defineExpose({
       <NDivider class="!my-8px" />
 
       <!-- Shipments Section -->
-      <div class="mb-8px flex items-center gap-8px">
-        <NButton type="primary" size="small" @click="fetchMatchingShipments">Attach</NButton>
-        <NButton
-          type="primary"
-          size="small"
-          :disabled="selectedDetachShipments.length === 0"
-          @click="detachSelectedShipments"
-        >
-          Detach
-        </NButton>
-      </div>
       <NDataTable
-        v-model:checked-row-keys="selectedDetachShipments"
         :columns="shipmentColumns"
         :data="shipmentList"
         :bordered="true"
@@ -793,46 +571,6 @@ defineExpose({
         </span>
       </div>
     </NForm>
-
-    <!-- Matching Shipments Modal -->
-    <NModal
-      v-model:show="matchingDialogVisible"
-      preset="card"
-      :title="$t('page.business.consolidation.section.shipments')"
-      style="width: 1200px"
-      :mask-closable="false"
-    >
-      <NSpace vertical :size="12">
-        <div class="flex gap-8px items-center">
-          <span class="text-12px">Shipment No.:</span>
-          <NInput
-            v-model:value="matchingFilter.shipment_number"
-            :placeholder="$t('page.business.consolidation.search.placeholder')"
-            clearable
-            style="width: 260px"
-          />
-          <NButton type="primary" size="small" @click="fetchMatchingShipments">{{ $t('common.search') }}</NButton>
-        </div>
-        <NDataTable
-          v-model:checked-row-keys="selectedMatchingShipments"
-          :columns="matchingColumns"
-          :data="matchingShipments"
-          :bordered="true"
-          size="small"
-          :pagination="{ pageSize: 10 }"
-          :row-key="getShipmentRowKey"
-          :scroll-x="1100"
-        />
-      </NSpace>
-      <template #footer>
-        <NSpace justify="end">
-          <NButton @click="matchingDialogVisible = false">{{ $t('common.cancel') }}</NButton>
-          <NButton type="primary" :disabled="selectedMatchingShipments.length === 0" @click="confirmSelectedShipments">
-            Confirm
-          </NButton>
-        </NSpace>
-      </template>
-    </NModal>
   </div>
 </template>
 

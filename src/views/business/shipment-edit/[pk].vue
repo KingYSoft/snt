@@ -74,8 +74,11 @@ const defaultData = () => ({
 const inputData = ref<Record<string, any>>(defaultData());
 
 function updateTabLabel() {
-  if (!inputData.value.shp_consign_no) return;
-  tabStore.setTabLabel($t('page.business.shipment.tab.shipment') + ` - ${inputData.value.shp_consign_no}`);
+  if (route.name !== 'business_shipment-edit' || !inputData.value.shp_consign_no) return;
+  tabStore.setTabLabel(
+    `${$t('page.business.shipment.tab.shipment')} - ${inputData.value.shp_consign_no}`,
+    tabStore.getTabIdByRoute(route)
+  );
 }
 
 const tabTitle = computed(() => {

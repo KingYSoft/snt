@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { computed, ref, watch } from 'vue';
+import { computed, onActivated, onMounted, ref, watch } from 'vue';
 import type { DataTableRowKey } from 'naive-ui';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { $t } from '@/locales';
+import { useTabStore } from '@/store/modules/tab';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
 import {
@@ -16,7 +17,20 @@ import type { ShipmentListItem } from '@/service/api/business/shipment';
 import { getShipmentColumns } from './modules/columns';
 import type { ShipmentActionKey } from './modules/columns';
 
+defineOptions({
+  name: 'business_shipment'
+});
+
+const route = useRoute();
 const router = useRouter();
+const tabStore = useTabStore();
+
+function restoreListTabLabel() {
+  tabStore.resetTabLabel(tabStore.getTabIdByRoute(route));
+}
+
+onMounted(restoreListTabLabel);
+onActivated(restoreListTabLabel);
 
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsById = ref(new Map<string, ShipmentListItem>());

@@ -57,7 +57,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'business_consolidation',
           i18nKey: 'route.business_consolidation',
-          order: 3
+          order: 3,
+          keepAlive: true
         }
       },
       {
@@ -77,7 +78,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'business_shipment',
           i18nKey: 'route.business_shipment',
-          order: 2
+          order: 2,
+          keepAlive: true
         }
       },
       {

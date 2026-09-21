@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, onActivated, ref } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
-import { NButton, NCard, NSkeleton, NTabPane, NTabs } from 'naive-ui';
+import { NCard, NSkeleton, NTabPane, NTabs } from 'naive-ui';
 import { $t } from '@/locales';
 import { useTabStore } from '@/store/modules/tab';
 import {
@@ -79,7 +79,10 @@ async function loadData(_forceReload = false) {
         };
 
         if (inputData.value.jk_uniqueconsignref) {
-          tabStore.setTabLabel(`${$t('route.business_consolidation')} - ${inputData.value.jk_uniqueconsignref}`);
+          tabStore.setTabLabel(
+            `${$t('route.business_consolidation')} - ${inputData.value.jk_uniqueconsignref}`,
+            tabStore.getTabIdByRoute(route)
+          );
         }
       } else {
         window.$dialog?.warning({
@@ -187,11 +190,6 @@ async function handleSave() {
 <template>
   <div class="p-16px">
     <NCard :title="tabTitle">
-      <template #header-extra>
-        <NButton type="primary" :loading="saving" :disabled="saving" @click="handleSave">
-          {{ $t('common.save') }}
-        </NButton>
-      </template>
       <NTabs v-model:value="activedTab" type="line">
         <NTabPane :name="1" :tab="$t('page.business.consolidation.tab.details')">
           <NSkeleton v-if="skeletonLoading" text :row="18" />
