@@ -1,6 +1,11 @@
 import { h } from 'vue';
-import { NButton, NInput, NInputNumber, NSelect, NCheckbox } from 'naive-ui';
+import { NInput, NInputNumber, NCheckbox } from 'naive-ui';
 import { $t } from '@/locales';
+
+function toInputValue(value: unknown) {
+  if (value === null || value === undefined) return '';
+  return String(value);
+}
 
 // --- Shared options ---
 export const containerTypeItemOptions = [
@@ -15,24 +20,34 @@ export const packTypeOptions = [
   { label: 'PLT', value: 'PLT' }
 ];
 
+function renderReadonlyInput(value: unknown) {
+  return h(NInput, {
+    value: toInputValue(value),
+    size: 'small',
+    readonly: true,
+    placeholder: $t('common.pleaseInput')
+  });
+}
+
+function renderReadonlyNumber(value: unknown) {
+  return h(NInputNumber, {
+    value: typeof value === 'number' ? value : value == null || value === '' ? null : Number(value),
+    size: 'small',
+    showButton: false,
+    readonly: true,
+    style: 'width:100%'
+  });
+}
+
 // --- Container Table ---
 export function createContainerColumns(_removeFn: (index: number) => void) {
   return [
-    // Del temporarily hidden
     {
       title: $t('page.business.consolidation.container.containerType'),
       key: 'ctr_type',
       width: 130,
       render(row: any) {
-        return h(NSelect, {
-          value: row.ctr_type,
-          options: containerTypeItemOptions,
-          size: 'small',
-          placeholder: $t('common.pleaseSelect'),
-          'onUpdate:value': (v: string) => {
-            row.ctr_type = v;
-          }
-        });
+        return renderReadonlyInput(row.ctr_type);
       }
     },
     {
@@ -40,16 +55,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'ctr_count',
       width: 80,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.ctr_count,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.ctr_count = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.ctr_count);
       }
     },
     {
@@ -57,14 +63,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'jc_containernum',
       width: 140,
       render(row: any) {
-        return h(NInput, {
-          value: row.jc_containernum,
-          size: 'small',
-          placeholder: $t('common.pleaseInput'),
-          'onUpdate:value': (v: string) => {
-            row.jc_containernum = v;
-          }
-        });
+        return renderReadonlyInput(row.jc_containernum);
       }
     },
     {
@@ -72,14 +71,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'jc_sealnum',
       width: 120,
       render(row: any) {
-        return h(NInput, {
-          value: row.jc_sealnum,
-          size: 'small',
-          placeholder: $t('common.pleaseInput'),
-          'onUpdate:value': (v: string) => {
-            row.jc_sealnum = v;
-          }
-        });
+        return renderReadonlyInput(row.jc_sealnum);
       }
     },
     {
@@ -90,9 +82,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       render(row: any) {
         return h(NCheckbox, {
           checked: row.ctr_is_soc === 1,
-          'onUpdate:checked': (v: boolean) => {
-            row.ctr_is_soc = v ? 1 : 0;
-          }
+          style: 'pointer-events: none'
         });
       }
     },
@@ -101,14 +91,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'pac_commodity',
       width: 140,
       render(row: any) {
-        return h(NInput, {
-          value: row.pac_commodity,
-          size: 'small',
-          placeholder: $t('common.pleaseInput'),
-          'onUpdate:value': (v: string) => {
-            row.pac_commodity = v;
-          }
-        });
+        return renderReadonlyInput(row.pac_commodity);
       }
     },
     {
@@ -116,16 +99,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'jc_grossweight',
       width: 110,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.jc_grossweight,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.jc_grossweight = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.jc_grossweight);
       }
     },
     {
@@ -133,16 +107,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'pac_actual_volume',
       width: 90,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_actual_volume,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_actual_volume = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.pac_actual_volume);
       }
     },
     {
@@ -150,16 +115,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'pac_package_count',
       width: 110,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_package_count,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_package_count = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.pac_package_count);
       }
     },
     {
@@ -167,15 +123,7 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'pac_pack_type',
       width: 100,
       render(row: any) {
-        return h(NSelect, {
-          value: row.pac_pack_type,
-          options: packTypeOptions,
-          size: 'small',
-          placeholder: $t('common.pleaseSelect'),
-          'onUpdate:value': (v: string) => {
-            row.pac_pack_type = v;
-          }
-        });
+        return renderReadonlyInput(row.pac_pack_type);
       }
     },
     {
@@ -183,50 +131,21 @@ export function createContainerColumns(_removeFn: (index: number) => void) {
       key: 'pac_description',
       width: 160,
       render(row: any) {
-        return h(NInput, {
-          value: row.pac_description,
-          size: 'small',
-          placeholder: $t('common.pleaseInput'),
-          'onUpdate:value': (v: string) => {
-            row.pac_description = v;
-          }
-        });
+        return renderReadonlyInput(row.pac_description);
       }
     }
   ];
 }
 
 // --- Loose Cargo Table ---
-export function createLooseColumns(removeFn: (index: number) => void, calcFn: (item: any) => void) {
+export function createLooseColumns(_removeFn: (index: number) => void, _calcFn: (item: any) => void) {
   return [
-    {
-      title: '',
-      key: 'actions',
-      width: 50,
-      align: 'center' as const,
-      render(_: any, index: number) {
-        return h(
-          NButton,
-          { text: true, type: 'error', size: 'small', onClick: () => removeFn(index) },
-          { default: () => $t('common.delete') }
-        );
-      }
-    },
     {
       title: $t('page.business.shipment.form.totalPackage'),
       key: 'pac_package_count',
       width: 110,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_package_count,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_package_count = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.pac_package_count);
       }
     },
     {
@@ -234,15 +153,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_pack_type',
       width: 100,
       render(row: any) {
-        return h(NSelect, {
-          value: row.pac_pack_type,
-          options: packTypeOptions,
-          size: 'small',
-          placeholder: $t('common.pleaseSelect'),
-          'onUpdate:value': (v: string) => {
-            row.pac_pack_type = v;
-          }
-        });
+        return renderReadonlyInput(row.pac_pack_type);
       }
     },
     {
@@ -250,17 +161,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_gross_weight',
       width: 110,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_gross_weight,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_gross_weight = v ?? 0;
-            calcFn(row);
-          }
-        });
+        return renderReadonlyNumber(row.pac_gross_weight);
       }
     },
     {
@@ -268,17 +169,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_actual_volume',
       width: 90,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_actual_volume,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_actual_volume = v ?? 0;
-            calcFn(row);
-          }
-        });
+        return renderReadonlyNumber(row.pac_actual_volume);
       }
     },
     {
@@ -286,11 +177,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_volume_weight',
       width: 110,
       render(row: any) {
-        return h(NInput, {
-          value: row.pac_volume_weight != null ? String(row.pac_volume_weight) : '',
-          readonly: true,
-          size: 'small'
-        });
+        return renderReadonlyInput(row.pac_volume_weight);
       }
     },
     {
@@ -298,11 +185,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_chargeable_weight',
       width: 130,
       render(row: any) {
-        return h(NInput, {
-          value: row.pac_chargeable_weight != null ? String(row.pac_chargeable_weight) : '',
-          readonly: true,
-          size: 'small'
-        });
+        return renderReadonlyInput(row.pac_chargeable_weight);
       }
     },
     {
@@ -310,16 +193,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_length',
       width: 90,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_length,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_length = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.pac_length);
       }
     },
     {
@@ -327,16 +201,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_width',
       width: 90,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_width,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_width = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.pac_width);
       }
     },
     {
@@ -344,16 +209,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_height',
       width: 90,
       render(row: any) {
-        return h(NInputNumber, {
-          value: row.pac_height,
-          size: 'small',
-          min: 0,
-          showButton: false,
-          style: 'width:100%',
-          'onUpdate:value': (v: number | null) => {
-            row.pac_height = v ?? 0;
-          }
-        });
+        return renderReadonlyNumber(row.pac_height);
       }
     },
     {
@@ -361,15 +217,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_uom',
       width: 80,
       render(row: any) {
-        return h(NSelect, {
-          value: row.pac_uom || 'M3',
-          options: [{ label: 'M3', value: 'M3' }],
-          size: 'small',
-          placeholder: $t('common.pleaseSelect'),
-          'onUpdate:value': (v: string) => {
-            row.pac_uom = v;
-          }
-        });
+        return renderReadonlyInput(row.pac_uom || 'M3');
       }
     },
     {
@@ -377,14 +225,7 @@ export function createLooseColumns(removeFn: (index: number) => void, calcFn: (i
       key: 'pac_description',
       width: 160,
       render(row: any) {
-        return h(NInput, {
-          value: row.pac_description,
-          size: 'small',
-          placeholder: $t('common.pleaseInput'),
-          'onUpdate:value': (v: string) => {
-            row.pac_description = v;
-          }
-        });
+        return renderReadonlyInput(row.pac_description);
       }
     }
   ];

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue';
+import { onActivated, onMounted, ref, watch } from 'vue';
 import type { DataTableRowKey } from 'naive-ui';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { $t } from '@/locales';
+import { useTabStore } from '@/store/modules/tab';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
 import { consolidationQueryPage, type ConsolidationFilter } from '@/service/api/business/consolidation';
@@ -11,10 +12,19 @@ import { getConsolidationColumns, type ConsolidationActionKey } from './modules/
 type ConsolidationRow = Record<string, any>;
 
 defineOptions({
-  name: 'BusinessConsolidation'
+  name: 'business_consolidation'
 });
 
+const route = useRoute();
 const router = useRouter();
+const tabStore = useTabStore();
+
+function restoreListTabLabel() {
+  tabStore.resetTabLabel(tabStore.getTabIdByRoute(route));
+}
+
+onMounted(restoreListTabLabel);
+onActivated(restoreListTabLabel);
 const showMore = ref(false);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsByPk = ref(new Map<string, ConsolidationRow>());
