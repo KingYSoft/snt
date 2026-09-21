@@ -96,6 +96,11 @@ export function setupElegantRouter() {
         meta.hideInMenu = true;
       }
 
+      const keepAliveRoutes: RouteKey[] = ['business_shipment', 'business_consolidation'];
+      if (keepAliveRoutes.includes(key)) {
+        meta.keepAlive = true;
+      }
+
       // Set order from routeOrderMap
       const order = routeOrderMap[key];
       if (order !== undefined) {

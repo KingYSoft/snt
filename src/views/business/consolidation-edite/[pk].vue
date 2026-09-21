@@ -79,7 +79,10 @@ async function loadData(_forceReload = false) {
         };
 
         if (inputData.value.jk_uniqueconsignref) {
-          tabStore.setTabLabel(`${$t('route.business_consolidation')} - ${inputData.value.jk_uniqueconsignref}`);
+          tabStore.setTabLabel(
+            `${$t('route.business_consolidation')} - ${inputData.value.jk_uniqueconsignref}`,
+            tabStore.getTabIdByRoute(route)
+          );
         }
       } else {
         window.$dialog?.warning({
