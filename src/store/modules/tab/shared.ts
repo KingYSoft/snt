@@ -211,6 +211,19 @@ export function reorderFixedTabs(tabs: App.Global.Tab[]) {
 }
 
 /**
+ * Compose displayed tab label (i18n title + optional suffix)
+ *
+ * @param tab
+ */
+export function composeTabLabel(tab: App.Global.Tab) {
+  const base = tab.i18nKey ? $t(tab.i18nKey) : tab.label;
+  if (tab.newLabelSuffix) {
+    return `${base} - ${tab.newLabelSuffix}`;
+  }
+  return tab.newLabel || tab.oldLabel || base;
+}
+
+/**
  * Update tabs label
  *
  * @param tabs
@@ -218,7 +231,7 @@ export function reorderFixedTabs(tabs: App.Global.Tab[]) {
 function updateTabsLabel(tabs: App.Global.Tab[]) {
   const updated = tabs.map(tab => ({
     ...tab,
-    label: tab.newLabel || tab.oldLabel || tab.label
+    label: composeTabLabel(tab)
   }));
 
   return updated;
@@ -230,11 +243,12 @@ function updateTabsLabel(tabs: App.Global.Tab[]) {
  * @param tab
  */
 export function updateTabByI18nKey(tab: App.Global.Tab) {
-  const { i18nKey, label } = tab;
+  const composed = composeTabLabel(tab);
 
   return {
     ...tab,
-    label: i18nKey ? $t(i18nKey) : label
+    label: composed,
+    newLabel: tab.newLabelSuffix ? composed : tab.newLabel
   };
 }
 

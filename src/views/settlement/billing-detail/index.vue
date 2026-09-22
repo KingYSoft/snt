@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, ref } from 'vue';
+import { computed, onMounted, ref, watch } from 'vue';
 import { useRoute } from 'vue-router';
 import { $t } from '@/locales';
 import { getBillingDetail } from '@/service/api/business/billing';
@@ -12,7 +12,25 @@ const route = useRoute();
 const loading = ref(false);
 const detailData = ref<Record<string, any> | null>(null);
 
-const id = route.query.id as string;
+const id = computed(() => String(route.query.id || route.query.pk || ''));
+
+function billingDetailI18nKey(): App.I18n.I18nKey {
+  const type = String(route.query.type || '');
+  if (type === 'payable') return 'page.settlement.transactions.payableDetail';
+  if (type === 'receivable') return 'page.settlement.transactions.receivableDetail';
+  return 'page.settlement.matchTransactions.detailTitle';
+}
+
+function billingDetailTitle() {
+  const transNo = String(detailData.value?.ah_transactionnum || route.query.no || '').trim();
+  const base = $t(billingDetailI18nKey());
+  return transNo ? `${base} - ${transNo}` : base;
+}
+
+function updateTabLabel() {
+  const transNo = String(detailData.value?.ah_transactionnum || route.query.no || '').trim();
+  tabStore.setTabI18nLabel(transNo, tabStore.getTabIdByRoute(route), billingDetailI18nKey());
+}
 
 function formatValue(value: unknown) {
   if (value === null || value === undefined || value === '') return '-';
@@ -39,21 +57,23 @@ function formatMoney(value: unknown) {
 }
 
 onMounted(() => {
-  if (id) {
+  updateTabLabel();
+  if (id.value) {
     loadBillingDetail();
   }
+});
+
+watch(id, value => {
+  if (value) loadBillingDetail();
 });
 
 async function loadBillingDetail() {
   loading.value = true;
   try {
-    const { data } = await getBillingDetail(id);
+    const { data } = await getBillingDetail(id.value);
     if (data) {
       detailData.value = data;
-      // Update tab label with shipment_no
-      if (detailData.value && detailData?.value.ah_transactionnum) {
-        tabStore.setTabLabel(`账单详情 - ${detailData.value.ah_transactionnum ?? ''}`);
-      }
+      updateTabLabel();
     }
   } catch {
     window.$message?.error($t('page.settlement.billingDetail.loadFailed'));
@@ -65,7 +85,7 @@ async function loadBillingDetail() {
 
 <template>
   <div class="h-full overflow-auto p-16px">
-    <NCard :title="`账单详情 - ${detailData?.ah_transactionnum ?? ''}`" :bordered="false">
+    <NCard :title="billingDetailTitle()" :bordered="false">
       <NSkeleton v-if="loading" text :row="8" />
       <template v-else-if="detailData">
         <NDescriptions label-placement="left" :column="2" bordered class="mb-12px">

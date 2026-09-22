@@ -9,6 +9,7 @@ import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
 import { useThemeStore } from '../theme';
 import {
+  composeTabLabel,
   extractTabsByAllRoutes,
   filterTabsByIds,
   findTabByRouteName,
@@ -309,6 +310,23 @@ export const useTabStore = defineStore(SetupStoreId.Tab, () => {
   }
 
   /**
+   * Set tab title from i18n key plus an extra suffix (e.g. transaction no.)
+   * so the title re-translates when locale changes.
+   */
+  function setTabI18nLabel(suffix: string, tabId?: string, i18nKey?: App.I18n.I18nKey) {
+    const id = tabId || activeTabId.value;
+    const tab = tabs.value.find(item => item.id === id);
+    if (!tab) return;
+
+    if (i18nKey) {
+      tab.i18nKey = i18nKey;
+    }
+    tab.newLabelSuffix = suffix;
+    tab.oldLabel = tab.label;
+    tab.newLabel = composeTabLabel(tab);
+  }
+
+  /**
    * Reset tab label
    *
    * @default activeTabId
@@ -321,6 +339,7 @@ export const useTabStore = defineStore(SetupStoreId.Tab, () => {
     if (!tab) return;
 
     tab.newLabel = undefined;
+    tab.newLabelSuffix = undefined;
   }
 
   /**
@@ -376,6 +395,7 @@ export const useTabStore = defineStore(SetupStoreId.Tab, () => {
     unfixTab,
     switchRouteByTab,
     setTabLabel,
+    setTabI18nLabel,
     resetTabLabel,
     isTabRetain,
     updateTabsByLocale,
