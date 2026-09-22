@@ -55,6 +55,23 @@ const formatNum = (n: any, digits = 2) => {
   }).format(x);
 };
 
+const formatAmountInput = (value: number | null) => {
+  if (value === null || Number.isNaN(Number(value))) return '';
+  return formatNum(value);
+};
+
+const parseAmountInput = (input: string) => {
+  const x = Number(String(input).replace(/,/g, ''));
+  return Number.isNaN(x) ? null : x;
+};
+
+/** AP 结欠/余额按正值参与计算和展示 */
+function lineOutstanding(row?: any) {
+  const n = Number(row?.outstanding) || 0;
+  const ledger = String(row?.ledger ?? lineLedgerScope.value ?? '').toUpperCase();
+  return ledger === 'AP' || lineLedgerScope.value === 'AP' ? Math.abs(n) : n;
+}
+
 const formatDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
@@ -351,7 +368,7 @@ const selectedLines = computed(() => {
 });
 
 const selectedOutstandingTotal = computed(() =>
-  selectedLines.value.reduce((acc: number, row: any) => acc + (Number(row.outstanding) || 0), 0)
+  selectedLines.value.reduce((acc: number, row: any) => acc + lineOutstanding(row), 0)
 );
 
 const summaryRows = computed(() => {
@@ -369,7 +386,7 @@ const summaryRows = computed(() => {
       settledAmount: 0,
       homeAmount: 0
     };
-    cur.osAmount += Number(row.outstanding) || 0;
+    cur.osAmount += lineOutstanding(row);
     cur.settledAmount += Number(row.settlement_amount_original) || 0;
     cur.homeAmount += Number(row.settlement_amount_home) || 0;
     map.set(key, cur);
@@ -424,7 +441,7 @@ const lineColumns = computed(() => [
     title: te('outstanding'),
     width: 120,
     align: 'right' as const,
-    render: (row: any) => formatNum(row.outstanding)
+    render: (row: any) => formatNum(lineOutstanding(row))
   },
   {
     key: 'settlement_amount_original',
@@ -639,6 +656,9 @@ onMounted(async () => {
                     :disabled="editorLocked"
                     class="w-full"
                     :show-button="false"
+                    :precision="2"
+                    :format="formatAmountInput"
+                    :parse="parseAmountInput"
                   >
                     <template #prefix>{{ te('settleAmount') }}:</template>
                   </NInputNumber>
