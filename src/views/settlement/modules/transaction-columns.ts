@@ -40,7 +40,7 @@ export function getSettlementTransactionColumns(
 ): DataTableColumns<SettlementTransactionRecord> {
   const router = useRouter();
   const rowMenuOptions = [
-    { label: $t('common.edit'), key: 'edit' },
+    { label: $t('common.view'), key: 'edit' },
     { label: $t('page.settlement.transactions.print'), key: 'print' },
     { type: 'divider', key: 'divider' },
     { label: $t('page.settlement.transactions.exportRow'), key: 'export' }
