@@ -36,7 +36,8 @@ export function formatTransactionExchangeRate(rate: number | null | undefined) {
 }
 
 export function getSettlementTransactionColumns(
-  onAction: (key: SettlementTransactionActionKey, row: SettlementTransactionRecord) => void
+  onAction: (key: SettlementTransactionActionKey, row: SettlementTransactionRecord) => void,
+  type: 'receivable' | 'payable' = 'receivable'
 ): DataTableColumns<SettlementTransactionRecord> {
   const router = useRouter();
   const rowMenuOptions = [
@@ -64,7 +65,11 @@ export function getSettlementTransactionColumns(
             onClick: () =>
               router.push({
                 name: 'settlement_writeoff-edit',
-                query: { pk: row.pk }
+                query: {
+                  pk: row.pk,
+                  no: row.transaction_num || '',
+                  type
+                }
               })
           },
           row.job_invoice_number || '-'
