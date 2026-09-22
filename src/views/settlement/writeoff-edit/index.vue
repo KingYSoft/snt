@@ -456,6 +456,15 @@ function onBalanceClick() {
 }
 
 function handleBack() {
+  const type = String(route.query.type || '');
+  if (type === 'receivable') {
+    router.push({ name: 'settlement_receivable-transactions' });
+    return;
+  }
+  if (type === 'payable') {
+    router.push({ name: 'settlement_payable-transactions' });
+    return;
+  }
   router.push({ name: 'settlement_writeoff' });
 }
 
