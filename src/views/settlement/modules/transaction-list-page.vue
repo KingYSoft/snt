@@ -146,7 +146,7 @@ const {
   columns: () =>
     getSettlementTransactionColumns((key, row) => {
       handleRowAction(key, row);
-    }) as any,
+    }, props.type) as any,
   transform: response =>
     sjcTransform(response, {
       page: pageRef.value,
@@ -349,11 +349,14 @@ function handleRowAction(key: SettlementTransactionActionKey, row: SettlementTra
     return;
   }
 
-  window.$message?.info(
-    t('page.settlement.transactions.editDeveloping', {
-      no: row.transaction_num
-    })
-  );
+  router.push({
+    name: 'settlement_writeoff-edit',
+    query: {
+      pk: row.pk,
+      no: row.transaction_num || '',
+      type: props.type
+    }
+  });
 }
 
 function isInteractiveTarget(target: EventTarget | null) {

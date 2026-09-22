@@ -103,7 +103,7 @@ const {
       row =>
         router.push({
           name: 'settlement_writeoff-edit',
-          query: { pk: row.pk }
+          query: { pk: row.pk, no: row.matchNumber || '' }
         }),
       (key, row) => handleRowAction(key, row)
     ) as any,
@@ -165,7 +165,7 @@ function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRe
     window.$message?.info(`Print ${row.matchNumber} (mock)`);
     return;
   }
-  router.push({ name: 'settlement_writeoff-edit', query: { pk: row.pk } });
+  router.push({ name: 'settlement_writeoff-edit', query: { pk: row.pk, no: row.matchNumber || '' } });
 }
 
 function getRowProps(row: MatchTransactionRecord) {
@@ -179,7 +179,7 @@ function getRowProps(row: MatchTransactionRecord) {
         return;
       router.push({
         name: 'settlement_writeoff-edit',
-        query: { pk: row.pk }
+        query: { pk: row.pk, no: row.matchNumber || '' }
       });
     }
   };
@@ -301,15 +301,27 @@ getData();
               {{ t('common.reset') }}
             </NButton>
             <NButton quaternary @click="showMoreFilters = !showMoreFilters">
-              {{ showMoreFilters ? t('page.settlement.matchTransactions.hideMoreFilters') : t('page.settlement.matchTransactions.moreFilters') }}
+              {{
+                showMoreFilters
+                  ? t('page.settlement.matchTransactions.hideMoreFilters')
+                  : t('page.settlement.matchTransactions.moreFilters')
+              }}
             </NButton>
           </NSpace>
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
-          <NInput v-model:value="filters.match_number" :placeholder="t('page.settlement.matchTransactions.editor.matchNumber')" clearable />
+          <NInput
+            v-model:value="filters.match_number"
+            :placeholder="t('page.settlement.matchTransactions.editor.matchNumber')"
+            clearable
+          />
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
-          <NInput v-model:value="filters.billing_party" :placeholder="t('page.settlement.matchTransactions.billingParty')" clearable />
+          <NInput
+            v-model:value="filters.billing_party"
+            :placeholder="t('page.settlement.matchTransactions.billingParty')"
+            clearable
+          />
         </NGi>
       </NGrid>
     </NCard>

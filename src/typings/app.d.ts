@@ -252,6 +252,11 @@ declare namespace App {
        */
       newLabel?: string;
       /**
+       * Extra text appended after the i18n tab title, e.g. transaction number.
+       * Kept separate so the title can be re-translated on locale change.
+       */
+      newLabelSuffix?: string;
+      /**
        * The old tab label
        *
        * when reset the tab label, the tab label will be replaced by this value
@@ -1337,6 +1342,8 @@ declare namespace App {
             createDeveloping: string;
             editDeveloping: string;
             printDeveloping: string;
+            receivableDetail: string;
+            payableDetail: string;
             addLineWarning: string;
             saveFailed: string;
             sortNo: string;

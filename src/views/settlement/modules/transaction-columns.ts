@@ -36,11 +36,12 @@ export function formatTransactionExchangeRate(rate: number | null | undefined) {
 }
 
 export function getSettlementTransactionColumns(
-  onAction: (key: SettlementTransactionActionKey, row: SettlementTransactionRecord) => void
+  onAction: (key: SettlementTransactionActionKey, row: SettlementTransactionRecord) => void,
+  type: 'receivable' | 'payable' = 'receivable'
 ): DataTableColumns<SettlementTransactionRecord> {
   const router = useRouter();
   const rowMenuOptions = [
-    { label: $t('common.edit'), key: 'edit' },
+    { label: $t('common.view'), key: 'edit' },
     { label: $t('page.settlement.transactions.print'), key: 'print' },
     { type: 'divider', key: 'divider' },
     { label: $t('page.settlement.transactions.exportRow'), key: 'export' }
@@ -64,7 +65,11 @@ export function getSettlementTransactionColumns(
             onClick: () =>
               router.push({
                 name: 'settlement_writeoff-edit',
-                query: { pk: row.pk }
+                query: {
+                  pk: row.pk,
+                  no: row.transaction_num || '',
+                  type
+                }
               })
           },
           row.job_invoice_number || '-'

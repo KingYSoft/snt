@@ -17,6 +17,7 @@ import {
   NSelect,
   NSpace
 } from 'naive-ui';
+import { useTabStore } from '@/store/modules/tab';
 import { getCurrencyList } from '@/service/api/maintain/currency';
 import {
   matchTransactionsGetDetail,
@@ -39,6 +40,7 @@ defineOptions({ name: 'PageSettlementWriteoffEdit' });
 
 const route = useRoute();
 const router = useRouter();
+const tabStore = useTabStore();
 const { t } = useI18n();
 const te = (key: string) => t(`page.settlement.matchTransactions.editor.${key}`);
 
@@ -52,6 +54,23 @@ const formatNum = (n: any, digits = 2) => {
     maximumFractionDigits: digits
   }).format(x);
 };
+
+const formatAmountInput = (value: number | null) => {
+  if (value === null || Number.isNaN(Number(value))) return '';
+  return formatNum(value);
+};
+
+const parseAmountInput = (input: string) => {
+  const x = Number(String(input).replace(/,/g, ''));
+  return Number.isNaN(x) ? null : x;
+};
+
+/** AP 结欠/余额按正值参与计算和展示 */
+function lineOutstanding(row?: any) {
+  const n = Number(row?.outstanding) || 0;
+  const ledger = String(row?.ledger ?? lineLedgerScope.value ?? '').toUpperCase();
+  return ledger === 'AP' || lineLedgerScope.value === 'AP' ? Math.abs(n) : n;
+}
 
 const formatDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
@@ -77,6 +96,27 @@ const buildEmptyForm = () => ({
 });
 
 const form = ref(buildEmptyForm());
+
+function writeoffDetailI18nKey(): App.I18n.I18nKey {
+  const type = String(route.query.type || '');
+  if (type === 'payable') return 'page.settlement.transactions.payableDetail';
+  if (type === 'receivable') return 'page.settlement.transactions.receivableDetail';
+  return 'page.settlement.matchTransactions.detailTitle';
+}
+
+function writeoffDetailTitle(no?: string) {
+  const transNo = String(no || form.value.matchNumber || route.query.no || '').trim();
+  const base = t(writeoffDetailI18nKey());
+  return transNo ? `${base} - ${transNo}` : base;
+}
+
+function updateTabLabel() {
+  const transNo = String(form.value.matchNumber || route.query.no || '').trim();
+  tabStore.setTabI18nLabel(transNo, tabStore.getTabIdByRoute(route), writeoffDetailI18nKey());
+}
+
+updateTabLabel();
+watch(() => form.value.matchNumber, updateTabLabel);
 
 const lineLedgerScope = ref('AR');
 const lineSearch = ref('');
@@ -328,7 +368,7 @@ const selectedLines = computed(() => {
 });
 
 const selectedOutstandingTotal = computed(() =>
-  selectedLines.value.reduce((acc: number, row: any) => acc + (Number(row.outstanding) || 0), 0)
+  selectedLines.value.reduce((acc: number, row: any) => acc + lineOutstanding(row), 0)
 );
 
 const summaryRows = computed(() => {
@@ -346,7 +386,7 @@ const summaryRows = computed(() => {
       settledAmount: 0,
       homeAmount: 0
     };
-    cur.osAmount += Number(row.outstanding) || 0;
+    cur.osAmount += lineOutstanding(row);
     cur.settledAmount += Number(row.settlement_amount_original) || 0;
     cur.homeAmount += Number(row.settlement_amount_home) || 0;
     map.set(key, cur);
@@ -401,7 +441,7 @@ const lineColumns = computed(() => [
     title: te('outstanding'),
     width: 120,
     align: 'right' as const,
-    render: (row: any) => formatNum(row.outstanding)
+    render: (row: any) => formatNum(lineOutstanding(row))
   },
   {
     key: 'settlement_amount_original',
@@ -433,6 +473,15 @@ function onBalanceClick() {
 }
 
 function handleBack() {
+  const type = String(route.query.type || '');
+  if (type === 'receivable') {
+    router.push({ name: 'settlement_receivable-transactions' });
+    return;
+  }
+  if (type === 'payable') {
+    router.push({ name: 'settlement_payable-transactions' });
+    return;
+  }
   router.push({ name: 'settlement_writeoff' });
 }
 
@@ -455,6 +504,7 @@ onMounted(async () => {
     const h = header;
 
     form.value.matchNumber = String(matchLink.ap_matchgroupnum ?? h.ah_transactionnum ?? '');
+    updateTabLabel();
 
     const ahOh = String(h.ah_oh ?? h.aH_OH ?? '').trim();
     const ohCode = String(h.oH_Code ?? h.oh_code ?? '').trim();
@@ -488,9 +538,7 @@ onMounted(async () => {
       if (row) {
         form.value.bankAccount = row;
         form.value.bankAccountName = row.ab_bankname;
-        bankOptions.value = [
-          { label: row.ab_bankname || row.ab_code || row.ab_pk, value: row.ab_pk, data: row }
-        ];
+        bankOptions.value = [{ label: row.ab_bankname || row.ab_code || row.ab_pk, value: row.ab_pk, data: row }];
       } else {
         form.value.bankAccount = null;
         form.value.bankAccountName = '';
@@ -515,10 +563,7 @@ onMounted(async () => {
 
 <template>
   <div class="h-full overflow-auto p-16px">
-    <NCard
-      :title="`${t('page.settlement.matchTransactions.detailTitle')} - ${form.matchNumber || pk}`"
-      :bordered="false"
-    >
+    <NCard :title="writeoffDetailTitle()" :bordered="false">
       <template #header-extra>
         <NSpace>
           <NButton @click="handleBack">{{ t('common.cancel') }}</NButton>
@@ -611,6 +656,9 @@ onMounted(async () => {
                     :disabled="editorLocked"
                     class="w-full"
                     :show-button="false"
+                    :precision="2"
+                    :format="formatAmountInput"
+                    :parse="parseAmountInput"
                   >
                     <template #prefix>{{ te('settleAmount') }}:</template>
                   </NInputNumber>

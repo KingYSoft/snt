@@ -50,6 +50,23 @@ const formatNum = (n: any, digits = 2) => {
   return new Intl.NumberFormat(undefined, { minimumFractionDigits: digits, maximumFractionDigits: digits }).format(x);
 };
 
+const formatAmountInput = (value: number | null) => {
+  if (value === null || Number.isNaN(Number(value))) return '';
+  return formatNum(value);
+};
+
+const parseAmountInput = (input: string) => {
+  const x = Number(String(input).replace(/,/g, ''));
+  return Number.isNaN(x) ? null : x;
+};
+
+/** AP 结欠/余额按正值参与计算和展示 */
+function lineOutstanding(row?: any) {
+  const n = Number(row?.outstanding) || 0;
+  const ledger = String(row?.ledger ?? lineLedgerScope.value ?? '').toUpperCase();
+  return ledger === 'AP' || lineLedgerScope.value === 'AP' ? Math.abs(n) : n;
+}
+
 const formatDate = (date: Date) =>
   `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 
@@ -362,7 +379,7 @@ const selectedLines = computed(() => {
   return allLines.value.filter((r: any) => s.has(String(r.id ?? '')));
 });
 const selectedOutstandingTotal = computed(() =>
-  selectedLines.value.reduce((a: number, r: any) => a + (Number(r.outstanding) || 0), 0)
+  selectedLines.value.reduce((a: number, r: any) => a + lineOutstanding(r), 0)
 );
 const summaryRows = computed(() => {
   const map = new Map<string, any>();
@@ -371,7 +388,7 @@ const summaryRows = computed(() => {
       rate = Number(row.ex_rate ?? 1);
     const key = `${cur}__${rate}`;
     const c = map.get(key) ?? { key, currency: cur, exRate: rate, osAmount: 0, settledAmount: 0, homeAmount: 0 };
-    c.osAmount += Number(row.outstanding) || 0;
+    c.osAmount += lineOutstanding(row);
     c.settledAmount += Number(row.settlement_amount_original) || 0;
     c.homeAmount += Number(row.settlement_amount_home) || 0;
     map.set(key, c);
@@ -382,9 +399,11 @@ const summaryTotalHomeAmount = computed(() =>
   summaryRows.value.reduce((a: number, r: any) => a + (Number(r.homeAmount) || 0), 0)
 );
 watch(
-  () => selectedOutstandingTotal.value,
-  outstandingTotal => {
-    form.value.balance = Number(outstandingTotal) || 0;
+  () => [selectedOutstandingTotal.value, form.value.settleAmount, lineLedgerScope.value] as const,
+  ([outstandingTotal, settleAmount, scope]) => {
+    const settle = Number(settleAmount) || 0;
+    const os = Number(outstandingTotal) || 0;
+    form.value.balance = (scope === 'AP' ? Math.abs(settle) : settle) - os;
   },
   { immediate: true }
 );
@@ -414,7 +433,7 @@ const lineColumns = computed(() => [
     title: te('outstanding'),
     width: 120,
     align: 'right' as const,
-    render: (r: any) => formatNum(r.outstanding)
+    render: (r: any) => formatNum(lineOutstanding(r))
   },
   {
     key: 'settlement_amount_original',
@@ -467,20 +486,21 @@ async function handleSave() {
     window.$message?.warning(t('page.settlement.writeoff.create.selectBankAccount'));
     return;
   }
-  /** 结算金额按本币 */
-  const amtHome = Number(form.value.settleAmount) || 0;
+  /** 结算金额按本币；AP 取正值 */
+  let amtHome = Number(form.value.settleAmount) || 0;
+  if (lineLedgerScope.value === 'AP') amtHome = Math.abs(amtHome);
   if (amtHome <= 0) {
     window.$message?.warning(t('page.settlement.writeoff.create.amountMustBePositive'));
     return;
   }
 
   const sorted = [...selectedLines.value].sort(
-    (a: any, b: any) => (Number(a.outstanding) || 0) - (Number(b.outstanding) || 0)
+    (a: any, b: any) => lineOutstanding(a) - lineOutstanding(b)
   );
   let remHome = amtHome;
   const wHomeMap = new Map<number, number>();
   for (const item of sorted) {
-    const osHome = Math.max(Number((item as any).outstanding) || 0, 0);
+    const osHome = Math.max(lineOutstanding(item), 0);
     const wHome = Math.min(remHome, osHome);
     wHomeMap.set(allLines.value.indexOf(item), wHome);
     remHome -= wHome;
@@ -489,7 +509,7 @@ async function handleSave() {
   const lines = selectedLines.value.map((row: any) => {
     const idx = allLines.value.indexOf(row);
     const ex = Number(row.ex_rate) || 1;
-    const osHome = Math.max(Number(row.outstanding) || 0, 0);
+    const osHome = Math.max(lineOutstanding(row), 0);
     const woHome = wHomeMap.get(idx) ?? 0;
     const remainHome = Math.max(osHome - woHome, 0);
     return {
@@ -674,6 +694,9 @@ void loadCurrencyOptions();
                   :disabled="editorLocked"
                   class="w-full"
                   :show-button="false"
+                  :precision="2"
+                  :format="formatAmountInput"
+                  :parse="parseAmountInput"
                 >
                   <template #prefix>{{ te('settleAmount') }}:</template>
                 </NInputNumber>
