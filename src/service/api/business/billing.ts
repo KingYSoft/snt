@@ -105,6 +105,7 @@ export interface AccTransactionHeader {
   ah_matchstatus?: string;
   ah_outstandingamount?: number;
   ah_systemcreatebranch?: string;
+  branch_code?: string;
   ah_systemcreatedepartment?: string;
   dept_code?: string;
   ah_systemlastedituser?: string;
