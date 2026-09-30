@@ -17,9 +17,6 @@ export interface GroupPermissionRow {
   branch_pks?: string[];
   branch_code?: string;
   branch_name?: string;
-  dept_pks?: string[];
-  dept_code?: string;
-  dept_name?: string;
   is_allow?: string;
   permission_names?: string[];
 }
@@ -49,15 +46,6 @@ export interface PermissionDto {
   children?: PermissionDto[];
 }
 
-export interface DeptOption {
-  pk?: string;
-  code?: string;
-  name?: string;
-  dept_code?: string;
-  dept_name?: string;
-  dept_pks?: string[];
-}
-
 export interface BranchOption {
   pk?: string;
   code?: string;
@@ -66,7 +54,6 @@ export interface BranchOption {
   branch_code?: string;
   branch_name?: string;
   branch_pks?: string[];
-  dept_list?: DeptOption[];
 }
 
 export interface CompanyOption {
@@ -110,7 +97,7 @@ export function queryGroupAllPermission() {
   });
 }
 
-export function queryCompanyBranchDeptOptions() {
+export function queryCompanyBranchOptions() {
   return request<{ company_list: CompanyOption[] }>({
     url: '/group/query-company-branch-dept-options',
     method: 'get'

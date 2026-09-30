@@ -74,14 +74,12 @@ const local: App.I18n.Schema = {
     ok: '确定',
     company: '公司',
     branch: '分公司',
-    department: '部门',
     more: '更多',
     hide: '收起',
     switchBranch: {
       title: '切换公司 / 分公司',
       selectCompany: '请选择公司',
       selectBranch: '请选择分公司',
-      selectDepartment: '请选择部门（可选）',
       required: '请选择公司和分公司',
       success: '切换分公司成功'
     }
@@ -272,7 +270,7 @@ const local: App.I18n.Schema = {
     maintain_airlines: '航空公司',
     maintain_bank: '银行',
     'maintain_carrier-contract': '承运人合同',
-    'maintain_charge-code': '费用代码',
+    'maintain_charge-code': '费用编码',
     'maintain_charter-flight': '包机',
     maintain_commodities: '商品',
     'maintain_consignee-contract': '收货人合同',
@@ -287,7 +285,7 @@ const local: App.I18n.Schema = {
     'maintain_organization-edit': '编辑组织',
     'maintain_organization-new': '新建组织',
     'maintain_package-types': '包装类型',
-    'maintain_port-code': '港口代码',
+    'maintain_port-code': '港口编码',
     'maintain_service-level': '服务级别',
     'maintain_shipping-lines': '船公司',
     'maintain_shipping-schedule': '船期',
@@ -543,7 +541,7 @@ const local: App.I18n.Schema = {
           locked: '已锁定',
           open: '打开',
           status: '状态',
-          chargeCode: '费用代码',
+          chargeCode: '费用编码',
           description: '描述',
           account: '往来方',
           branch: '分公司',
@@ -611,7 +609,7 @@ const local: App.I18n.Schema = {
           receivedTime: '接收时间'
         },
         logs: {
-          eventCode: '事件代码',
+          eventCode: '事件编码',
           eventTime: '事件时间',
           postedTime: '过账时间',
           eventName: '事件名称',
@@ -819,7 +817,7 @@ const local: App.I18n.Schema = {
           paymentStatus: '付款状态',
           branch: '分公司',
           terms: '条款',
-          chargeCode: '费用代码',
+          chargeCode: '费用编码',
           description: '描述',
           party: '往来单位',
           debtor: '结算单位',
@@ -856,7 +854,7 @@ const local: App.I18n.Schema = {
           newNotifyParty: '新建通知方',
           newAddress: '新建地址',
           companyName: '公司名称',
-          code: '代码',
+          code: '编码',
           shortCode: '简称',
           contact: '联系人',
           phone: '电话',
@@ -867,7 +865,7 @@ const local: App.I18n.Schema = {
           city: '城市',
           state: '州/省',
           postalCode: '邮编',
-          countryCode: '国家代码',
+          countryCode: '国家编码',
           saveSuccess: '保存成功。',
           saveFailed: '保存地址失败。'
         },
@@ -1148,22 +1146,22 @@ const local: App.I18n.Schema = {
     },
     maintain: {
       currency: {
-        code: '代码',
+        code: '编码',
         symbol: '符号',
         desc: '描述'
       },
       packageTypes: {
-        code: '代码',
+        code: '编码',
         description: '描述',
         isActive: '是否启用'
       },
       serviceLevel: {
-        code: '代码',
+        code: '编码',
         description: '描述',
         isActive: '是否启用'
       },
       commodities: {
-        code: '代码',
+        code: '编码',
         description: '描述',
         isForwarding: '是否货代',
         isShipping: '是否海运',
@@ -1179,17 +1177,17 @@ const local: App.I18n.Schema = {
         isActive: '是否启用'
       },
       portCode: {
-        rlCode: '港口代码',
+        rlCode: '港口编码',
         rlPortName: '港口名称',
-        rlIata: 'IATA代码',
-        rlCountryCode: '国家代码',
+        rlIata: 'IATA编码',
+        rlCountryCode: '国家编码',
         rlHasAirport: '机场',
         rlHasSeaport: '海港',
         rlHasRail: '铁路',
         rlHasTerminal: '码头'
       },
       containers: {
-        code: '代码',
+        code: '编码',
         description: '描述',
         mode: '运输方式',
         containerType: '箱型',
@@ -1208,9 +1206,9 @@ const local: App.I18n.Schema = {
         isActive: '是否启用'
       },
       airlines: {
-        airlineNumericCode: '航司数字代码',
-        threeLetterCode: '三字代码',
-        twoCharCode: '二字代码',
+        airlineNumericCode: '航司数字编码',
+        threeLetterCode: '三字编码',
+        twoCharCode: '二字编码',
         airlineName1: '航司名称',
         airlineName2: '航司名称2',
         airlineCity: '城市',
@@ -1223,7 +1221,7 @@ const local: App.I18n.Schema = {
         isActive: '是否启用'
       },
       bank: {
-        code: '代码',
+        code: '编码',
         description: '描述',
         bankName: '银行名称',
         accountNumber: '账号',
@@ -1235,11 +1233,11 @@ const local: App.I18n.Schema = {
         bankAddress: '银行地址',
         branch: '分行',
         company: '公司',
-        swiftCode: 'SWIFT代码',
+        swiftCode: 'SWIFT编码',
         isActive: '是否启用'
       },
       shippingLines: {
-        code: '代码',
+        code: '编码',
         name: '名称',
         isNvo: 'NVO',
         oceanCarrierMessaging: '海运承运人报文',
@@ -1252,7 +1250,7 @@ const local: App.I18n.Schema = {
         isActive: '是否启用'
       },
       chargeCode: {
-        code: '代码',
+        code: '编码',
         description: '描述',
         localLanguageDescription: '本地语言描述',
         isActive: '是否启用',
@@ -1264,7 +1262,7 @@ const local: App.I18n.Schema = {
         printSequence: '打印顺序'
       },
       organization: {
-        code: '代码',
+        code: '编码',
         name: '名称',
         shortName: '简称',
         desc: '描述',
@@ -1316,7 +1314,7 @@ const local: App.I18n.Schema = {
         creditApprovedBy: '信用审批人',
         acCreditReviewDue: '账户与信用复核到期',
         arCategory: '应收类别',
-        externalDebtorCode: '外部结算单位代码',
+        externalDebtorCode: '外部结算单位编码',
         clientNumber: '客户编号',
         creditRating: '信用评级',
         withholdingTax: '预扣税',
@@ -1325,7 +1323,7 @@ const local: App.I18n.Schema = {
         paymentTerms: '付款条款',
         days: '天数',
         apCategory: '应付类别',
-        externalCreditorCode: '外部结算单位代码',
+        externalCreditorCode: '外部结算单位编码',
         defaultCurrency: '默认币种',
         jobType: '工作类型',
         department: '部门',
@@ -1368,7 +1366,7 @@ const local: App.I18n.Schema = {
         workPhone: '工作电话',
         homeBranch: '所属分公司',
         homeDepartment: '所属部门',
-        countryCode: '国家代码',
+        countryCode: '国家编码',
         canLogin: '允许登录',
         isActive: '启用',
         isValid: '有效',
@@ -1390,15 +1388,15 @@ const local: App.I18n.Schema = {
         group: '用户组',
         memberGroups: '所属用户组',
         ownerGroups: '拥有的用户组',
-        groupCode: '用户组代码',
+        groupCode: '用户组编码',
         groupDescription: '描述',
         domainName: '域名',
         type: '类型',
-        parentCode: '上级代码',
+        parentCode: '上级编码',
         parentType: '上级类型'
       },
       group: {
-        code: '代码',
+        code: '编码',
         description: '描述',
         admin: '管理员',
         status: '状态',
@@ -1412,13 +1410,12 @@ const local: App.I18n.Schema = {
         allow: '允许',
         company: '公司',
         branch: '分公司',
-        dept: '部门',
         permissions: '权限项',
         removeRowConfirm: '确认删除该权限行？',
         removeRowTitle: '删除行 {0}'
       },
       company: {
-        code: '代码',
+        code: '编码',
         name: '名称',
         businessRegNo: '工商注册号',
         businessRegNo2: '工商注册号2',
@@ -1434,15 +1431,15 @@ const local: App.I18n.Schema = {
         email: '邮箱',
         webAddress: '网站',
         homeCurrency: '本位币',
-        orgCode: '组织代码',
+        orgCode: '组织编码',
         gstRegistered: 'GST 注册',
-        countryCode: '国家代码',
+        countryCode: '国家编码',
         isActive: '启用',
         isValid: '有效',
         detail: '公司详情'
       },
       branch: {
-        code: '代码',
+        code: '编码',
         branchName: '分公司名称',
         company: '公司',
         address1: '地址1',
@@ -1454,12 +1451,12 @@ const local: App.I18n.Schema = {
         phone: '电话',
         fax: '传真',
         email: '邮箱',
-        countryCode: '国家代码',
+        countryCode: '国家编码',
         homePort: '母港',
-        orgCode: '组织代码',
+        orgCode: '组织编码',
         systemCompany: '系统公司',
-        accountingGroupCode: '会计组代码',
-        financeGroupCode: '财务组代码',
+        accountingGroupCode: '会计组编码',
+        financeGroupCode: '财务组编码',
         isActive: '启用',
         isValid: '有效',
         detail: '分公司详情'

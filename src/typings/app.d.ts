@@ -393,14 +393,12 @@ declare namespace App {
         ok: string;
         company: string;
         branch: string;
-        department: string;
         more: string;
         hide: string;
         switchBranch: {
           title: string;
           selectCompany: string;
           selectBranch: string;
-          selectDepartment: string;
           required: string;
           success: string;
         };
@@ -1627,7 +1625,6 @@ declare namespace App {
             allow: string;
             company: string;
             branch: string;
-            dept: string;
             permissions: string;
             removeRowConfirm: string;
             removeRowTitle: string;

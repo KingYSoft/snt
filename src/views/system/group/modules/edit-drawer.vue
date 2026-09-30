@@ -6,12 +6,11 @@ import { $t } from '@/locales';
 import { queryUserAll, type SysUser } from '@/service/api/system/user';
 import {
   getGroupDetail,
-  queryCompanyBranchDeptOptions,
+  queryCompanyBranchOptions,
   queryGroupAllPermission,
   saveGroup,
   type BranchOption,
   type CompanyOption,
-  type DeptOption,
   type GroupPermissionRow,
   type PermissionDto,
   type SysGroup
@@ -78,10 +77,6 @@ function branchCodeOf(item?: BranchOption | null) {
   return item?.branch_code || item?.code || '';
 }
 
-function deptCodeOf(item?: DeptOption | null) {
-  return item?.dept_code || item?.code || '';
-}
-
 function toPermissionTree(list: PermissionDto[] = []): TreeOption[] {
   const tree: TreeOption[] = [];
   for (const item of list) {
@@ -121,19 +116,6 @@ function findBranch(row: GroupPermissionRow) {
   return branches.find(item => String(item.pk) === pk || item.branch_pks?.includes(pk));
 }
 
-function findDept(row: GroupPermissionRow) {
-  const branch = findBranch(row);
-  const depts = branch?.dept_list ?? [];
-  const code = row.dept_code;
-  if (code) {
-    const byCode = depts.find(item => deptCodeOf(item).toLowerCase() === code.toLowerCase());
-    if (byCode) return byCode;
-  }
-  const pk = row.dept_pks?.[0];
-  if (!pk) return undefined;
-  return depts.find(item => String(item.pk) === pk || item.dept_pks?.includes(pk));
-}
-
 const companySelectOptions = computed(() =>
   companyList.value.map(item => ({
     label: companyCodeOf(item) || item.company_name || item.name || '',
@@ -145,13 +127,6 @@ function branchOptionsOf(row: GroupPermissionRow) {
   return (findCompany(row)?.branch_list ?? []).map(item => ({
     label: branchCodeOf(item) || item.branch_name || item.name || '',
     value: branchCodeOf(item)
-  }));
-}
-
-function deptOptionsOf(row: GroupPermissionRow) {
-  return (findBranch(row)?.dept_list ?? []).map(item => ({
-    label: deptCodeOf(item) || item.dept_name || item.name || '',
-    value: deptCodeOf(item)
   }));
 }
 
@@ -176,14 +151,6 @@ function hydratePermissionRow(row: GroupPermissionRow, id: number): PermRow {
     next.branch_name = next.branch_name || branch.branch_name || branch.name || '';
     if (!next.branch_pks?.length) {
       next.branch_pks = branch.branch_pks?.length ? [...branch.branch_pks] : branch.pk ? [String(branch.pk)] : [];
-    }
-  }
-  const dept = findDept(next);
-  if (dept) {
-    next.dept_code = next.dept_code || deptCodeOf(dept);
-    next.dept_name = next.dept_name || dept.dept_name || dept.name || '';
-    if (!next.dept_pks?.length) {
-      next.dept_pks = dept.dept_pks?.length ? [...dept.dept_pks] : dept.pk ? [String(dept.pk)] : [];
     }
   }
   return next;
@@ -279,22 +246,6 @@ const permissionColumns = computed<DataTableColumns<PermRow>>(() => [
         : row.branch_code || ''
   },
   {
-    key: 'dept_pk',
-    title: $t('page.system.group.dept'),
-    width: 90,
-    ellipsis: { tooltip: true },
-    render: row =>
-      editRowKey.value === row._id
-        ? renderCellSelect(
-            row.dept_code,
-            deptOptionsOf(row),
-            $t('page.system.group.dept'),
-            !row.company_code || !row.branch_code,
-            val => onDeptChange(row, val)
-          )
-        : row.dept_code || ''
-  },
-  {
     key: 'is_allow',
     title: $t('page.system.group.allow'),
     width: 70,
@@ -387,8 +338,6 @@ function addPermissionRow() {
     company_code: '',
     branch_pks: [],
     branch_code: '',
-    dept_pks: [],
-    dept_code: '',
     is_allow: 'Y',
     permission_names: []
   };
@@ -432,9 +381,6 @@ function onCompanyChange(row: PermRow, code: string | null) {
   row.branch_pks = [];
   row.branch_code = '';
   row.branch_name = '';
-  row.dept_pks = [];
-  row.dept_code = '';
-  row.dept_name = '';
 }
 
 function onBranchChange(row: PermRow, code: string | null) {
@@ -446,16 +392,6 @@ function onBranchChange(row: PermRow, code: string | null) {
     : branch?.pk
       ? [String(branch.pk)]
       : [];
-  row.dept_pks = [];
-  row.dept_code = '';
-  row.dept_name = '';
-}
-
-function onDeptChange(row: PermRow, code: string | null) {
-  const dept = (findBranch(row)?.dept_list ?? []).find(item => deptCodeOf(item) === code);
-  row.dept_code = dept ? deptCodeOf(dept) : '';
-  row.dept_name = dept?.dept_name || dept?.name || '';
-  row.dept_pks = dept?.dept_pks?.length ? [...dept.dept_pks] : dept?.pk ? [String(dept.pk)] : [];
 }
 
 function onTreeChecked(keys: Array<string | number>) {
@@ -469,7 +405,7 @@ async function loadBaseOptions() {
   const [userRes, permRes, orgRes] = await Promise.all([
     queryUserAll(),
     queryGroupAllPermission(),
-    queryCompanyBranchDeptOptions()
+    queryCompanyBranchOptions()
   ]);
   allUsers.value = userRes.data?.list ?? [];
   permissionTree.value = toPermissionTree(permRes.data?.list ?? []);
@@ -543,9 +479,6 @@ async function handleSubmit() {
         branch_pks: row.branch_pks ?? [],
         branch_code: row.branch_code,
         branch_name: row.branch_name,
-        dept_pks: row.dept_pks ?? [],
-        dept_code: row.dept_code,
-        dept_name: row.dept_name,
         is_allow: row.is_allow || 'Y',
         permission_names: [...new Set(row.permission_names || [])]
       }))

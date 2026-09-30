@@ -74,14 +74,12 @@ const local: App.I18n.Schema = {
     ok: 'OK',
     company: 'Company',
     branch: 'Branch',
-    department: 'Department',
     more: 'More',
     hide: 'Hide',
     switchBranch: {
       title: 'Switch Company / Branch',
       selectCompany: 'Select company',
       selectBranch: 'Select branch',
-      selectDepartment: 'Select department (optional)',
       required: 'Please select company and branch',
       success: 'Switch branch successfully'
     }
@@ -1416,7 +1414,6 @@ const local: App.I18n.Schema = {
         allow: 'Allow',
         company: 'Company',
         branch: 'Branch',
-        dept: 'Department',
         permissions: 'Permissions',
         removeRowConfirm: 'Remove this permission row?',
         removeRowTitle: 'Remove Row {0}'
