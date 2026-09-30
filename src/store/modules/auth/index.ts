@@ -2,7 +2,7 @@ import { computed, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { defineStore } from 'pinia';
 import { useLoading } from '@sa/hooks';
-import { fetchLogin } from '@/service/api';
+import { fetchLogin, logoutUser } from '@/service/api';
 import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
@@ -41,9 +41,22 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
   const isLogin = computed(() => Boolean(token.value));
   console.log('token.value', token.value);
 
+  const resetting = ref(false);
+
   /** Reset auth store */
   async function resetStore() {
+    if (resetting.value) return;
+    resetting.value = true;
+
     recordUserId();
+
+    try {
+      if (token.value) {
+        await logoutUser();
+      }
+    } catch {
+      // ignore logout failures so local session can still be cleared
+    }
 
     clearAuthStorage();
 
@@ -64,6 +77,7 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
 
     tabStore.cacheTabs();
     routeStore.resetStore();
+    resetting.value = false;
   }
 
   /** Record the user ID of the previous login session Used to compare with the current user ID on next login */

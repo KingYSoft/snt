@@ -4,7 +4,9 @@ import type { SelectOption } from 'naive-ui';
 import { NButton, NForm, NFormItemGi, NGrid, NModal, NSelect, NSpace, NSpin } from 'naive-ui';
 import { useAppStore } from '@/store/modules/app';
 import { $t } from '@/locales';
-import { querySwitchTbl, switchBranch } from '@/service/api/user';
+import { switchBranch } from '@/service/api/user';
+import { queryCompanyBranchDeptOptions, type BranchOption as ApiBranch, type CompanyOption as ApiCompany, type DeptOption as ApiDept } from '@/service/api/system/group';
+import { localStg } from '@/utils/storage';
 
 defineOptions({
   name: 'SwitchBranch'
@@ -30,9 +32,9 @@ const selectCompanyPK = ref<string | null>(null);
 const selectBranchPK = ref<string | null>(null);
 const selectDeptPK = ref<string | null>(null);
 
-interface CompanyOption extends SelectOption {
-  company_name: string;
-  branch_list: BranchOption[];
+interface DeptOption extends SelectOption {
+  dept_name: string;
+  dept_pks: string[];
 }
 
 interface BranchOption extends SelectOption {
@@ -40,65 +42,71 @@ interface BranchOption extends SelectOption {
   dept_list: DeptOption[];
 }
 
-interface DeptOption extends SelectOption {
-  dept_name: string;
+interface CompanyOption extends SelectOption {
+  company_name: string;
+  branch_list: BranchOption[];
 }
 
 const companyItems = ref<CompanyOption[]>([]);
 const branchItems = ref<BranchOption[]>([]);
 const deptItems = ref<DeptOption[]>([]);
 
-async function querySwitchTblData() {
+function mapDept(item: ApiDept): DeptOption {
+  const pk = String(item.pk || item.dept_pks?.[0] || '');
+  const code = item.dept_code || item.code || '';
+  const name = item.dept_name || item.name || '';
+  return {
+    label: [code, name].filter(Boolean).join(' - '),
+    value: pk,
+    dept_name: name,
+    dept_pks: item.dept_pks?.length ? item.dept_pks : pk ? [pk] : []
+  };
+}
+
+function mapBranch(item: ApiBranch): BranchOption {
+  const pk = String(item.pk || item.branch_pks?.[0] || '');
+  const code = item.branch_code || item.code || '';
+  const name = item.branch_name || item.name || '';
+  return {
+    label: [code, name].filter(Boolean).join(' - '),
+    value: pk,
+    branch_name: name,
+    dept_list: (item.dept_list ?? []).map(mapDept)
+  };
+}
+
+function mapCompany(item: ApiCompany): CompanyOption {
+  const pk = String(item.pk || item.company_pks?.[0] || '');
+  const code = item.company_code || item.code || '';
+  const name = item.company_name || item.name || '';
+  return {
+    label: [code, name].filter(Boolean).join(' - '),
+    value: pk,
+    company_name: name,
+    branch_list: (item.branch_list ?? []).map(mapBranch)
+  };
+}
+
+async function loadOptions() {
   try {
     loading.value = true;
-    const res = await querySwitchTbl();
-    if (res && typeof res === 'object' && 'company_list' in res) {
-      const data = res as {
-        company_list: Array<{
-          company_pk: string;
-          company_code: string;
-          company_name: string;
-          branch_list: Array<{
-            branch_pk: string;
-            branch_code: string;
-            branch_name: string;
-            dept_list: Array<{
-              dept_pk: string;
-              dept_code: string;
-              dept_name: string;
-            }>;
-          }>;
-        }>;
-      };
+    const { data } = await queryCompanyBranchDeptOptions();
+    companyItems.value = (data?.company_list ?? []).map(mapCompany);
 
-      companyItems.value = data.company_list.map(item => ({
-        label: `${item.company_code} - ${item.company_name}`,
-        value: item.company_pk,
-        company_name: item.company_name,
-        branch_list: item.branch_list.map(b => ({
-          label: `${b.branch_code} - ${b.branch_name}`,
-          value: b.branch_pk,
-          branch_name: b.branch_name,
-          dept_list: b.dept_list.map(d => ({
-            label: `${d.dept_code} - ${d.dept_name}`,
-            value: d.dept_pk,
-            dept_name: d.dept_name
-          }))
-        }))
-      }));
-
-      const currentCompanyPK = appStore.userSession?.currentCompanyPK;
-      const idx = companyItems.value.findIndex(a => a.value === currentCompanyPK);
-      if (idx >= 0) {
-        selectCompanyPK.value = currentCompanyPK;
-        branchItems.value = companyItems.value[idx].branch_list;
-
-        const currentBranchPK = appStore.userSession?.currentBranchPK;
-        const idx2 = branchItems.value.findIndex(x => x.value === currentBranchPK);
-        if (idx2 >= 0) {
-          selectBranchPK.value = currentBranchPK;
-          deptItems.value = branchItems.value[idx2].dept_list;
-        }
+    const session = appStore.userSession;
+    const companyPk = String(session?.company_pk ?? '');
+    const idx = companyItems.value.findIndex(item => item.value === companyPk);
+    if (idx >= 0) {
+      selectCompanyPK.value = companyPk;
+      branchItems.value = companyItems.value[idx].branch_list;
+      const branchPk = String(session?.branch_pk ?? '');
+      const idx2 = branchItems.value.findIndex(item => item.value === branchPk);
+      if (idx2 >= 0) {
+        selectBranchPK.value = branchPk;
+        deptItems.value = branchItems.value[idx2].dept_list;
+        const deptPk = String(session?.dept_pk ?? '');
+        const idx3 = deptItems.value.findIndex(item => item.value === deptPk);
+        if (idx3 >= 0) selectDeptPK.value = deptPk;
       }
     }
   } finally {
@@ -108,20 +116,39 @@ async function querySwitchTblData() {
 
 function onSelectedCompany(val: string | null) {
   branchItems.value = [];
+  deptItems.value = [];
   selectBranchPK.value = null;
   selectDeptPK.value = null;
+  if (!val) return;
+  const idx = companyItems.value.findIndex(item => item.value === val);
+  if (idx < 0) return;
+  branchItems.value = companyItems.value[idx].branch_list;
+  if (branchItems.value.length === 1) {
+    selectBranchPK.value = String(branchItems.value[0].value);
+    onSelectedBranch(selectBranchPK.value);
+  }
+}
 
-  if (val) {
-    const idx = companyItems.value.findIndex(a => a.value === val);
-    if (idx >= 0) {
-      branchItems.value = companyItems.value[idx].branch_list;
-    }
+function onSelectedBranch(val: string | null) {
+  deptItems.value = [];
+  selectDeptPK.value = null;
+  if (!val) return;
+  const idx = branchItems.value.findIndex(item => item.value === val);
+  if (idx < 0) return;
+  deptItems.value = branchItems.value[idx].dept_list;
+  if (deptItems.value.length === 1) {
+    selectDeptPK.value = String(deptItems.value[0].value);
   }
 }
 
 watch(diaVis, val => {
   if (val) {
-    querySwitchTblData();
+    selectCompanyPK.value = null;
+    selectBranchPK.value = null;
+    selectDeptPK.value = null;
+    branchItems.value = [];
+    deptItems.value = [];
+    void loadOptions();
   }
 });
 
@@ -131,19 +158,19 @@ async function confirm() {
     return;
   }
 
+  const dept = deptItems.value.find(item => item.value === selectDeptPK.value);
   try {
     loading.value = true;
-    const res = await switchBranch({
-      company_pk: selectCompanyPK.value,
-      branch_pk: selectBranchPK.value,
-      dept_pk: selectDeptPK.value
+    const { data } = await switchBranch({
+      dept_pks: dept?.dept_pks ?? []
     });
-
-    if (res) {
-      window.$message?.success($t('common.switchBranch.success'));
-      diaVis.value = false;
-      window.location.reload();
+    if (data?.accessToken) {
+      sessionStorage.setItem('token', data.accessToken);
+      localStg.set('token', data.accessToken);
     }
+    window.$message?.success($t('common.switchBranch.success'));
+    diaVis.value = false;
+    window.location.reload();
   } finally {
     loading.value = false;
   }
@@ -182,6 +209,7 @@ async function confirm() {
               clearable
               :disabled="!selectCompanyPK"
               :placeholder="$t('common.switchBranch.selectBranch')"
+              @update:value="onSelectedBranch"
             />
           </NFormItemGi>
 

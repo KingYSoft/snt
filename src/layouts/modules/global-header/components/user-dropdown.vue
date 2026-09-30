@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useAppStore } from '@/store/modules/app';
 import { useAuthStore } from '@/store/modules/auth';
 import { $t } from '@/locales';
@@ -17,6 +17,16 @@ const authStore = useAuthStore();
 const showSwitchDialog = ref(false);
 const showChangePasswordDialog = ref(false);
 const showPopover = ref(false);
+
+const session = computed(() => appStore.userSession);
+const displayName = computed(() => session.value.full_name || session.value.login_name || '');
+const branchText = computed(() =>
+  [session.value.branch_code, session.value.branch_name].filter(Boolean).join(' - ')
+);
+const companyText = computed(() =>
+  [session.value.company_code, session.value.company_name].filter(Boolean).join(' - ')
+);
+const emailText = computed(() => session.value.email_address || '');
 
 function logout() {
   window.$dialog?.info({
@@ -59,11 +69,10 @@ function openSwitchDialog() {
         </NAvatar>
         <div class="user-info-content">
           <div class="user-info-title">
-            {{ appStore.userSession.full_name }}
+            {{ displayName }}
           </div>
-          <div class="user-info-subtitle">
-            {{ appStore.userSession.branch_code }} -
-            {{ appStore.userSession.branch_name }}
+          <div v-if="branchText" class="user-info-subtitle">
+            {{ branchText }}
           </div>
         </div>
       </div>
@@ -76,8 +85,7 @@ function openSwitchDialog() {
         <div>
           <div class="info-label">Company</div>
           <div class="info-value">
-            {{ appStore.userSession.company_code }} -
-            {{ appStore.userSession.company_name }}
+            {{ companyText || '-' }}
           </div>
         </div>
       </div>
@@ -88,7 +96,7 @@ function openSwitchDialog() {
         <div>
           <div class="info-label">Email</div>
           <div class="info-value">
-            {{ appStore.userSession.email_address }}
+            {{ emailText || '-' }}
           </div>
         </div>
       </div>
