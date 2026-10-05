@@ -47,6 +47,10 @@ declare namespace Api {
       company_pk?: string;
       company_code?: string;
       company_name?: string;
+      baiwang_digital_account?: string;
+      is_gst_registered?: number;
+      home_currency?: string;
+      company_country_code?: string;
       branch_id?: number;
       branch_pk?: string;
       branch_code?: string;
@@ -57,6 +61,8 @@ declare namespace Api {
       dept_pk?: string;
       dept_code?: string;
       dept_desc?: string;
+      dept_name?: string;
+      org_code?: string;
       roles?: string[];
       [key: string]: any;
     }

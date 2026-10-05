@@ -1,43 +1,23 @@
 import { request } from '../request';
 
-/**
- * Query switch table data (company, branch, department list)
- */
-export function querySwitchTbl() {
-  return request<{
-    company_list: Array<{
-      company_pk: string;
-      company_code: string;
-      company_name: string;
-      branch_list: Array<{
-        branch_pk: string;
-        branch_code: string;
-        branch_name: string;
-        dept_list: Array<{
-          dept_pk: string;
-          dept_code: string;
-          dept_name: string;
-        }>;
-      }>;
-    }>;
-  }>({
-    url: '/user/querySwitchTbl',
+/** GET /user/session — current login user / company / branch */
+export function getUserSession() {
+  return request<Api.App.UserSession>({
+    url: '/user/session',
     method: 'get'
   });
 }
 
-/**
- * Switch branch
- */
-export function switchBranch(data: { company_pk: string | null; branch_pk: string | null; dept_pk: string | null }) {
-  return request<{ access_token: string }>({
-    url: '/user/switchBranch',
+/** POST /user/switch-branch */
+export function switchBranch(data: { branch_pks: string[] }) {
+  return request<{ accessToken?: string }>({
+    url: '/user/switch-branch',
     method: 'post',
     data
   });
 }
 
-/** POST /user/changePassword */
+/** POST /user/change-password */
 export interface UserChangePasswordInput {
   oldPassword: string;
   newPassword: string;
@@ -46,8 +26,21 @@ export interface UserChangePasswordInput {
 
 export function changePassword(data: UserChangePasswordInput) {
   return request({
-    url: '/user/changePassword',
+    url: '/user/change-password',
     method: 'post',
-    data
+    data: {
+      pwd_old: data.oldPassword,
+      pwd_new: data.newPassword,
+      pwd_new2: data.confirmPassword
+    }
+  });
+}
+
+/** POST /user/logout */
+export function logoutUser(data?: { refresh_token?: string }) {
+  return request({
+    url: '/user/logout',
+    method: 'post',
+    data: data ?? {}
   });
 }

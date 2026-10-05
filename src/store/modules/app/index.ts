@@ -12,6 +12,7 @@ import { useTabStore } from '../tab';
 import { useThemeStore } from '../theme';
 import { useAuthStore } from '../auth';
 import { fetchAppAllConfig } from '@/service/api/app';
+import { getUserSession } from '@/service/api/user';
 
 export const useAppStore = defineStore(SetupStoreId.App, () => {
   const themeStore = useThemeStore();
@@ -205,9 +206,32 @@ export const useAppStore = defineStore(SetupStoreId.App, () => {
     return '/';
   });
 
+  function applyUserSession(session?: Api.App.UserSession | null) {
+    if (!session) return;
+    appConfig.value = {
+      ...appConfig.value,
+      custom: {
+        ...appConfig.value.custom,
+        userSession: {
+          ...appConfig.value.custom?.userSession,
+          ...session
+        }
+      }
+    };
+    authStore.userInfo = {
+      ...authStore.userInfo,
+      userId: session.login_name || String(session.user_id || ''),
+      userName: session.full_name || session.login_name || '',
+      email_address: session.email_address || '',
+      roles: Array.isArray(session.roles) ? session.roles : authStore.userInfo.roles?.length ? authStore.userInfo.roles : ['user'],
+      buttons: authStore.userInfo.buttons || []
+    };
+  }
+
   /**
    * Fetch app configuration (sjc_vuetify pattern)
    * Gets user session, permissions, menus from /app/all/config
+   * Header user/company/email comes from GET /user/session
    */
   async function fetchAppConfig() {
     if (configLoading.value) return;
@@ -216,23 +240,18 @@ export const useAppStore = defineStore(SetupStoreId.App, () => {
     try {
       const { data } = await fetchAppAllConfig();
       if (data) {
-        // Store the full app config
         appConfig.value = data;
         configLoaded.value = true;
 
-        // Store user info in auth store for compatibility
-        const session = data.custom?.userSession;
-        if (session) {
-          authStore.userInfo = {
-            ...authStore.userInfo,
-            userId: session.login_name || String(session.user_id || ''),
-            userName: session.full_name || session.login_name || '',
-            email_address: session.email_address || '',
-            roles: Array.isArray(session.roles) ? session.roles : ['user'],
-            buttons: []
-          };
+        applyUserSession(data.custom?.userSession);
+
+        try {
+          const { data: session } = await getUserSession();
+          applyUserSession(session);
+        } catch (error) {
+          console.error('Failed to fetch user session:', error);
         }
-        // Process nav menus from API
+
         const navMenus = data.nav?.menus?.MainMenu?.items;
         if (navMenus) {
           setAppMenus(navMenus, navMenus);

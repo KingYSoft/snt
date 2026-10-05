@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ref } from 'vue';
+import { computed, ref } from 'vue';
 import { useAppStore } from '@/store/modules/app';
 import { useAuthStore } from '@/store/modules/auth';
 import { $t } from '@/locales';
@@ -17,6 +17,16 @@ const authStore = useAuthStore();
 const showSwitchDialog = ref(false);
 const showChangePasswordDialog = ref(false);
 const showPopover = ref(false);
+
+const session = computed(() => appStore.userSession);
+const displayName = computed(() => session.value.full_name || session.value.login_name || '');
+const branchText = computed(() =>
+  [session.value.branch_code, session.value.branch_name].filter(Boolean).join(' - ')
+);
+const companyText = computed(() =>
+  [session.value.company_code, session.value.company_name].filter(Boolean).join(' - ')
+);
+const emailText = computed(() => session.value.email_address || '');
 
 function logout() {
   window.$dialog?.info({
@@ -59,44 +69,31 @@ function openSwitchDialog() {
         </NAvatar>
         <div class="user-info-content">
           <div class="user-info-title">
-            {{ appStore.userSession.full_name }}
+            {{ displayName }}
           </div>
-          <div class="user-info-subtitle">
-            {{ appStore.userSession.branch_code }} -
-            {{ appStore.userSession.branch_name }}
+          <div v-if="branchText" class="user-info-subtitle">
+            {{ branchText }}
           </div>
         </div>
       </div>
 
       <NDivider style="margin: 0" />
 
-      <!-- Company info — matches sjc_vuetify default.vue -->
-      <div class="dropdown-info-row">
-        <SvgIcon icon="ph:building" class="info-icon" />
-        <div>
-          <div class="info-label">Company</div>
-          <div class="info-value">
-            {{ appStore.userSession.company_code }} -
-            {{ appStore.userSession.company_name }}
-          </div>
-        </div>
-      </div>
-
-      <!-- Email info — matches sjc_vuetify default.vue -->
-      <div class="dropdown-info-row">
-        <SvgIcon icon="ph:envelope" class="info-icon" />
-        <div>
-          <div class="info-label">Email</div>
-          <div class="info-value">
-            {{ appStore.userSession.email_address }}
-          </div>
-        </div>
-      </div>
-      <!-- Actions -->
       <div class="dropdown-actions">
+        <div class="dropdown-info-item">
+          <SvgIcon icon="ph:building" class="info-icon" />
+          <span class="info-text">{{ $t('common.company') }} {{ companyText || '—' }}</span>
+        </div>
+        <div class="dropdown-info-item">
+          <SvgIcon icon="ph:envelope" class="info-icon" />
+          <span class="info-text">{{ $t('page.system.user.email') }} {{ emailText || '—' }}</span>
+        </div>
+
+        <NDivider style="margin: 4px 0" />
+
         <div class="dropdown-action-item" @click="openSwitchDialog">
           <SvgIcon icon="ph:building" class="info-icon" />
-          <span>Switch Company / Branch</span>
+          <span>{{ $t('common.switchBranch.title') }}</span>
         </div>
         <div class="dropdown-action-item" @click="changePassword">
           <SvgIcon icon="ph:lock" class="info-icon" />
@@ -168,49 +165,43 @@ function openSwitchDialog() {
   text-overflow: ellipsis;
 }
 
-.dropdown-info-row {
-  display: flex;
-  align-items: flex-start;
-  padding: 8px 16px;
-  gap: 12px;
-}
-
-.info-icon {
-  font-size: 18px;
-  color: var(--n-text-color-3, #999);
-  flex-shrink: 0;
-  margin-top: 2px;
-}
-
-.info-label {
-  font-size: 12px;
-  color: var(--n-text-color-3, #bbb);
-  margin-bottom: 2px;
-}
-
-.info-value {
-  font-size: 14px;
-  font-weight: 500;
-}
-
 .dropdown-actions {
   padding: 4px 8px;
 }
 
+.dropdown-info-item,
 .dropdown-action-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 8px 12px;
   border-radius: 6px;
-  cursor: pointer;
   font-size: 14px;
+}
+
+.info-icon {
+  font-size: 18px;
+  color: var(--n-text-color-3, #999);
+  flex-shrink: 0;
+}
+
+.info-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dropdown-action-item {
+  cursor: pointer;
   transition: background-color 0.2s ease;
 }
 
 .dropdown-action-item:hover {
   background-color: var(--n-color-hover, rgba(0, 0, 0, 0.04));
 }
+
 .logout-item {
   color: #ef4444;
 }
