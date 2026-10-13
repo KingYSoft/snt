@@ -45,6 +45,7 @@ const { t } = useI18n();
 const te = (key: string) => t(`page.settlement.matchTransactions.editor.${key}`);
 
 const pk = String(route.query.pk ?? '');
+const detailJobNumber = computed(() => String(route.query.jobNumber ?? '').trim());
 
 const formatNum = (n: any, digits = 2) => {
   const x = Number(n);
@@ -326,6 +327,7 @@ async function queryOutstandingInvoiceLines(billingPartyAhOh: string) {
   const payload: OutstandingInvoicesParams = {
     billingParty,
     ledgerScope: lineLedgerScope.value || 'AR',
+    ...(detailJobNumber.value ? { jobNumber: detailJobNumber.value } : {}),
     pageIndex: 0,
     pageSize: 50000
   };
@@ -493,7 +495,10 @@ onMounted(async () => {
   }
 
   try {
-    const { data: rawDetail, error } = await matchTransactionsGetDetail({ Pk: pk });
+    const { data: rawDetail, error } = await matchTransactionsGetDetail({
+      Pk: pk,
+      ...(detailJobNumber.value ? { JobNumber: detailJobNumber.value } : {})
+    });
     if (error) {
       window.$message?.error(t('page.settlement.transactions.saveFailed'));
       return;

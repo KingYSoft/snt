@@ -620,7 +620,8 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
     post_date: formatDateToYYYYMMDD(item.ah_postdate),
     due_date: formatDateToYYYYMMDD(item.ah_duedate),
     currency: item.ah_rx_nktransactioncurrency || '',
-    trans_amount: item.ah_invoiceamount || 0,
+    // 交易金额使用原币含税总额；ah_invoiceamount 是本币含税金额。
+    trans_amount: item.ah_ostotal || 0,
     exchange_rate: item.ah_exchangerate || 1,
     local_amount: item.ah_localtotal || 0,
     branch: item.ah_systemcreatebranch || '',

@@ -95,6 +95,8 @@ export interface AccTransactionHeader {
   ah_invoicedate?: string;
   ah_duedate?: string;
   ah_invoiceamount?: number;
+  /** 发票交易币种含税总额，对应 AccTransactionHeader.ah_ostotal。 */
+  ah_ostotal?: number;
   amount_tax_incl?: number;
   amount_tax_excl?: number;
   ah_gstamount?: number;

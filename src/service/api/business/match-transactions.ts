@@ -9,6 +9,7 @@ import { request } from '@/service/request';
 /** 匹配交易记录（query-page 列表 camelCase；兼容旧字段映射见 mapMatchTransactionItem） */
 export interface MatchTransactionRecord {
   pk: string;
+  jobNumber?: string;
   ledger: string;
   matchNumber: string;
   /** 结算方 ID（常为 GUID） */
@@ -43,6 +44,7 @@ export interface MatchTransactionLinesParams {
 /** 销账编辑页详情（GET /match-transactions/detail） */
 export interface MatchTransactionDetailParams {
   Pk: string;
+  JobNumber?: string;
 }
 
 /** 组织地址查询参数（GET /match-transactions/query-org-address） */
@@ -93,6 +95,7 @@ export function orgAddressRowBillingParty(row: OrgAddressRow | null | undefined)
 export interface OutstandingInvoicesParams {
   billingParty: string;
   ledgerScope: string;
+  jobNumber?: string;
   query?: string;
   statementNo?: string;
   currency?: string;
@@ -200,6 +203,7 @@ export function mapMatchTransactionItem(raw: Record<string, any>): Partial<Match
     typeof paymentRaw === 'string' && paymentRaw.includes('T') ? paymentRaw.split('T')[0] : paymentRaw;
   return {
     pk: raw.pk ?? raw.ap_pk ?? '',
+    jobNumber: raw.jobNumber ?? raw.job_number ?? raw.ah_jobnumber ?? '',
     ledger: raw.ledger ?? raw.ah_transactiontype ?? '',
     matchNumber: raw.matchNumber ?? raw.ah_transactionnum ?? '',
     billingParty: raw.billingParty ?? '',
@@ -216,6 +220,7 @@ export function normalizeMatchTransactionRecord(raw: Record<string, any>, index?
   const m = mapMatchTransactionItem(raw);
   return {
     pk: m.pk ?? '',
+    jobNumber: m.jobNumber ?? '',
     ledger: m.ledger ?? '',
     matchNumber: m.matchNumber ?? '',
     billingParty: m.billingParty ?? '',
