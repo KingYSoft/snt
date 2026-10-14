@@ -354,6 +354,7 @@ function handleRowAction(key: SettlementTransactionActionKey, row: SettlementTra
     query: {
       pk: row.pk,
       no: row.transaction_num || '',
+      jobNumber: row.job_number || '',
       type: props.type
     }
   });

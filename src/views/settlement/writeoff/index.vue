@@ -103,7 +103,7 @@ const {
       row =>
         router.push({
           name: 'settlement_writeoff-edit',
-          query: { pk: row.pk, no: row.matchNumber || '' }
+          query: { pk: row.pk, no: row.matchNumber || '', jobNumber: row.jobNumber || '' }
         }),
       (key, row) => handleRowAction(key, row)
     ) as any,
@@ -165,7 +165,10 @@ function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRe
     window.$message?.info(`Print ${row.matchNumber} (mock)`);
     return;
   }
-  router.push({ name: 'settlement_writeoff-edit', query: { pk: row.pk, no: row.matchNumber || '' } });
+  router.push({
+    name: 'settlement_writeoff-edit',
+    query: { pk: row.pk, no: row.matchNumber || '', jobNumber: row.jobNumber || '' }
+  });
 }
 
 function getRowProps(row: MatchTransactionRecord) {
