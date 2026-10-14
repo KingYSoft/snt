@@ -155,7 +155,7 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
     render: (row: AccTransactionHeader) => formatInvoiceDate(row.ah_fullypaiddate)
   },
   { title: $t('page.business.shipment.billing.currency'), key: 'ah_rx_nktransactioncurrency', width: 80 },
-  { title: $t('page.business.shipment.billing.invoiceAmt'), key: 'ah_invoiceamount', width: 100 },
+  { title: $t('page.business.shipment.billing.invoiceAmt'), key: 'ah_ostotal', width: 100 },
   { title: $t('page.business.shipment.billing.paymentStatus'), key: 'ah_matchstatus', width: 120 },
   { title: $t('page.business.shipment.billing.branch'), key: 'branch_code', width: 80 },
   { title: $t('page.business.shipment.billing.terms'), key: 'ah_invoiceterm', width: 140, ellipsis: { tooltip: true } }
