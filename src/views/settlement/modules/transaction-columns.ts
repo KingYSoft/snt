@@ -157,7 +157,7 @@ export function getSettlementTransactionColumns(
       align: 'right',
       minWidth: 120,
       ellipsis: { tooltip: true },
-      render: row => h('span', { class: 'font-600' }, formatTransactionMoney(row.local_amount, row.currency))
+      render: row => h('span', { class: 'font-600' }, formatTransactionMoney(row.local_amount, 'CNY'))
     },
     {
       key: 'branch',
