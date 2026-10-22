@@ -190,13 +190,38 @@ const apColumns = computed<DataTableColumns<ConsolCostLineRow>>(() => [
         { default: () => getBillingLockLabel(row.is_locked) }
       )
   },
-  { title: $t('page.business.consolidation.billing.transNo'), key: 'consolidated_invoice_ref', width: 100, ellipsis: { tooltip: true } },
-  { title: $t('page.business.consolidation.billing.supplierInvNo'), key: 'invoice_no', width: 220, ellipsis: { tooltip: true } },
+  {
+    title: $t('page.business.consolidation.billing.transNo'),
+    key: 'consolidated_invoice_ref',
+    width: 100,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.consolidation.billing.supplierInvNo'),
+    key: 'invoice_no',
+    width: 220,
+    ellipsis: { tooltip: true }
+  },
   { title: $t('page.business.consolidation.billing.sequence'), key: 'Sequence', width: 80 },
-  { title: $t('page.business.consolidation.billing.chargeCode'), key: 'Charge_Code', width: 110, ellipsis: { tooltip: true } },
-  { title: $t('page.business.consolidation.billing.description'), key: 'Description', width: 200, ellipsis: { tooltip: true } },
+  {
+    title: $t('page.business.consolidation.billing.chargeCode'),
+    key: 'Charge_Code',
+    width: 110,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.consolidation.billing.description'),
+    key: 'Description',
+    width: 200,
+    ellipsis: { tooltip: true }
+  },
   { title: $t('page.business.consolidation.billing.branch'), key: 'Branch', width: 80 },
-  { title: $t('page.business.consolidation.billing.creditor'), key: 'Creditor', width: 120, ellipsis: { tooltip: true } },
+  {
+    title: $t('page.business.consolidation.billing.creditor'),
+    key: 'Creditor',
+    width: 120,
+    ellipsis: { tooltip: true }
+  },
   { title: $t('page.business.consolidation.billing.currency'), key: 'Currency', width: 90 },
   { title: $t('page.business.consolidation.billing.unitPrice'), key: 'Unit_Price', width: 100 },
   { title: $t('page.business.consolidation.billing.unit'), key: 'jch_unit', width: 110 },
@@ -229,8 +254,18 @@ const apColumns = computed<DataTableColumns<ConsolCostLineRow>>(() => [
 
 /** More panel headers aligned with first-cargo ConsolidationChargeShipmentDetailTable */
 const shipmentLineColumns = computed<DataTableColumns<ConsolShipmentLineRow>>(() => [
-  { title: $t('page.business.consolidation.billing.shipmentNo'), key: 'Shipment_No', width: 160, ellipsis: { tooltip: true } },
-  { title: $t('page.business.consolidation.billing.description'), key: 'Description', width: 200, ellipsis: { tooltip: true } },
+  {
+    title: $t('page.business.consolidation.billing.shipmentNo'),
+    key: 'Shipment_No',
+    width: 160,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.consolidation.billing.description'),
+    key: 'Description',
+    width: 200,
+    ellipsis: { tooltip: true }
+  },
   { title: $t('page.business.consolidation.billing.containerCount'), key: 'Container_Count', width: 130 },
   { title: $t('page.business.consolidation.billing.chargeableWeight'), key: 'Chargeable_Weight', width: 140 },
   { title: $t('page.business.consolidation.billing.grossWeight'), key: 'GW', width: 120 },
@@ -324,7 +359,9 @@ watch(jkPk, (pk, prev) => {
     <NGrid :cols="4" :x-gap="12" :y-gap="12" class="mb-16px">
       <NGi>
         <NCard size="small" :bordered="true">
-          <div class="text-12px text-gray-500 mb-6px">{{ $t('page.business.consolidation.billing.grossProfitMargin') }}</div>
+          <div class="text-12px text-gray-500 mb-6px">
+            {{ $t('page.business.consolidation.billing.grossProfitMargin') }}
+          </div>
           <div class="text-22px font-600 text-primary">{{ Number(summary.grossProfitMargin ?? 0).toFixed(2) }}%</div>
         </NCard>
       </NGi>

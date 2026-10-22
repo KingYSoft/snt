@@ -223,7 +223,11 @@ export const useAppStore = defineStore(SetupStoreId.App, () => {
       userId: session.login_name || String(session.user_id || ''),
       userName: session.full_name || session.login_name || '',
       email_address: session.email_address || '',
-      roles: Array.isArray(session.roles) ? session.roles : authStore.userInfo.roles?.length ? authStore.userInfo.roles : ['user'],
+      roles: Array.isArray(session.roles)
+        ? session.roles
+        : authStore.userInfo.roles?.length
+          ? authStore.userInfo.roles
+          : ['user'],
       buttons: authStore.userInfo.buttons || []
     };
   }

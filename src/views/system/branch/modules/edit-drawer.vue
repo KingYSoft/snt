@@ -16,12 +16,6 @@ const formRef = ref<FormInst | null>(null);
 const loading = ref(false);
 const financeGroupOptions = ref<Array<{ label: string; value: string }>>([]);
 
-const title = computed(() => {
-  if (props.operateType === 'add') return 'BRANCH';
-  const code = String(formData.value.code || props.editingData?.code || '').trim();
-  return code ? `BRANCH-${code}` : $t('common.edit');
-});
-
 const defaultFormData = (): SysBranch => ({
   pk: '',
   code: '',
@@ -49,6 +43,12 @@ const defaultFormData = (): SysBranch => ({
 
 const formData = ref(defaultFormData());
 
+const title = computed(() => {
+  if (props.operateType === 'add') return 'BRANCH';
+  const code = String(formData.value.code || props.editingData?.code || '').trim();
+  return code ? `BRANCH-${code}` : $t('common.edit');
+});
+
 const rules: FormRules = {
   code: { required: true, message: $t('form.required'), trigger: ['blur', 'input'] },
   branch_name: { required: true, message: $t('form.required'), trigger: ['blur', 'input'] }
@@ -67,7 +67,9 @@ function resolveFinanceGroup(value: string | null | undefined) {
   const raw = String(value);
   const byValue = financeGroupOptions.value.find(item => item.value === raw);
   if (byValue) return byValue.value;
-  const byLabel = financeGroupOptions.value.find(item => item.label === raw || item.label.startsWith(`${raw} `) || item.label.startsWith(`${raw} -`));
+  const byLabel = financeGroupOptions.value.find(
+    item => item.label === raw || item.label.startsWith(`${raw} `) || item.label.startsWith(`${raw} -`)
+  );
   return byLabel?.value ?? raw;
 }
 

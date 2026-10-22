@@ -12,7 +12,7 @@ import { getConsolidationColumns, type ConsolidationActionKey } from './modules/
 type ConsolidationRow = Record<string, any>;
 
 defineOptions({
-  name: 'business_consolidation'
+  name: 'BusinessConsolidation'
 });
 
 const route = useRoute();

@@ -66,6 +66,8 @@ const parseAmountInput = (input: string) => {
   return Number.isNaN(x) ? null : x;
 };
 
+const lineLedgerScope = ref('AR');
+
 /** AP 结欠/余额按正值参与计算和展示 */
 function lineOutstanding(row?: any) {
   const n = Number(row?.outstanding) || 0;
@@ -119,7 +121,6 @@ function updateTabLabel() {
 updateTabLabel();
 watch(() => form.value.matchNumber, updateTabLabel);
 
-const lineLedgerScope = ref('AR');
 const lineSearch = ref('');
 const statementVal = ref('');
 const lineCurrency = ref<string | null>(null);
@@ -226,13 +227,13 @@ const bankSelectOptions = computed(() => {
   const acc = form.value.bankAccount;
   const base = bankOptions.value;
   if (!acc) return base;
-  const pk = String(acc.ab_pk ?? '').trim();
-  if (!pk) return base;
-  if (base.some(o => o.value === pk)) return base;
+  const bankPk = String(acc.ab_pk ?? '').trim();
+  if (!bankPk) return base;
+  if (base.some(o => o.value === bankPk)) return base;
   return [
     {
-      label: String(acc.ab_bankname ?? pk),
-      value: pk,
+      label: String(acc.ab_bankname ?? bankPk),
+      value: bankPk,
       data: acc
     },
     ...base

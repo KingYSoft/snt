@@ -18,7 +18,7 @@ import { getShipmentColumns } from './modules/columns';
 import type { ShipmentActionKey } from './modules/columns';
 
 defineOptions({
-  name: 'business_shipment'
+  name: 'BusinessShipment'
 });
 
 const route = useRoute();

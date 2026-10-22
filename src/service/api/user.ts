@@ -17,7 +17,7 @@ export function switchBranch(data: { branch_pks: string[] }) {
   });
 }
 
-/** POST /user/change-password */
+/** POST /user/changePassword — see Swagger UserChangePasswordInput */
 export interface UserChangePasswordInput {
   oldPassword: string;
   newPassword: string;
@@ -26,13 +26,9 @@ export interface UserChangePasswordInput {
 
 export function changePassword(data: UserChangePasswordInput) {
   return request({
-    url: '/user/change-password',
+    url: '/user/changePassword',
     method: 'post',
-    data: {
-      pwd_old: data.oldPassword,
-      pwd_new: data.newPassword,
-      pwd_new2: data.confirmPassword
-    }
+    data
   });
 }
 
