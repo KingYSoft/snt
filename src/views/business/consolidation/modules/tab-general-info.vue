@@ -1,5 +1,4 @@
 <script setup lang="ts">
-/* eslint-disable vue/no-mutating-props */
 import { computed, h, ref, watch } from 'vue';
 import type { DataTableColumns } from 'naive-ui';
 import { useRouter } from 'vue-router';

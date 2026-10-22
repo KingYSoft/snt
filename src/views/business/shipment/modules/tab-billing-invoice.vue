@@ -125,7 +125,11 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
     width: 90,
     render: (row: AccTransactionHeader) => {
       const status = getInvoiceHeaderStatus(row);
-      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => getInvoiceHeaderStatusLabel(row) });
+      return h(
+        NTag,
+        { type: getInvoiceStatusType(status), size: 'small' },
+        { default: () => getInvoiceHeaderStatusLabel(row) }
+      );
     }
   },
   {
@@ -162,8 +166,18 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
 ]);
 
 const chargeDetailColumns = computed<DataTableColumns<BillingChargeLineItem>>(() => [
-  { title: $t('page.business.shipment.billing.chargeCode'), key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
-  { title: $t('page.business.shipment.billing.description'), key: 'jr_desc', minWidth: 160, ellipsis: { tooltip: true } },
+  {
+    title: $t('page.business.shipment.billing.chargeCode'),
+    key: 'charge_code',
+    width: 110,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.shipment.billing.description'),
+    key: 'jr_desc',
+    minWidth: 160,
+    ellipsis: { tooltip: true }
+  },
   { title: $t('page.business.shipment.billing.party'), key: 'party_code', width: 120, ellipsis: { tooltip: true } },
   { title: $t('page.business.shipment.billing.branch'), key: 'branch_code', width: 90 },
   { title: $t('page.business.shipment.billing.currency'), key: 'currency', width: 80 },

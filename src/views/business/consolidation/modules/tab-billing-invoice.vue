@@ -11,7 +11,11 @@ import {
   type BillingChargeLineItem
 } from '@/service/api/business/consol-billing';
 import { $t } from '@/locales';
-import { formatInvoiceDate, getInvoiceHeaderStatus, getInvoiceHeaderStatusLabel } from '@/views/business/shipment/modules/shipment-billing-map';
+import {
+  formatInvoiceDate,
+  getInvoiceHeaderStatus,
+  getInvoiceHeaderStatusLabel
+} from '@/views/business/shipment/modules/shipment-billing-map';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 
@@ -88,7 +92,11 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
     width: 96,
     render: (row: AccTransactionHeader) => {
       const status = getInvoiceHeaderStatus(row);
-      return h(NTag, { type: getInvoiceStatusType(status), size: 'small' }, { default: () => getInvoiceHeaderStatusLabel(row) });
+      return h(
+        NTag,
+        { type: getInvoiceStatusType(status), size: 'small' },
+        { default: () => getInvoiceHeaderStatusLabel(row) }
+      );
     }
   },
   {
@@ -204,10 +212,25 @@ const invoiceColumns = computed<DataTableColumns<AccTransactionHeader>>(() => [
 
 /** Detail modal: Charges[] + Lines[].al_gstvat for Tax Amount */
 const chargeDetailColumns = computed<DataTableColumns<ChargeDetailRow>>(() => [
-  { title: $t('page.business.consolidation.billing.chargeCode'), key: 'charge_code', width: 110, ellipsis: { tooltip: true } },
-  { title: $t('page.business.consolidation.billing.description'), key: 'jr_desc', width: 200, ellipsis: { tooltip: true } },
+  {
+    title: $t('page.business.consolidation.billing.chargeCode'),
+    key: 'charge_code',
+    width: 110,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.consolidation.billing.description'),
+    key: 'jr_desc',
+    width: 200,
+    ellipsis: { tooltip: true }
+  },
   { title: $t('page.business.consolidation.billing.branch'), key: 'branch_code', width: 80 },
-  { title: $t('page.business.consolidation.billing.creditor'), key: 'party_code', width: 120, ellipsis: { tooltip: true } },
+  {
+    title: $t('page.business.consolidation.billing.creditor'),
+    key: 'party_code',
+    width: 120,
+    ellipsis: { tooltip: true }
+  },
   { title: $t('page.business.consolidation.billing.currency'), key: 'currency', width: 90 },
   {
     title: $t('page.business.consolidation.billing.unitPrice'),

@@ -15,12 +15,6 @@ const visible = defineModel<boolean>('visible', { required: true });
 const formRef = ref<FormInst | null>(null);
 const loading = ref(false);
 
-const title = computed(() => {
-  if (props.operateType === 'add') return 'COMPANY';
-  const code = String(formData.value.code || props.editingData?.code || '').trim();
-  return code ? `COMPANY-${code}` : $t('common.edit');
-});
-
 const defaultFormData = (): SysCompany => ({
   pk: '',
   code: '',
@@ -49,6 +43,12 @@ const defaultFormData = (): SysCompany => ({
 });
 
 const formData = ref(defaultFormData());
+
+const title = computed(() => {
+  if (props.operateType === 'add') return 'COMPANY';
+  const code = String(formData.value.code || props.editingData?.code || '').trim();
+  return code ? `COMPANY-${code}` : $t('common.edit');
+});
 
 const rules: FormRules = {
   code: { required: true, message: $t('form.required'), trigger: ['blur', 'input'] },

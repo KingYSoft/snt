@@ -96,13 +96,7 @@ async function handleSave() {
 </script>
 
 <template>
-  <NModal
-    v-model:show="diaVis"
-    preset="card"
-    style="width: 420px"
-    :mask-closable="false"
-    :auto-focus="false"
-  >
+  <NModal v-model:show="diaVis" preset="card" style="width: 420px" :mask-closable="false" :auto-focus="false">
     <template #header>
       <div class="flex items-center gap-8px">
         <SvgIcon icon="ph:lock" class="text-18px" />
