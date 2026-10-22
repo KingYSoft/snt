@@ -1168,43 +1168,43 @@ const addrDialogTitle = computed(() => {
       <NForm ref="addrFormRef" label-placement="left" label-width="120" :show-feedback="false" class="compact-form">
         <NGrid :cols="2" :x-gap="12">
           <NFormItemGi :label="$t('page.business.shipment.address.companyName')" path="company_name">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.company_name" />
+            <NInput v-model:value="addrInput.company_name" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.code')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.code" />
+            <NInput v-model:value="addrInput.code" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.shortCode')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.short_code" />
+            <NInput v-model:value="addrInput.short_code" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.contact')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.contact" />
+            <NInput v-model:value="addrInput.contact" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.phone')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.phone" />
+            <NInput v-model:value="addrInput.phone" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.email')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.email" />
+            <NInput v-model:value="addrInput.email" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :span="2" :label="$t('page.business.shipment.address.address1')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.address1" />
+            <NInput v-model:value="addrInput.address1" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :span="2" :label="$t('page.business.shipment.address.address2')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.address2" />
+            <NInput v-model:value="addrInput.address2" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :span="2" :label="$t('page.business.shipment.address.address3')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.address3" />
+            <NInput v-model:value="addrInput.address3" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.city')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.city" />
+            <NInput v-model:value="addrInput.city" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.state')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.state" />
+            <NInput v-model:value="addrInput.state" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.postalCode')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.postal_code" />
+            <NInput v-model:value="addrInput.postal_code" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
           <NFormItemGi :label="$t('page.business.shipment.address.countryCode')">
-            <NInput readonly :placeholder="$t('common.pleaseInput')" v-model:value="addrInput.country_code" />
+            <NInput v-model:value="addrInput.country_code" readonly :placeholder="$t('common.pleaseInput')" />
           </NFormItemGi>
         </NGrid>
       </NForm>

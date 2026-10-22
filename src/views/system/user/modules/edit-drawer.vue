@@ -28,12 +28,6 @@ const memberGroups = ref<SysUserGroupRow[]>([]);
 const ownerGroups = ref<SysUserOwnerGroupRow[]>([]);
 let nextGroupId = 1;
 
-const title = computed(() => {
-  if (props.operateType === 'add') return 'USER';
-  const loginName = String(formData.value.login_name || props.editingData?.login_name || '').trim();
-  return loginName ? `USER-${loginName}` : $t('common.edit');
-});
-
 const defaultFormData = (): SysUser => ({
   pk: '',
   code: '',
@@ -59,6 +53,12 @@ const defaultFormData = (): SysUser => ({
 });
 
 const formData = ref(defaultFormData());
+
+const title = computed(() => {
+  if (props.operateType === 'add') return 'USER';
+  const loginName = String(formData.value.login_name || props.editingData?.login_name || '').trim();
+  return loginName ? `USER-${loginName}` : $t('common.edit');
+});
 
 const rules = computed<FormRules>(() => ({
   login_name: { required: true, message: $t('form.required'), trigger: ['blur', 'input'] },

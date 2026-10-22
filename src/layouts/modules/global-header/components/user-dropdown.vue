@@ -20,9 +20,7 @@ const showPopover = ref(false);
 
 const session = computed(() => appStore.userSession);
 const displayName = computed(() => session.value.full_name || session.value.login_name || '');
-const branchText = computed(() =>
-  [session.value.branch_code, session.value.branch_name].filter(Boolean).join(' - ')
-);
+const branchText = computed(() => [session.value.branch_code, session.value.branch_name].filter(Boolean).join(' - '));
 const companyText = computed(() =>
   [session.value.company_code, session.value.company_name].filter(Boolean).join(' - ')
 );

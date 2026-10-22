@@ -43,12 +43,6 @@ const activePermissionNames = ref<string[]>([]);
 const editRowKey = ref<number | null>(null);
 let nextRowId = 1;
 
-const title = computed(() => {
-  if (props.operateType === 'add') return 'GROUP';
-  const code = String(formData.value.code || props.editingData?.code || '').trim();
-  return code ? `GROUP-${code}` : $t('common.edit');
-});
-
 const defaultFormData = (): SysGroup => ({
   pk: '',
   code: '',
@@ -59,6 +53,12 @@ const defaultFormData = (): SysGroup => ({
 });
 
 const formData = ref(defaultFormData());
+
+const title = computed(() => {
+  if (props.operateType === 'add') return 'GROUP';
+  const code = String(formData.value.code || props.editingData?.code || '').trim();
+  return code ? `GROUP-${code}` : $t('common.edit');
+});
 
 const rules: FormRules = {
   code: { required: true, message: $t('form.required'), trigger: ['blur', 'input'] }
@@ -142,7 +142,11 @@ function hydratePermissionRow(row: GroupPermissionRow, id: number): PermRow {
     next.company_code = next.company_code || companyCodeOf(company);
     next.company_name = next.company_name || company.company_name || company.name || '';
     if (!next.company_pks?.length) {
-      next.company_pks = company.company_pks?.length ? [...company.company_pks] : company.pk ? [String(company.pk)] : [];
+      next.company_pks = company.company_pks?.length
+        ? [...company.company_pks]
+        : company.pk
+          ? [String(company.pk)]
+          : [];
     }
   }
   const branch = findBranch(next);
@@ -220,12 +224,8 @@ const permissionColumns = computed<DataTableColumns<PermRow>>(() => [
     ellipsis: { tooltip: true },
     render: row =>
       editRowKey.value === row._id
-        ? renderCellSelect(
-            row.company_code,
-            companySelectOptions.value,
-            $t('page.system.group.company'),
-            false,
-            val => onCompanyChange(row, val)
+        ? renderCellSelect(row.company_code, companySelectOptions.value, $t('page.system.group.company'), false, val =>
+            onCompanyChange(row, val)
           )
         : row.company_code || ''
   },
@@ -373,11 +373,7 @@ function onCompanyChange(row: PermRow, code: string | null) {
   const company = companyList.value.find(item => companyCodeOf(item) === code);
   row.company_code = company ? companyCodeOf(company) : '';
   row.company_name = company?.company_name || company?.name || '';
-  row.company_pks = company?.company_pks?.length
-    ? [...company.company_pks]
-    : company?.pk
-      ? [String(company.pk)]
-      : [];
+  row.company_pks = company?.company_pks?.length ? [...company.company_pks] : company?.pk ? [String(company.pk)] : [];
   row.branch_pks = [];
   row.branch_code = '';
   row.branch_name = '';
@@ -387,11 +383,7 @@ function onBranchChange(row: PermRow, code: string | null) {
   const branch = (findCompany(row)?.branch_list ?? []).find(item => branchCodeOf(item) === code);
   row.branch_code = branch ? branchCodeOf(branch) : '';
   row.branch_name = branch?.branch_name || branch?.name || '';
-  row.branch_pks = branch?.branch_pks?.length
-    ? [...branch.branch_pks]
-    : branch?.pk
-      ? [String(branch.pk)]
-      : [];
+  row.branch_pks = branch?.branch_pks?.length ? [...branch.branch_pks] : branch?.pk ? [String(branch.pk)] : [];
 }
 
 function onTreeChecked(keys: Array<string | number>) {
@@ -424,12 +416,12 @@ async function fillForm() {
   if (props.operateType !== 'edit') return;
   const pk = String(props.editingData?.pk ?? '').trim();
   if (!pk) {
-    formData.value = { ...defaultFormData(), ...(props.editingData ?? {}) };
+    formData.value = { ...defaultFormData(), ...props.editingData };
     return;
   }
   try {
     const { data } = await getGroupDetail(pk);
-    formData.value = { ...defaultFormData(), ...(data?.group_detail ?? props.editingData ?? {}) };
+    formData.value = { ...defaultFormData(), ...(data?.group_detail ?? props.editingData) };
     selectedUsers.value = data?.users ?? [];
     const rows = data?.permission_rows ?? [];
     permissionRows.value = rows.map((row, index) => {
@@ -439,7 +431,7 @@ async function fillForm() {
     nextRowId = Math.max(0, ...permissionRows.value.map(row => row._id)) + 1;
     selectPermissionRow(permissionRows.value[0] ?? null);
   } catch {
-    formData.value = { ...defaultFormData(), ...(props.editingData ?? {}) };
+    formData.value = { ...defaultFormData(), ...props.editingData };
   }
 }
 
@@ -597,7 +589,12 @@ async function handleSubmit() {
     </template>
   </NModal>
 
-  <NModal v-model:show="userModalVisible" preset="card" :title="$t('page.system.group.selectUsers')" style="width: 720px">
+  <NModal
+    v-model:show="userModalVisible"
+    preset="card"
+    :title="$t('page.system.group.selectUsers')"
+    style="width: 720px"
+  >
     <NDataTable
       v-model:checked-row-keys="userPickerKeys"
       :columns="pickerColumns"

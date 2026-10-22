@@ -12,10 +12,30 @@ function displayText(value: unknown) {
 }
 
 const consolidationColumns = computed<DataTableColumns<Record<string, any>>>(() => [
-  { title: $t('page.business.shipment.section.reference'), key: 'reference', minWidth: 160, ellipsis: { tooltip: true } },
-  { title: $t('page.business.shipment.section.firstLoad'), key: 'first_load', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: $t('page.business.shipment.section.lastDisc'), key: 'last_disc', minWidth: 120, ellipsis: { tooltip: true } },
-  { title: $t('page.business.shipment.section.masterBill'), key: 'master_bill', minWidth: 140, ellipsis: { tooltip: true } }
+  {
+    title: $t('page.business.shipment.section.reference'),
+    key: 'reference',
+    minWidth: 160,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.shipment.section.firstLoad'),
+    key: 'first_load',
+    minWidth: 120,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.shipment.section.lastDisc'),
+    key: 'last_disc',
+    minWidth: 120,
+    ellipsis: { tooltip: true }
+  },
+  {
+    title: $t('page.business.shipment.section.masterBill'),
+    key: 'master_bill',
+    minWidth: 140,
+    ellipsis: { tooltip: true }
+  }
 ]);
 
 function consolidationRowKey(row: Record<string, any>) {

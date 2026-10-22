@@ -44,7 +44,11 @@ function updateBankRecordField<K extends keyof BankRecord>(field: K, value: Bank
   <NCard size="small" :bordered="true" :title="t('page.settlement.writeoff.create.bankTransactionRecord')">
     <NSpace vertical :size="12">
       <NFormItem :label="t('page.settlement.writeoff.create.bankAccount')" label-placement="left" label-width="120px">
-        <NInput :value="bankRecord.bankAccount" :placeholder="t('page.settlement.writeoff.create.selectBankAccount')" readonly />
+        <NInput
+          :value="bankRecord.bankAccount"
+          :placeholder="t('page.settlement.writeoff.create.selectBankAccount')"
+          readonly
+        />
       </NFormItem>
       <NSpace :size="16">
         <NFormItem :label="t('page.settlement.writeoff.create.paymentDate')" label-placement="left" label-width="100px">
@@ -55,7 +59,11 @@ function updateBankRecordField<K extends keyof BankRecord>(field: K, value: Bank
             @update:value="val => updateBankRecordField('paymentDate', val)"
           />
         </NFormItem>
-        <NFormItem :label="t('page.settlement.writeoff.create.serialNumber')" label-placement="left" label-width="100px">
+        <NFormItem
+          :label="t('page.settlement.writeoff.create.serialNumber')"
+          label-placement="left"
+          label-width="100px"
+        >
           <NInput
             :value="bankRecord.serialNumber"
             :placeholder="t('page.settlement.writeoff.create.pleaseInput')"
@@ -71,7 +79,11 @@ function updateBankRecordField<K extends keyof BankRecord>(field: K, value: Bank
         </NFormItem>
       </NSpace>
       <NSpace :size="16">
-        <NFormItem :label="t('page.settlement.writeoff.create.paymentAmount')" label-placement="left" label-width="120px">
+        <NFormItem
+          :label="t('page.settlement.writeoff.create.paymentAmount')"
+          label-placement="left"
+          label-width="120px"
+        >
           <NInputNumber
             v-model:value="paymentAmount"
             :precision="2"

@@ -60,6 +60,8 @@ const parseAmountInput = (input: string) => {
   return Number.isNaN(x) ? null : x;
 };
 
+const lineLedgerScope = ref('AR');
+
 /** AP 结欠/余额按正值参与计算和展示 */
 function lineOutstanding(row?: any) {
   const n = Number(row?.outstanding) || 0;
@@ -90,7 +92,6 @@ const buildEmptyForm = () => ({
 });
 const form = ref(buildEmptyForm());
 
-const lineLedgerScope = ref('AR');
 const lineSearch = ref('');
 const statementVal = ref('');
 const lineCurrency = ref<string | null>(null);
@@ -494,9 +495,7 @@ async function handleSave() {
     return;
   }
 
-  const sorted = [...selectedLines.value].sort(
-    (a: any, b: any) => lineOutstanding(a) - lineOutstanding(b)
-  );
+  const sorted = [...selectedLines.value].sort((a: any, b: any) => lineOutstanding(a) - lineOutstanding(b));
   let remHome = amtHome;
   const wHomeMap = new Map<number, number>();
   for (const item of sorted) {
