@@ -3,6 +3,7 @@ import { BACKEND_ERROR_CODE, createFlatRequest } from '@sa/axios';
 import { useAuthStore } from '@/store/modules/auth';
 import { getServiceBaseURL } from '@/utils/service';
 import { $t } from '@/locales';
+import { localStg } from '@/utils/storage';
 import { getAuthorization, handleExpiredRequest, showErrorMsg } from './shared';
 import type { RequestInstanceState } from './type';
 
@@ -31,7 +32,7 @@ export const request = createFlatRequest(
     },
     async onRequest(config) {
       const Authorization = getAuthorization();
-      const lang = localStorage.getItem('lang') || 'en';
+      const lang = String(localStg.get('lang') || 'zh-CN');
       const cookieLangValue = lang === 'zhHans' ? 'zh-Hans' : lang;
 
       Object.assign(config.headers, {
