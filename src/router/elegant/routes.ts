@@ -420,7 +420,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'settlement_billing-detail',
           i18nKey: 'route.settlement_billing-detail',
-          hideInMenu: true
+          hideInMenu: true,
+          multiTab: true
         }
       },
       {
@@ -490,7 +491,8 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'settlement_writeoff-edit',
           i18nKey: 'route.settlement_writeoff-edit',
-          hideInMenu: true
+          hideInMenu: true,
+          multiTab: true
         }
       }
     ]
