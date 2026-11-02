@@ -34,6 +34,7 @@ onActivated(restoreListTabLabel);
 const showMore = ref(false);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsByPk = ref(new Map<string, ConsolidationRow>());
+const exportLoading = ref(false);
 
 // --- ETD date range（与应收应付一致：起止两个日期；默认当年 3.1–3.31） ---
 function formatDate(date: Date): string {
@@ -223,7 +224,9 @@ function navigateToDetail(row: any) {
 
 async function handleMenuAction(key: ConsolidationActionKey, row: ConsolidationRow) {
   if (key !== 'export') return;
+  if (exportLoading.value) return;
 
+  exportLoading.value = true;
   try {
     const blob = await consolidationExport({
       SkipCount: 0,
@@ -238,10 +241,15 @@ async function handleMenuAction(key: ConsolidationActionKey, row: ConsolidationR
     window.$message?.success($t('page.settlement.transactions.exportSuccess'));
   } catch {
     window.$message?.error($t('page.settlement.transactions.exportFailed'));
+  } finally {
+    exportLoading.value = false;
   }
 }
 
 async function handleBatchExport() {
+  if (exportLoading.value) return;
+
+  exportLoading.value = true;
   try {
     const blob = await consolidationExport({
       SkipCount: 0,
@@ -256,6 +264,8 @@ async function handleBatchExport() {
     window.$message?.success($t('page.settlement.transactions.exportSuccess'));
   } catch {
     window.$message?.error($t('page.settlement.transactions.exportFailed'));
+  } finally {
+    exportLoading.value = false;
   }
 }
 </script>
@@ -339,7 +349,7 @@ async function handleBatchExport() {
 
     <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
       <NSpace class="mb-12px flex-shrink-0">
-        <NButton @click="handleBatchExport">
+        <NButton :loading="exportLoading" @click="handleBatchExport">
           {{ $t('page.business.shipment.export') }}
         </NButton>
       </NSpace>
@@ -350,7 +360,7 @@ async function handleBatchExport() {
           :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="tableRows"
-          :loading="loading"
+          :loading="loading || exportLoading"
           :pagination="pagination"
           :row-key="(row: any) => row.jk_pk"
           :scroll-x="scrollX"
