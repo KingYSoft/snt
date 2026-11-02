@@ -705,8 +705,7 @@ export async function shipmentExport(params: ShipmentQueryParams) {
     url: '/shipment/export',
     method: 'post',
     data: params,
-    responseType: 'blob',
-    timeout: 300 * 1000
+    responseType: 'blob'
   });
   if (response.error || !response.data) throw response.error || new Error('Export failed');
   return response.data;
