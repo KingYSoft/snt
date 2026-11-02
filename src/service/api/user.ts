@@ -9,7 +9,7 @@ export function getUserSession() {
 }
 
 /** POST /user/switch-branch */
-export function switchBranch(data: { branch_pks: string[] }) {
+export function switchBranch(data: { company_pk: string; branch_pk: string }) {
   return request<{ accessToken?: string }>({
     url: '/user/switch-branch',
     method: 'post',

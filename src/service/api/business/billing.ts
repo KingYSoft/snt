@@ -150,6 +150,7 @@ export interface BillingTblInput {
   skipCount: number;
   maxResultCount: number;
   filters?: BillingTblFilterItem[];
+  selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
   companyNameLabel?: string;

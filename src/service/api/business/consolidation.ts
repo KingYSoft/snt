@@ -14,6 +14,7 @@ export interface ConsolidationQueryParams {
   SkipCount: number;
   MaxResultCount: number;
   filters?: ConsolidationFilter[];
+  selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
   companyNameLabel?: string;
