@@ -82,6 +82,10 @@ const local: App.I18n.Schema = {
       selectBranch: 'Select branch',
       required: 'Please select company and branch',
       success: 'Switch branch successfully'
+    },
+    exportMeta: {
+      companyName: 'Company Name: ',
+      reportGeneratedPeriod: 'Report Generated Period: '
     }
   },
   request: {
@@ -411,7 +415,17 @@ const local: App.I18n.Schema = {
           dischargePort: 'Discharge Port',
           shippedOnBoardDate: 'Shipped on Board Date',
           consolChargeable: 'Consol Chargeable',
-          cancelled: 'Cancelled'
+          cancelled: 'Cancelled',
+          consolMode: 'Container Mode',
+          etd: 'ETD',
+          eta: 'ETA',
+          vessel: 'Vessel',
+          voyage: 'Voyage',
+          carrier: 'Carrier',
+          ctrType: 'Ctr Type',
+          ctrCount: 'Ctr Count',
+          createUser: 'Create User',
+          modifyUser: 'Modify User'
         },
         tab: {
           details: 'Details',
@@ -637,7 +651,27 @@ const local: App.I18n.Schema = {
           etd: 'Estimated Departure Date',
           grossWeight: 'Gross Weight',
           cbm: 'CBM',
-          ctns: 'Cartons'
+          ctns: 'Cartons',
+          transportMode: 'Transport Mode',
+          containerMode: 'Container Mode',
+          consolNo: 'Consol No.',
+          masterBill: 'Master Bill',
+          onBoardDate: 'On Board Date',
+          chargeableWeight: 'Chargeable Weight',
+          unit: 'Unit',
+          freightTerm: 'Freight Term',
+          inco: 'Inco',
+          deliveryMode: 'Delivery Mode',
+          releaseType: 'Release Type',
+          ctrType: 'Ctr Type',
+          ctrCount: 'Ctr Count',
+          ctrNo: 'Ctr No.',
+          carrier: 'Carrier',
+          vessel: 'Vessel',
+          voyage: 'Voyage',
+          createUser: 'Create User',
+          modifyUser: 'Modify User',
+          salesRep: 'Sales Rep'
         },
         messages: {
           exportFailed: 'Export failed',

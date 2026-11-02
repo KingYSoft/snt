@@ -1,4 +1,5 @@
 import { request } from '@/service/request';
+import type { ExportColumn } from '@/utils/export-columns';
 
 // ==================== Type Definitions ====================
 
@@ -435,6 +436,20 @@ export interface ShipmentListItem {
   js_rct_carriercontract?: string | null;
   js_rtt_transittime?: string | null;
   js_deliveryduedate?: string | null;
+  /** list display extras (may come from nested/front-compatible payload) */
+  shipper_name?: string | null;
+  consignee_name?: string | null;
+  carrier_name?: string | null;
+  con_master_bill_num?: string | null;
+  con_vessel?: string | null;
+  con_voyage?: string | null;
+  pac_container_type?: string | null;
+  pac_container_count?: number | null;
+  pac_container_num?: string | null;
+  shp_cargo_ready?: string | null;
+  shp_freight_terms?: string | null;
+  shp_delivery_mode?: string | null;
+  shp_job_rep_sales_name?: string | null;
 }
 
 /** GET /shipment/detail — shipper / consignee org address */
@@ -497,6 +512,10 @@ export interface ShipmentQueryParams {
     start?: string;
     end?: string;
   }>;
+  columns?: ExportColumn[];
+  exportTitle?: string;
+  companyNameLabel?: string;
+  reportPeriodLabel?: string;
 }
 
 export interface ShipmentSaveParams {
@@ -681,12 +700,14 @@ export async function shipmentSave(params: ShipmentSaveParams) {
 }
 
 export async function shipmentExport(params: ShipmentQueryParams) {
-  return request({
+  const response = await request<Blob, 'blob'>({
     url: '/shipment/export',
     method: 'post',
     data: params,
     responseType: 'blob'
   });
+  if (response.error || !response.data) throw response.error || new Error('Export failed');
+  return response.data;
 }
 
 export async function shipmentPdfGenerate(params: ShipmentPdfGenerateParams) {

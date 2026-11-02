@@ -6,11 +6,14 @@ import { useI18n } from 'vue-i18n';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform } from '@/utils/maintain/transform';
 import {
+  matchTransactionsExport,
   matchTransactionsQueryPage,
   normalizeMatchTransactionRecord,
   type MatchTransactionRecord,
   type MatchTransactionQueryParams
 } from '@/service/api/business/match-transactions';
+import { downloadBlob } from '@/utils/download';
+import { getExportColumns } from '@/utils/export-columns';
 import { getMatchTransactionColumns, type MatchTransactionActionKey } from '../modules/match-transaction-columns';
 
 defineOptions({ name: 'PageSettlementWriteoff' });
@@ -65,8 +68,10 @@ function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: numb
   const JobNumber = f.field2.key === 'job_number' ? f.field2.value.trim() : '';
   const fromField2Shipper = f.field2.key === 'shipper' ? f.field2.value.trim() : '';
   const fromField2Match = f.field2.key === 'match_number' ? f.field2.value.trim() : '';
+  const fromField2Description = f.field2.key === 'description' ? f.field2.value.trim() : '';
   const Shipper = f.billing_party.trim() || fromField2Shipper;
   const MatchNumber = f.match_number.trim() || fromField2Match;
+  const Description = fromField2Description;
   const pg = override ?? {
     SkipCount: (pageRef.value - 1) * pageSizeRef.value,
     MaxResultCount: pageSizeRef.value
@@ -78,6 +83,7 @@ function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: numb
   if (Shipper) q.Shipper = Shipper;
   if (JobNumber) q.JobNumber = JobNumber;
   if (MatchNumber) q.MatchNumber = MatchNumber;
+  if (Description) q.Description = Description;
   if (f.field1.key === 'etd') {
     if (f.field1.start) q.EtdStart = f.field1.start;
     if (f.field1.end) q.EtdEnd = f.field1.end;
@@ -154,11 +160,22 @@ watch(rows, newRows => {
   }
 });
 
-function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRecord) {
+async function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRecord) {
   if (key === 'export') {
-    const csv = buildCsv([row]);
-    downloadCsv(csv, `writeoff_${row.matchNumber || 'row'}.csv`);
-    window.$message?.success(`Exported ${row.matchNumber}`);
+    try {
+      const blob = await matchTransactionsExport({
+        ...buildQueryParams({ SkipCount: 0, MaxResultCount: 0 }),
+        MatchNumber: row.matchNumber || '',
+        Columns: getExportColumns(columns.value),
+        ExportTitle: t('route.settlement_writeoff'),
+        CompanyNameLabel: t('common.exportMeta.companyName'),
+        ReportPeriodLabel: t('common.exportMeta.reportGeneratedPeriod')
+      });
+      downloadBlob(blob, `matching_transactions_${row.matchNumber || 'row'}.xlsx`);
+      window.$message?.success(t('page.settlement.matchTransactions.exportSuccess'));
+    } catch {
+      window.$message?.error(t('page.settlement.transactions.exportFailed'));
+    }
     return;
   }
   if (key === 'print') {
@@ -188,65 +205,20 @@ function getRowProps(row: MatchTransactionRecord) {
   };
 }
 
-function csvCell(v: unknown) {
-  if (v == null) return '';
-  const s = String(v);
-  return /[",\n\r]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s;
-}
-function buildCsv(items: MatchTransactionRecord[]) {
-  const h = '#,Ledger,Transaction No.,Company,Currency,Amount,Payment Date,Description';
-  return (
-    h +
-    '\n' +
-    items
-      .map((r, i) =>
-        [
-          csvCell(i + 1),
-          csvCell(r.ledger),
-          csvCell(r.matchNumber),
-          csvCell(r.billingPartyName?.trim() || r.billingParty),
-          csvCell(r.currency),
-          csvCell(r.settledAmount),
-          csvCell(r.paymentDate ? String(r.paymentDate).split('T')[0] : ''),
-          csvCell(r.description)
-        ].join(',')
-      )
-      .join('\n')
-  );
-}
-function downloadCsv(csv: string, name: string) {
-  const b = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const u = URL.createObjectURL(b);
-  const a = Object.assign(document.createElement('a'), { href: u });
-  a.setAttribute('download', name);
-  document.body.append(a);
-  a.click();
-  a.remove();
-  URL.revokeObjectURL(u);
-}
-
-function handleExportSelected() {
-  if (checkedRowKeys.value.length === 0) {
-    window.$message?.warning(t('page.settlement.transactions.exportSelectFirst'));
-    return;
+async function handleExportSelected() {
+  try {
+    const blob = await matchTransactionsExport({
+      ...buildQueryParams({ SkipCount: 0, MaxResultCount: 0 }),
+      Columns: getExportColumns(columns.value),
+      ExportTitle: t('route.settlement_writeoff'),
+      CompanyNameLabel: t('common.exportMeta.companyName'),
+      ReportPeriodLabel: t('common.exportMeta.reportGeneratedPeriod')
+    });
+    downloadBlob(blob, 'matching_transactions.xlsx');
+    window.$message?.success(t('page.settlement.matchTransactions.exportSuccess'));
+  } catch {
+    window.$message?.error(t('page.settlement.transactions.exportFailed'));
   }
-  const items = checkedRowKeys.value
-    .map(k => selectedRowsByPk.value.get(String(k)))
-    .filter((r): r is MatchTransactionRecord => r != null);
-  if (items.length === 0) {
-    window.$message?.warning(t('page.settlement.transactions.exportSelectFirst'));
-    return;
-  }
-  if (items.length < checkedRowKeys.value.length) {
-    window.$message?.warning(
-      t('page.settlement.transactions.exportPartialSkipped', {
-        exported: items.length,
-        selected: checkedRowKeys.value.length
-      })
-    );
-  }
-  downloadCsv(buildCsv(items), 'matching_transactions.csv');
-  window.$message?.success(t('page.settlement.matchTransactions.exportSuccess'));
 }
 
 function resetFiltersAndSearch() {
@@ -328,15 +300,17 @@ getData();
         </NGi>
       </NGrid>
     </NCard>
-    <NCard :bordered="false" class="flex-1-hidden overflow-auto">
-      <NSpace vertical :size="12">
-        <NSpace>
-          <NButton type="primary" @click="$router.push({ name: 'settlement_writeoff-create' })">
-            {{ t('page.settlement.matchTransactions.newReceipt') }}
-          </NButton>
-          <NButton @click="handleExportSelected">{{ t('page.settlement.matchTransactions.export') }}</NButton>
-        </NSpace>
+    <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
+      <NSpace class="mb-12px flex-shrink-0">
+        <NButton type="primary" @click="$router.push({ name: 'settlement_writeoff-create' })">
+          {{ t('page.settlement.matchTransactions.newReceipt') }}
+        </NButton>
+        <NButton @click="handleExportSelected">{{ t('page.settlement.matchTransactions.export') }}</NButton>
+      </NSpace>
+      <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
+          class="h-full"
+          flex-height
           :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="rows"
@@ -349,7 +323,7 @@ getData();
           striped
           @update:checked-row-keys="handleCheckedRowKeysUpdate"
         />
-      </NSpace>
+      </div>
     </NCard>
   </div>
 </template>

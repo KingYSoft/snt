@@ -1,4 +1,5 @@
 import { request } from '@/service/request';
+import type { ExportColumn } from '@/utils/export-columns';
 
 /** POST /billing/charge-line */
 export interface BillingChargeLineInput {
@@ -149,6 +150,10 @@ export interface BillingTblInput {
   skipCount: number;
   maxResultCount: number;
   filters?: BillingTblFilterItem[];
+  columns?: ExportColumn[];
+  exportTitle?: string;
+  companyNameLabel?: string;
+  reportPeriodLabel?: string;
 }
 
 export async function billingChargeLine(params: BillingChargeLineInput) {
@@ -300,6 +305,28 @@ export async function queryApBilling(params: BillingTblInput) {
     method: 'post',
     data: params
   });
+}
+
+export async function exportArBilling(params: BillingTblInput) {
+  const response = await request<Blob, 'blob'>({
+    url: '/billing/ar/export',
+    method: 'post',
+    data: params,
+    responseType: 'blob'
+  });
+  if (response.error || !response.data) throw response.error || new Error('Export failed');
+  return response.data;
+}
+
+export async function exportApBilling(params: BillingTblInput) {
+  const response = await request<Blob, 'blob'>({
+    url: '/billing/ap/export',
+    method: 'post',
+    data: params,
+    responseType: 'blob'
+  });
+  if (response.error || !response.data) throw response.error || new Error('Export failed');
+  return response.data;
 }
 
 export interface BillingChargeCodeOption {
