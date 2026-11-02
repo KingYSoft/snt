@@ -435,6 +435,20 @@ export interface ShipmentListItem {
   js_rct_carriercontract?: string | null;
   js_rtt_transittime?: string | null;
   js_deliveryduedate?: string | null;
+  /** list display extras (may come from nested/front-compatible payload) */
+  shipper_name?: string | null;
+  consignee_name?: string | null;
+  carrier_name?: string | null;
+  con_master_bill_num?: string | null;
+  con_vessel?: string | null;
+  con_voyage?: string | null;
+  pac_container_type?: string | null;
+  pac_container_count?: number | null;
+  pac_container_num?: string | null;
+  shp_cargo_ready?: string | null;
+  shp_freight_terms?: string | null;
+  shp_delivery_mode?: string | null;
+  shp_job_rep_sales_name?: string | null;
 }
 
 /** GET /shipment/detail — shipper / consignee org address */
