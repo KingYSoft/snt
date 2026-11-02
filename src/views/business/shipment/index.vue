@@ -37,6 +37,7 @@ onActivated(restoreListTabLabel);
 
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsById = ref(new Map<string, ShipmentListItem>());
+const exportLoading = ref(false);
 
 /** 接口部分行 `id` 为空；row-key 不能为 null，否则 naive-ui 勾选报错 */
 function shipmentRowKey(row: ShipmentListItem) {
@@ -273,6 +274,8 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
       break;
     }
     case 'export': {
+      if (exportLoading.value) return;
+      exportLoading.value = true;
       try {
         const blob = await shipmentExport({
           skipCount: 0,
@@ -287,6 +290,8 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
         window.$message?.success($t('page.settlement.transactions.exportSuccess'));
       } catch {
         window.$message?.error($t('page.settlement.transactions.exportFailed'));
+      } finally {
+        exportLoading.value = false;
       }
       break;
     }
@@ -317,6 +322,8 @@ function handleRowClick(row: any) {
 }
 
 async function handleBatchExport() {
+  if (exportLoading.value) return;
+  exportLoading.value = true;
   try {
     const blob = await shipmentExport({
       skipCount: 0,
@@ -331,6 +338,8 @@ async function handleBatchExport() {
     window.$message?.success($t('page.settlement.transactions.exportSuccess'));
   } catch {
     window.$message?.error($t('page.settlement.transactions.exportFailed'));
+  } finally {
+    exportLoading.value = false;
   }
 }
 </script>
@@ -378,7 +387,7 @@ async function handleBatchExport() {
         <NButton type="primary" @click="handleNewShipment">
           {{ $t('common.add') }}
         </NButton>
-        <NButton @click="handleBatchExport">
+        <NButton :loading="exportLoading" @click="handleBatchExport">
           {{ $t('page.business.shipment.export') }}
         </NButton>
       </NSpace>
@@ -391,7 +400,7 @@ async function handleBatchExport() {
           size="small"
           :columns="columns as any"
           :data="tableRows"
-          :loading="loading"
+          :loading="loading || exportLoading"
           :pagination="pagination"
           :row-key="(row: ShipmentListItem) => shipmentRowKey(row)"
           :scroll-x="scrollX"
