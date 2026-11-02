@@ -435,18 +435,20 @@ function handleBatchExport() {
       </NSpace>
     </NCard>
 
-    <NCard :bordered="false" class="flex-1-hidden overflow-auto">
-      <NSpace vertical :size="12">
-        <NSpace>
-          <NButton type="primary" @click="handleNewShipment">
-            {{ $t('common.add') }}
-          </NButton>
-          <NButton @click="handleBatchExport">
-            {{ $t('page.business.shipment.export') }}
-          </NButton>
-        </NSpace>
+    <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
+      <NSpace class="mb-12px flex-shrink-0">
+        <NButton type="primary" @click="handleNewShipment">
+          {{ $t('common.add') }}
+        </NButton>
+        <NButton @click="handleBatchExport">
+          {{ $t('page.business.shipment.export') }}
+        </NButton>
+      </NSpace>
 
+      <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
+          class="h-full"
+          flex-height
           :checked-row-keys="checkedRowKeys"
           size="small"
           :columns="columns as any"
@@ -460,7 +462,7 @@ function handleBatchExport() {
           @update:checked-row-keys="handleCheckedRowKeysUpdate"
           @row-click="handleRowClick"
         />
-      </NSpace>
+      </div>
     </NCard>
   </div>
 </template>

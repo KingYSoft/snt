@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onActivated, onMounted, ref, watch } from 'vue';
+import { computed, onActivated, onMounted, ref, watch } from 'vue';
 import type { DataTableRowKey } from 'naive-ui';
 import { useRoute, useRouter } from 'vue-router';
 import { $t } from '@/locales';
@@ -147,6 +147,10 @@ const {
     pageRef.value = params.page ?? 1;
     pageSizeRef.value = params.pageSize ?? 20;
   }
+});
+
+const scrollX = computed(() => {
+  return columns.value.reduce((acc: number, col: any) => acc + Number(col.width ?? col.minWidth ?? 120), 0);
 });
 
 function handleCheckedRowKeysUpdate(keys: DataTableRowKey[], rowsPayload?: object[]) {
@@ -391,26 +395,28 @@ function handleBatchExport() {
       </div>
     </NCard>
 
-    <NCard :bordered="false" class="flex-1-hidden overflow-auto">
-      <NSpace vertical :size="12">
-        <NSpace>
-          <NButton @click="handleBatchExport">
-            {{ $t('page.business.shipment.export') }}
-          </NButton>
-        </NSpace>
-
+    <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
+      <NSpace class="mb-12px flex-shrink-0">
+        <NButton @click="handleBatchExport">
+          {{ $t('page.business.shipment.export') }}
+        </NButton>
+      </NSpace>
+      <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
+          class="h-full"
+          flex-height
           :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="tableRows"
           :loading="loading"
           :pagination="pagination"
           :row-key="(row: any) => row.jk_pk"
+          :scroll-x="scrollX"
           remote
           striped
           @update:checked-row-keys="handleCheckedRowKeysUpdate"
         />
-      </NSpace>
+      </div>
     </NCard>
   </div>
 </template>

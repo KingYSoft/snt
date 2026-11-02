@@ -465,20 +465,21 @@ function getRowProps(row: SettlementTransactionRecord) {
       </NGrid>
     </NCard>
 
-    <NCard :bordered="false" class="flex-1-hidden overflow-auto">
-      <NSpace vertical :size="12">
-        <NSpace justify="space-between">
-          <NSpace>
-            <NButton v-if="false" type="primary" @click="handleCreate">
-              {{ t('common.add') }}
-            </NButton>
-            <NButton @click="handleExportSelected">
-              {{ t('page.settlement.transactions.export') }}
-            </NButton>
-          </NSpace>
+    <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
+      <NSpace class="mb-12px flex-shrink-0" justify="space-between">
+        <NSpace>
+          <NButton v-if="false" type="primary" @click="handleCreate">
+            {{ t('common.add') }}
+          </NButton>
+          <NButton @click="handleExportSelected">
+            {{ t('page.settlement.transactions.export') }}
+          </NButton>
         </NSpace>
-
+      </NSpace>
+      <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
+          class="h-full"
+          flex-height
           :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="rows"
@@ -491,7 +492,7 @@ function getRowProps(row: SettlementTransactionRecord) {
           striped
           @update:checked-row-keys="handleCheckedRowKeysUpdate"
         />
-      </NSpace>
+      </div>
     </NCard>
   </div>
 </template>
