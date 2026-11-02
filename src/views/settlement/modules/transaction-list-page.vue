@@ -46,6 +46,7 @@ const router = useRouter();
 
 const showMoreFilters = ref(true);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
+const exportLoading = ref(false);
 /** 勾选行的完整数据：Naive 在远程分页下只对内存中的节点解析得到 row，翻页时用当前页 rows 补全 */
 const selectedRowsByPk = ref(new Map<string, SettlementTransactionRecord>());
 
@@ -219,6 +220,9 @@ function toggleMoreFilters() {
 }
 
 async function handleExportSelected() {
+  if (exportLoading.value) return;
+
+  exportLoading.value = true;
   try {
     const exportFn = props.type === 'receivable' ? exportReceivableTransactions : exportPayableTransactions;
     const blob = await exportFn({
@@ -232,6 +236,8 @@ async function handleExportSelected() {
     window.$message?.success(t('page.settlement.transactions.exportSuccess'));
   } catch {
     window.$message?.error(t('page.settlement.transactions.exportFailed'));
+  } finally {
+    exportLoading.value = false;
   }
 }
 
@@ -245,6 +251,9 @@ function handleCreate() {
 
 async function handleRowAction(key: SettlementTransactionActionKey, row: SettlementTransactionRecord) {
   if (key === 'export') {
+    if (exportLoading.value) return;
+
+    exportLoading.value = true;
     try {
       const exportFn = props.type === 'receivable' ? exportReceivableTransactions : exportPayableTransactions;
       const blob = await exportFn({
@@ -267,6 +276,8 @@ async function handleRowAction(key: SettlementTransactionActionKey, row: Settlem
       );
     } catch {
       window.$message?.error(t('page.settlement.transactions.exportFailed'));
+    } finally {
+      exportLoading.value = false;
     }
     return;
   }
@@ -402,7 +413,7 @@ function getRowProps(row: SettlementTransactionRecord) {
           <NButton v-if="false" type="primary" @click="handleCreate">
             {{ t('common.add') }}
           </NButton>
-          <NButton @click="handleExportSelected">
+          <NButton :loading="exportLoading" @click="handleExportSelected">
             {{ t('page.settlement.transactions.export') }}
           </NButton>
         </NSpace>
@@ -414,7 +425,7 @@ function getRowProps(row: SettlementTransactionRecord) {
           :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="rows"
-          :loading="loading"
+          :loading="loading || exportLoading"
           :pagination="pagination"
           :row-key="row => row.pk"
           :row-props="getRowProps"

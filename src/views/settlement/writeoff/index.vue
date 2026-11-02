@@ -48,6 +48,7 @@ const filters = reactive<FilterState>(createDefaultFilters());
 const showMoreFilters = ref(true);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsByPk = ref(new Map<string, MatchTransactionRecord>());
+const exportLoading = ref(false);
 
 const field1KeyOptions = computed(() => [
   { label: t('page.settlement.matchTransactions.etd'), value: 'etd' },
@@ -162,6 +163,9 @@ watch(rows, newRows => {
 
 async function handleRowAction(key: MatchTransactionActionKey, row: MatchTransactionRecord) {
   if (key === 'export') {
+    if (exportLoading.value) return;
+
+    exportLoading.value = true;
     try {
       const blob = await matchTransactionsExport({
         ...buildQueryParams({ SkipCount: 0, MaxResultCount: 0 }),
@@ -175,6 +179,8 @@ async function handleRowAction(key: MatchTransactionActionKey, row: MatchTransac
       window.$message?.success(t('page.settlement.matchTransactions.exportSuccess'));
     } catch {
       window.$message?.error(t('page.settlement.transactions.exportFailed'));
+    } finally {
+      exportLoading.value = false;
     }
     return;
   }
@@ -206,6 +212,9 @@ function getRowProps(row: MatchTransactionRecord) {
 }
 
 async function handleExportSelected() {
+  if (exportLoading.value) return;
+
+  exportLoading.value = true;
   try {
     const blob = await matchTransactionsExport({
       ...buildQueryParams({ SkipCount: 0, MaxResultCount: 0 }),
@@ -218,6 +227,8 @@ async function handleExportSelected() {
     window.$message?.success(t('page.settlement.matchTransactions.exportSuccess'));
   } catch {
     window.$message?.error(t('page.settlement.transactions.exportFailed'));
+  } finally {
+    exportLoading.value = false;
   }
 }
 
@@ -305,7 +316,9 @@ getData();
         <NButton type="primary" @click="$router.push({ name: 'settlement_writeoff-create' })">
           {{ t('page.settlement.matchTransactions.newReceipt') }}
         </NButton>
-        <NButton @click="handleExportSelected">{{ t('page.settlement.matchTransactions.export') }}</NButton>
+        <NButton :loading="exportLoading" @click="handleExportSelected">
+          {{ t('page.settlement.matchTransactions.export') }}
+        </NButton>
       </NSpace>
       <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
@@ -314,7 +327,7 @@ getData();
           :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="rows"
-          :loading="loading"
+          :loading="loading || exportLoading"
           :pagination="pagination"
           :row-key="(r: any) => r.pk"
           :row-props="getRowProps"

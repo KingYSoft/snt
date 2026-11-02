@@ -2,13 +2,7 @@
  * 结算模块 API 服务
  */
 
-import {
-  exportApBilling,
-  exportArBilling,
-  queryArBilling,
-  queryApBilling,
-  type BillingTblInput
-} from './billing';
+import { exportApBilling, exportArBilling, queryArBilling, queryApBilling, type BillingTblInput } from './billing';
 import { request } from '@/service/request';
 import type { ExportColumn } from '@/utils/export-columns';
 
