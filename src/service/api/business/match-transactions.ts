@@ -36,6 +36,7 @@ export interface MatchTransactionQueryParams {
   EtdEnd?: string;
   PaymentDateStart?: string;
   PaymentDateEnd?: string;
+  SelectedPks?: string[];
   Columns?: ExportColumn[];
   ExportTitle?: string;
   CompanyNameLabel?: string;

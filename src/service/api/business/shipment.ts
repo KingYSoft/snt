@@ -512,6 +512,7 @@ export interface ShipmentQueryParams {
     start?: string;
     end?: string;
   }>;
+  selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
   companyNameLabel?: string;
