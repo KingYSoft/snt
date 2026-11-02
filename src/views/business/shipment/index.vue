@@ -8,12 +8,15 @@ import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
 import {
   shipmentTbl,
+  shipmentExport,
   shipmentDeactivate,
   shipmentReopen,
   shipmentCopy,
   shipmentPdfGenerate
 } from '@/service/api/business/shipment';
 import type { ShipmentListItem } from '@/service/api/business/shipment';
+import { downloadBlob } from '@/utils/download';
+import { getExportColumns } from '@/utils/export-columns';
 import { getShipmentColumns } from './modules/columns';
 import type { ShipmentActionKey } from './modules/columns';
 
@@ -180,78 +183,6 @@ watch(tableRows, newRows => {
   }
 });
 
-function csvCell(value: unknown) {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  const s = String(value);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
-
-function formatIsoDate(val: unknown) {
-  if (!val) return '';
-  const date = new Date(val as string);
-  if (Number.isNaN(date.getTime())) return '';
-  return date.toISOString().split('T')[0];
-}
-
-function formatGrossWeight(row: ShipmentListItem) {
-  return row.js_actualweight ? `${row.js_actualweight} ${row.js_unitofweight || 'KG'}` : '';
-}
-
-function formatCbm(row: ShipmentListItem) {
-  return row.js_actualvolume ? `${row.js_actualvolume} ${row.js_unitofvolume || 'M3'}` : '';
-}
-
-function buildShipmentCsv(items: ShipmentListItem[]) {
-  const header = [
-    $t('page.business.shipment.table.shipmentNo'),
-    $t('page.business.shipment.table.housebill'),
-    $t('page.business.shipment.table.destination'),
-    $t('page.business.shipment.table.origin'),
-    $t('page.business.shipment.table.goodsDescription'),
-    $t('page.business.shipment.table.status'),
-    $t('page.business.shipment.table.etd'),
-    $t('page.business.shipment.table.eta'),
-    $t('page.business.shipment.table.grossWeight'),
-    $t('page.business.shipment.table.cbm'),
-    $t('page.business.shipment.table.ctns')
-  ].join(',');
-
-  const lines = items.map(item =>
-    [
-      csvCell(item.js_uniqueconsignref),
-      csvCell(item.js_housebill),
-      csvCell(item.js_rl_nkdestination),
-      csvCell(item.js_rl_nkorigin),
-      csvCell(item.js_goodsdescription),
-      csvCell(item.js_shipmentstatus),
-      csvCell(formatIsoDate(item.js_e_dep)),
-      csvCell(formatIsoDate(item.js_e_arv)),
-      csvCell(formatGrossWeight(item)),
-      csvCell(formatCbm(item)),
-      csvCell(item.js_outerpacks)
-    ].join(',')
-  );
-
-  return `${header}\n${lines.join('\n')}`;
-}
-
-function downloadCsv(csv: string, fileName: string) {
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', fileName);
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-}
-
 const scrollX = computed(() => {
   return columns.value.reduce((acc: number, col: any) => acc + Number(col.width ?? col.minWidth ?? 120), 0);
 });
@@ -342,8 +273,21 @@ async function handleMenuAction(key: ShipmentActionKey, row: any) {
       break;
     }
     case 'export': {
-      downloadCsv(buildShipmentCsv([row]), `${row.js_uniqueconsignref || row.id}.csv`);
-      window.$message?.success($t('page.settlement.transactions.exportSuccess'));
+      try {
+        const blob = await shipmentExport({
+          skipCount: 0,
+          maxResultCount: 1,
+          filters: [{ key: 'js_uniqueconsignref', op: '=', val: row.js_uniqueconsignref || '' }],
+          columns: getExportColumns(columns.value),
+          exportTitle: $t('route.business_shipment'),
+          companyNameLabel: $t('common.exportMeta.companyName'),
+          reportPeriodLabel: $t('common.exportMeta.reportGeneratedPeriod')
+        });
+        downloadBlob(blob, `${row.js_uniqueconsignref || row.id}.xlsx`);
+        window.$message?.success($t('page.settlement.transactions.exportSuccess'));
+      } catch {
+        window.$message?.error($t('page.settlement.transactions.exportFailed'));
+      }
       break;
     }
     case 'batchprint': {
@@ -372,28 +316,22 @@ function handleRowClick(row: any) {
   navigateToEdit(row);
 }
 
-function handleBatchExport() {
-  if (checkedRowKeys.value.length === 0) {
-    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
-    return;
+async function handleBatchExport() {
+  try {
+    const blob = await shipmentExport({
+      skipCount: 0,
+      maxResultCount: 0,
+      filters: buildFilters(),
+      columns: getExportColumns(columns.value),
+      exportTitle: $t('route.business_shipment'),
+      companyNameLabel: $t('common.exportMeta.companyName'),
+      reportPeriodLabel: $t('common.exportMeta.reportGeneratedPeriod')
+    });
+    downloadBlob(blob, 'Shipments.xlsx');
+    window.$message?.success($t('page.settlement.transactions.exportSuccess'));
+  } catch {
+    window.$message?.error($t('page.settlement.transactions.exportFailed'));
   }
-  const items = checkedRowKeys.value
-    .map(k => selectedRowsById.value.get(String(k)))
-    .filter((r): r is ShipmentListItem => r != null);
-  if (items.length === 0) {
-    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
-    return;
-  }
-  if (items.length < checkedRowKeys.value.length) {
-    window.$message?.warning(
-      $t('page.settlement.transactions.exportPartialSkipped', {
-        exported: items.length,
-        selected: checkedRowKeys.value.length
-      })
-    );
-  }
-  downloadCsv(buildShipmentCsv(items), 'Shipments.csv');
-  window.$message?.success($t('page.settlement.transactions.exportSuccess'));
 }
 </script>
 
@@ -435,18 +373,20 @@ function handleBatchExport() {
       </NSpace>
     </NCard>
 
-    <NCard :bordered="false" class="flex-1-hidden overflow-auto">
-      <NSpace vertical :size="12">
-        <NSpace>
-          <NButton type="primary" @click="handleNewShipment">
-            {{ $t('common.add') }}
-          </NButton>
-          <NButton @click="handleBatchExport">
-            {{ $t('page.business.shipment.export') }}
-          </NButton>
-        </NSpace>
+    <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
+      <NSpace class="mb-12px flex-shrink-0">
+        <NButton type="primary" @click="handleNewShipment">
+          {{ $t('common.add') }}
+        </NButton>
+        <NButton @click="handleBatchExport">
+          {{ $t('page.business.shipment.export') }}
+        </NButton>
+      </NSpace>
 
+      <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
+          class="h-full"
+          flex-height
           :checked-row-keys="checkedRowKeys"
           size="small"
           :columns="columns as any"
@@ -460,7 +400,7 @@ function handleBatchExport() {
           @update:checked-row-keys="handleCheckedRowKeysUpdate"
           @row-click="handleRowClick"
         />
-      </NSpace>
+      </div>
     </NCard>
   </div>
 </template>

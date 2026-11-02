@@ -402,6 +402,10 @@ declare namespace App {
           required: string;
           success: string;
         };
+        exportMeta: {
+          companyName: string;
+          reportGeneratedPeriod: string;
+        };
       };
       request: {
         logout: string;
@@ -835,6 +839,16 @@ declare namespace App {
               shippedOnBoardDate: string;
               consolChargeable: string;
               cancelled: string;
+              consolMode: string;
+              etd: string;
+              eta: string;
+              vessel: string;
+              voyage: string;
+              carrier: string;
+              ctrType: string;
+              ctrCount: string;
+              createUser: string;
+              modifyUser: string;
             };
             tab: {
               details: string;
@@ -1061,6 +1075,26 @@ declare namespace App {
               grossWeight: string;
               cbm: string;
               ctns: string;
+              transportMode: string;
+              containerMode: string;
+              consolNo: string;
+              masterBill: string;
+              onBoardDate: string;
+              chargeableWeight: string;
+              unit: string;
+              freightTerm: string;
+              inco: string;
+              deliveryMode: string;
+              releaseType: string;
+              ctrType: string;
+              ctrCount: string;
+              ctrNo: string;
+              carrier: string;
+              vessel: string;
+              voyage: string;
+              createUser: string;
+              modifyUser: string;
+              salesRep: string;
             };
             messages: {
               exportFailed: string;

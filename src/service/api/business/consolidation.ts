@@ -1,4 +1,5 @@
 import { request } from '@/service/request';
+import type { ExportColumn } from '@/utils/export-columns';
 
 export interface ConsolidationFilter {
   key: string;
@@ -13,6 +14,10 @@ export interface ConsolidationQueryParams {
   SkipCount: number;
   MaxResultCount: number;
   filters?: ConsolidationFilter[];
+  columns?: ExportColumn[];
+  exportTitle?: string;
+  companyNameLabel?: string;
+  reportPeriodLabel?: string;
 }
 
 export async function consolidationQueryPage(params: ConsolidationQueryParams) {
@@ -32,12 +37,14 @@ export async function consolidationGetById(id: number | string) {
 }
 
 export async function consolidationExport(params: ConsolidationQueryParams) {
-  return request({
-    url: '/api/con-consol/export',
+  const response = await request<Blob, 'blob'>({
+    url: '/consolidation/export',
     method: 'post',
     data: params,
     responseType: 'blob'
   });
+  if (response.error || !response.data) throw response.error || new Error('Export failed');
+  return response.data;
 }
 
 /**

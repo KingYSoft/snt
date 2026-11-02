@@ -6,7 +6,14 @@ import { useI18n } from 'vue-i18n';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform } from '@/utils/maintain/transform';
 import type { SettlementTransactionQueryParams, SettlementTransactionRecord } from '@/service/api/business/settlement';
-import { queryPayableTransactions, queryReceivableTransactions } from '@/service/api/business/settlement';
+import {
+  exportPayableTransactions,
+  exportReceivableTransactions,
+  queryPayableTransactions,
+  queryReceivableTransactions
+} from '@/service/api/business/settlement';
+import { downloadBlob } from '@/utils/download';
+import { getExportColumns } from '@/utils/export-columns';
 import { getSettlementTransactionColumns, type SettlementTransactionActionKey } from './transaction-columns';
 
 type TransactionPageType = 'receivable' | 'payable';
@@ -211,111 +218,21 @@ function toggleMoreFilters() {
   showMoreFilters.value = !showMoreFilters.value;
 }
 
-// --- CSV export ---
-function csvCell(value: unknown) {
-  if (value === null || value === undefined) {
-    return '';
+async function handleExportSelected() {
+  try {
+    const exportFn = props.type === 'receivable' ? exportReceivableTransactions : exportPayableTransactions;
+    const blob = await exportFn({
+      ...buildParams({ skipCount: 0, maxResultCount: 0 }),
+      columns: getExportColumns(columns.value),
+      exportTitle: title.value,
+      companyNameLabel: t('common.exportMeta.companyName'),
+      reportPeriodLabel: t('common.exportMeta.reportGeneratedPeriod')
+    });
+    downloadBlob(blob, props.type === 'receivable' ? 'receivable_transactions.xlsx' : 'payable_transactions.xlsx');
+    window.$message?.success(t('page.settlement.transactions.exportSuccess'));
+  } catch {
+    window.$message?.error(t('page.settlement.transactions.exportFailed'));
   }
-
-  const s = String(value);
-
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-
-  return s;
-}
-
-function buildCsv(items: SettlementTransactionRecord[]) {
-  const header = [
-    t('page.settlement.transactions.invoiceDate'),
-    t('page.settlement.transactions.ledger'),
-    t('page.settlement.transactions.type'),
-    t('page.settlement.transactions.jobInvoiceNumber'),
-    t('page.settlement.transactions.transactionNum'),
-    t('page.settlement.transactions.creditorDebtor'),
-    t('page.settlement.transactions.creditorDebtorFullName'),
-    t('page.settlement.transactions.invoiceDescription'),
-    t('page.settlement.transactions.postDate'),
-    t('page.settlement.transactions.dueDate'),
-    t('page.settlement.transactions.currency'),
-    t('page.settlement.transactions.transAmount'),
-    t('page.settlement.transactions.exchangeRate'),
-    t('page.settlement.transactions.localAmount'),
-    t('page.settlement.transactions.branch'),
-    t('page.settlement.transactions.department'),
-    t('page.settlement.transactions.taxAmount'),
-    t('page.settlement.transactions.outstandingAmount'),
-    t('page.settlement.transactions.fullyPaidDate'),
-    t('page.settlement.transactions.jobNumber'),
-    t('page.settlement.transactions.canceled')
-  ].join(',');
-
-  const lines = items.map(item =>
-    [
-      csvCell(item.invoice_date),
-      csvCell(item.ledger),
-      csvCell(item.tran_type),
-      csvCell(item.job_invoice_number),
-      csvCell(item.transaction_num),
-      csvCell(item.creditor_debtor),
-      csvCell(item.creditor_debtor_full_name),
-      csvCell(item.invoice_description),
-      csvCell(item.post_date),
-      csvCell(item.due_date),
-      csvCell(item.currency),
-      csvCell(item.trans_amount),
-      csvCell(item.exchange_rate),
-      csvCell(item.local_amount),
-      csvCell(item.branch),
-      csvCell(item.department),
-      csvCell(item.tax_amount),
-      csvCell(item.outstanding_amount),
-      csvCell(item.fully_paid_date),
-      csvCell(item.job_number),
-      csvCell(item.canceled)
-    ].join(',')
-  );
-
-  return `${header}\n${lines.join('\n')}`;
-}
-
-function downloadCsv(items: SettlementTransactionRecord[], fileName: string) {
-  const csv = buildCsv(items);
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', fileName);
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-}
-
-function handleExportSelected() {
-  if (checkedRowKeys.value.length === 0) {
-    window.$message?.warning(t('page.settlement.transactions.exportSelectFirst'));
-    return;
-  }
-  const items = checkedRowKeys.value
-    .map(k => selectedRowsByPk.value.get(String(k)))
-    .filter((r): r is SettlementTransactionRecord => r != null);
-  if (items.length === 0) {
-    window.$message?.warning(t('page.settlement.transactions.exportSelectFirst'));
-    return;
-  }
-  if (items.length < checkedRowKeys.value.length) {
-    window.$message?.warning(
-      t('page.settlement.transactions.exportPartialSkipped', {
-        exported: items.length,
-        selected: checkedRowKeys.value.length
-      })
-    );
-  }
-  const fileName = props.type === 'receivable' ? 'receivable_transactions.csv' : 'payable_transactions.csv';
-  downloadCsv(items, fileName);
-  window.$message?.success(t('page.settlement.transactions.exportSuccess'));
 }
 
 function handleCreate() {
@@ -326,17 +243,31 @@ function handleCreate() {
   }
 }
 
-function handleRowAction(key: SettlementTransactionActionKey, row: SettlementTransactionRecord) {
+async function handleRowAction(key: SettlementTransactionActionKey, row: SettlementTransactionRecord) {
   if (key === 'export') {
-    downloadCsv(
-      [row],
-      `${props.type === 'receivable' ? 'receivable' : 'payable'}_${row.transaction_num || row.id}.csv`
-    );
-    window.$message?.success(
-      t('page.settlement.transactions.exportRowSuccess', {
-        no: row.transaction_num
-      })
-    );
+    try {
+      const exportFn = props.type === 'receivable' ? exportReceivableTransactions : exportPayableTransactions;
+      const blob = await exportFn({
+        ...buildParams({ skipCount: 0, maxResultCount: 0 }),
+        keywordField: 'transaction_num',
+        keywordValue: row.transaction_num || row.id,
+        columns: getExportColumns(columns.value),
+        exportTitle: title.value,
+        companyNameLabel: t('common.exportMeta.companyName'),
+        reportPeriodLabel: t('common.exportMeta.reportGeneratedPeriod')
+      });
+      downloadBlob(
+        blob,
+        `${props.type === 'receivable' ? 'receivable_transactions' : 'payable_transactions'}_${row.transaction_num || row.id}.xlsx`
+      );
+      window.$message?.success(
+        t('page.settlement.transactions.exportRowSuccess', {
+          no: row.transaction_num
+        })
+      );
+    } catch {
+      window.$message?.error(t('page.settlement.transactions.exportFailed'));
+    }
     return;
   }
 
@@ -465,20 +396,21 @@ function getRowProps(row: SettlementTransactionRecord) {
       </NGrid>
     </NCard>
 
-    <NCard :bordered="false" class="flex-1-hidden overflow-auto">
-      <NSpace vertical :size="12">
-        <NSpace justify="space-between">
-          <NSpace>
-            <NButton v-if="false" type="primary" @click="handleCreate">
-              {{ t('common.add') }}
-            </NButton>
-            <NButton @click="handleExportSelected">
-              {{ t('page.settlement.transactions.export') }}
-            </NButton>
-          </NSpace>
+    <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
+      <NSpace class="mb-12px flex-shrink-0" justify="space-between">
+        <NSpace>
+          <NButton v-if="false" type="primary" @click="handleCreate">
+            {{ t('common.add') }}
+          </NButton>
+          <NButton @click="handleExportSelected">
+            {{ t('page.settlement.transactions.export') }}
+          </NButton>
         </NSpace>
-
+      </NSpace>
+      <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
+          class="h-full"
+          flex-height
           :checked-row-keys="checkedRowKeys"
           :columns="columns as any"
           :data="rows"
@@ -491,7 +423,7 @@ function getRowProps(row: SettlementTransactionRecord) {
           striped
           @update:checked-row-keys="handleCheckedRowKeysUpdate"
         />
-      </NSpace>
+      </div>
     </NCard>
   </div>
 </template>

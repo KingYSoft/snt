@@ -82,6 +82,10 @@ const local: App.I18n.Schema = {
       selectBranch: '请选择分公司',
       required: '请选择公司和分公司',
       success: '切换分公司成功'
+    },
+    exportMeta: {
+      companyName: '公司名称：',
+      reportGeneratedPeriod: '报表生成期间：'
     }
   },
   request: {
@@ -407,7 +411,17 @@ const local: App.I18n.Schema = {
           dischargePort: '卸货港',
           shippedOnBoardDate: '装船日期',
           consolChargeable: '计费体积',
-          cancelled: '已取消'
+          cancelled: '已取消',
+          consolMode: '装箱方式',
+          etd: 'ETD',
+          eta: 'ETA',
+          vessel: '船名',
+          voyage: '航次',
+          carrier: '承运人',
+          ctrType: '箱型',
+          ctrCount: '箱量',
+          createUser: '创建人',
+          modifyUser: '修改人'
         },
         tab: {
           details: '详情',
@@ -633,7 +647,27 @@ const local: App.I18n.Schema = {
           etd: 'ETD',
           grossWeight: '毛重',
           cbm: '体积',
-          ctns: '件数'
+          ctns: '件数',
+          transportMode: '运输方式',
+          containerMode: '装箱方式',
+          consolNo: '拼箱号',
+          masterBill: '主单号',
+          onBoardDate: '装船日期',
+          chargeableWeight: '计费重量',
+          unit: '单位',
+          freightTerm: '运费条款',
+          inco: '贸易术语',
+          deliveryMode: '交付方式',
+          releaseType: '放货方式',
+          ctrType: '箱型',
+          ctrCount: '箱量',
+          ctrNo: '箱号',
+          carrier: '承运人',
+          vessel: '船名',
+          voyage: '航次',
+          createUser: '创建人',
+          modifyUser: '修改人',
+          salesRep: '销售代表'
         },
         messages: {
           exportFailed: '导出失败',

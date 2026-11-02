@@ -3,6 +3,7 @@
  */
 
 import { request } from '@/service/request';
+import type { ExportColumn } from '@/utils/export-columns';
 
 // ==================== 类型定义 ====================
 
@@ -30,10 +31,15 @@ export interface MatchTransactionQueryParams {
   Shipper?: string;
   JobNumber?: string;
   MatchNumber?: string;
+  Description?: string;
   EtdStart?: string;
   EtdEnd?: string;
   PaymentDateStart?: string;
   PaymentDateEnd?: string;
+  Columns?: ExportColumn[];
+  ExportTitle?: string;
+  CompanyNameLabel?: string;
+  ReportPeriodLabel?: string;
 }
 
 /** 匹配明细查询参数 */
@@ -215,7 +221,7 @@ export function mapMatchTransactionItem(raw: Record<string, any>): Partial<Match
   };
 }
 
-/** 列表行：补全默认值，供表格 / CSV 使用 */
+/** 列表行：补全默认值，供表格使用 */
 export function normalizeMatchTransactionRecord(raw: Record<string, any>, index?: number): MatchTransactionRecord {
   const m = mapMatchTransactionItem(raw);
   return {
@@ -300,6 +306,18 @@ export function matchTransactionsQueryPage(params: MatchTransactionQueryParams) 
     url: '/match-transactions/query-page',
     method: 'get',
     params
+  });
+}
+
+export function matchTransactionsExport(params: MatchTransactionQueryParams) {
+  return request<Blob, 'blob'>({
+    url: '/match-transactions/export',
+    method: 'post',
+    data: params,
+    responseType: 'blob'
+  }).then(response => {
+    if (response.error || !response.data) throw response.error || new Error('Export failed');
+    return response.data;
   });
 }
 

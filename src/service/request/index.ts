@@ -22,6 +22,9 @@ export const request = createFlatRequest(
       refreshTokenPromise: null
     } as RequestInstanceState,
     transform(response: AxiosResponse<App.Service.Response<any>>) {
+      if (response.config.responseType === 'blob') {
+        return response.data;
+      }
       // For successful requests, return the data
       // For errors with errCode === -1, show error message and return the full response
       if ('errCode' in response.data && response.data.errCode === -1) {

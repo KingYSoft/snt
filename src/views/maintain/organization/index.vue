@@ -121,13 +121,14 @@ function handleReset() {
       </NSpace>
     </NCard>
 
-    <NCard :bordered="false" class="flex-1-hidden overflow-auto">
-      <NSpace vertical :size="12">
-        <NButton type="primary" @click="handleAdd">
-          {{ $t('common.add') }}
-        </NButton>
-
+    <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
+      <NButton class="mb-12px flex-shrink-0 self-start" type="primary" @click="handleAdd">
+        {{ $t('common.add') }}
+      </NButton>
+      <div class="min-h-0 flex-1 overflow-hidden">
         <NDataTable
+          class="h-full"
+          flex-height
           :columns="columns as any"
           :data="data"
           :loading="loading || deleteLoading"
@@ -136,7 +137,7 @@ function handleReset() {
           remote
           striped
         />
-      </NSpace>
+      </div>
     </NCard>
   </div>
 </template>
