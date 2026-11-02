@@ -36,6 +36,7 @@ export interface MatchTransactionQueryParams {
   EtdEnd?: string;
   PaymentDateStart?: string;
   PaymentDateEnd?: string;
+  SelectedPks?: string[];
   Columns?: ExportColumn[];
   ExportTitle?: string;
   CompanyNameLabel?: string;
@@ -314,7 +315,8 @@ export function matchTransactionsExport(params: MatchTransactionQueryParams) {
     url: '/match-transactions/export',
     method: 'post',
     data: params,
-    responseType: 'blob'
+    responseType: 'blob',
+    timeout: 300 * 1000
   }).then(response => {
     if (response.error || !response.data) throw response.error || new Error('Export failed');
     return response.data;

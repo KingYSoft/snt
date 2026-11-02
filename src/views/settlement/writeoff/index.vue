@@ -218,6 +218,7 @@ async function handleExportSelected() {
   try {
     const blob = await matchTransactionsExport({
       ...buildQueryParams({ SkipCount: 0, MaxResultCount: 0 }),
+      SelectedPks: [...selectedRowsByPk.value.keys()],
       Columns: getExportColumns(columns.value),
       ExportTitle: t('route.settlement_writeoff'),
       CompanyNameLabel: t('common.exportMeta.companyName'),

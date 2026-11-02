@@ -512,6 +512,7 @@ export interface ShipmentQueryParams {
     start?: string;
     end?: string;
   }>;
+  selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
   companyNameLabel?: string;
@@ -704,7 +705,8 @@ export async function shipmentExport(params: ShipmentQueryParams) {
     url: '/shipment/export',
     method: 'post',
     data: params,
-    responseType: 'blob'
+    responseType: 'blob',
+    timeout: 300 * 1000
   });
   if (response.error || !response.data) throw response.error || new Error('Export failed');
   return response.data;

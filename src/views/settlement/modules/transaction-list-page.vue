@@ -227,6 +227,7 @@ async function handleExportSelected() {
     const exportFn = props.type === 'receivable' ? exportReceivableTransactions : exportPayableTransactions;
     const blob = await exportFn({
       ...buildParams({ skipCount: 0, maxResultCount: 0 }),
+      selectedPks: [...selectedRowsByPk.value.keys()],
       columns: getExportColumns(columns.value),
       exportTitle: title.value,
       companyNameLabel: t('common.exportMeta.companyName'),

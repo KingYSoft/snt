@@ -150,6 +150,7 @@ export interface BillingTblInput {
   skipCount: number;
   maxResultCount: number;
   filters?: BillingTblFilterItem[];
+  selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
   companyNameLabel?: string;
@@ -312,7 +313,8 @@ export async function exportArBilling(params: BillingTblInput) {
     url: '/billing/ar/export',
     method: 'post',
     data: params,
-    responseType: 'blob'
+    responseType: 'blob',
+    timeout: 300 * 1000
   });
   if (response.error || !response.data) throw response.error || new Error('Export failed');
   return response.data;
@@ -323,7 +325,8 @@ export async function exportApBilling(params: BillingTblInput) {
     url: '/billing/ap/export',
     method: 'post',
     data: params,
-    responseType: 'blob'
+    responseType: 'blob',
+    timeout: 300 * 1000
   });
   if (response.error || !response.data) throw response.error || new Error('Export failed');
   return response.data;

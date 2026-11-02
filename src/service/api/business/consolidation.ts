@@ -14,6 +14,7 @@ export interface ConsolidationQueryParams {
   SkipCount: number;
   MaxResultCount: number;
   filters?: ConsolidationFilter[];
+  selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
   companyNameLabel?: string;
@@ -41,7 +42,8 @@ export async function consolidationExport(params: ConsolidationQueryParams) {
     url: '/consolidation/export',
     method: 'post',
     data: params,
-    responseType: 'blob'
+    responseType: 'blob',
+    timeout: 300 * 1000
   });
   if (response.error || !response.data) throw response.error || new Error('Export failed');
   return response.data;

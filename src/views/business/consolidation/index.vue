@@ -255,6 +255,7 @@ async function handleBatchExport() {
       SkipCount: 0,
       MaxResultCount: 0,
       filters: buildFilters(),
+      selectedPks: [...selectedRowsByPk.value.keys()],
       columns: getExportColumns(columns.value),
       exportTitle: $t('route.business_consolidation'),
       companyNameLabel: $t('common.exportMeta.companyName'),

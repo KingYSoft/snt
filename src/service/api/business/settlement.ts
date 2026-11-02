@@ -206,6 +206,7 @@ export interface SettlementTransactionQueryParams {
   branch?: string;
   department?: string;
   canceled?: string;
+  selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
   companyNameLabel?: string;
@@ -678,6 +679,7 @@ export function exportReceivableTransactions(params: SettlementTransactionQueryP
     skipCount: 0,
     maxResultCount: 0,
     filters: buildBillingFilters(params),
+    selectedPks: params.selectedPks,
     columns: params.columns,
     exportTitle: params.exportTitle,
     companyNameLabel: params.companyNameLabel,
@@ -690,6 +692,7 @@ export function exportPayableTransactions(params: SettlementTransactionQueryPara
     skipCount: 0,
     maxResultCount: 0,
     filters: buildBillingFilters(params),
+    selectedPks: params.selectedPks,
     columns: params.columns,
     exportTitle: params.exportTitle,
     companyNameLabel: params.companyNameLabel,

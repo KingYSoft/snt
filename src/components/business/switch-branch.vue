@@ -124,7 +124,8 @@ async function confirm() {
   try {
     loading.value = true;
     const { data } = await switchBranch({
-      branch_pks: branch?.branch_pks ?? []
+      company_pk: selectCompanyPK.value,
+      branch_pk: String(branch?.value ?? selectBranchPK.value)
     });
     if (data?.accessToken) {
       sessionStorage.setItem('token', data.accessToken);
