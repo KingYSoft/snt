@@ -6,7 +6,13 @@ import { $t } from '@/locales';
 import { useTabStore } from '@/store/modules/tab';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform, buildSjcPaginationParams } from '@/utils/maintain/transform';
-import { consolidationQueryPage, type ConsolidationFilter } from '@/service/api/business/consolidation';
+import {
+  consolidationExport,
+  consolidationQueryPage,
+  type ConsolidationFilter
+} from '@/service/api/business/consolidation';
+import { downloadBlob } from '@/utils/download';
+import { getExportColumns } from '@/utils/export-columns';
 import { getConsolidationColumns, type ConsolidationActionKey } from './modules/columns';
 
 type ConsolidationRow = Record<string, any>;
@@ -183,77 +189,6 @@ watch(tableRows, newRows => {
   }
 });
 
-function csvCell(value: unknown) {
-  if (value === null || value === undefined) {
-    return '';
-  }
-  const s = String(value);
-  if (/[",\n\r]/.test(s)) {
-    return `"${s.replace(/"/g, '""')}"`;
-  }
-  return s;
-}
-
-// function formatShippedOnBoard(row: ConsolidationRow) {
-//   const date = row.jk_shippedonboarddate as string | null | undefined;
-//   if (!date) return '';
-//   const dateObj = new Date(date);
-//   if (Number.isNaN(dateObj.getTime())) return '';
-//   return dateObj.toISOString().split('T')[0];
-// }
-
-function formatCancelledCell(row: ConsolidationRow) {
-  const normalized = String(row.jk_iscancelled ?? '').toLowerCase();
-  const isCancelledRow = normalized === '1' || normalized === 'true' || normalized === 'y' || normalized === 'yes';
-  return isCancelledRow ? $t('common.yesOrNo.yes') : $t('common.yesOrNo.no');
-}
-
-function buildConsolidationCsv(items: ConsolidationRow[]) {
-  const header = [
-    $t('page.business.consolidation.table.consolidationNo'),
-    $t('page.business.consolidation.table.masterBillNo'),
-    // $t('page.business.consolidation.table.bookingReference'),
-    // $t('page.business.consolidation.table.consolStatus'),
-    $t('page.business.consolidation.table.phase'),
-    $t('page.business.consolidation.table.transportMode'),
-    $t('page.business.consolidation.table.loadPort'),
-    $t('page.business.consolidation.table.dischargePort'),
-    // $t('page.business.consolidation.table.shippedOnBoardDate'),
-    $t('page.business.consolidation.table.consolChargeable'),
-    $t('page.business.consolidation.table.cancelled')
-  ].join(',');
-
-  const lines = items.map(item =>
-    [
-      csvCell(item.jk_uniqueconsignref),
-      csvCell(item.jk_masterbillnum),
-      // csvCell(item.jk_bookingreference),
-      // csvCell(item.jk_consolstatus),
-      csvCell(item.jk_phase),
-      csvCell(item.jk_transportmode),
-      csvCell(item.jk_rl_nkloadport),
-      csvCell(item.jk_rl_nkdischargeport),
-      // csvCell(formatShippedOnBoard(item)),
-      csvCell(item.jk_consolchargeable),
-      csvCell(formatCancelledCell(item))
-    ].join(',')
-  );
-
-  return `${header}\n${lines.join('\n')}`;
-}
-
-function downloadCsv(csv: string, fileName: string) {
-  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
-  const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
-  link.href = url;
-  link.setAttribute('download', fileName);
-  document.body.append(link);
-  link.click();
-  link.remove();
-  window.URL.revokeObjectURL(url);
-}
-
 function handleSearch() {
   getDataByPage(1);
 }
@@ -286,35 +221,42 @@ function navigateToDetail(row: any) {
   });
 }
 
-function handleMenuAction(key: ConsolidationActionKey, row: ConsolidationRow) {
+async function handleMenuAction(key: ConsolidationActionKey, row: ConsolidationRow) {
   if (key !== 'export') return;
 
-  downloadCsv(buildConsolidationCsv([row]), `Consol_${row.jk_uniqueconsignref || row.jk_pk}.csv`);
-  window.$message?.success($t('page.settlement.transactions.exportSuccess'));
+  try {
+    const blob = await consolidationExport({
+      SkipCount: 0,
+      MaxResultCount: 1,
+      filters: [{ key: 'jk_uniqueconsignref', op: '=', val: row.jk_uniqueconsignref || '' }],
+      columns: getExportColumns(columns.value),
+      exportTitle: $t('route.business_consolidation'),
+      companyNameLabel: $t('common.exportMeta.companyName'),
+      reportPeriodLabel: $t('common.exportMeta.reportGeneratedPeriod')
+    });
+    downloadBlob(blob, `Consol_${row.jk_uniqueconsignref || row.jk_pk}.xlsx`);
+    window.$message?.success($t('page.settlement.transactions.exportSuccess'));
+  } catch {
+    window.$message?.error($t('page.settlement.transactions.exportFailed'));
+  }
 }
 
-function handleBatchExport() {
-  if (checkedRowKeys.value.length === 0) {
-    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
-    return;
+async function handleBatchExport() {
+  try {
+    const blob = await consolidationExport({
+      SkipCount: 0,
+      MaxResultCount: 0,
+      filters: buildFilters(),
+      columns: getExportColumns(columns.value),
+      exportTitle: $t('route.business_consolidation'),
+      companyNameLabel: $t('common.exportMeta.companyName'),
+      reportPeriodLabel: $t('common.exportMeta.reportGeneratedPeriod')
+    });
+    downloadBlob(blob, 'Consols.xlsx');
+    window.$message?.success($t('page.settlement.transactions.exportSuccess'));
+  } catch {
+    window.$message?.error($t('page.settlement.transactions.exportFailed'));
   }
-  const items = checkedRowKeys.value
-    .map(k => selectedRowsByPk.value.get(String(k)))
-    .filter((r): r is ConsolidationRow => r != null);
-  if (items.length === 0) {
-    window.$message?.warning($t('page.settlement.transactions.exportSelectFirst'));
-    return;
-  }
-  if (items.length < checkedRowKeys.value.length) {
-    window.$message?.warning(
-      $t('page.settlement.transactions.exportPartialSkipped', {
-        exported: items.length,
-        selected: checkedRowKeys.value.length
-      })
-    );
-  }
-  downloadCsv(buildConsolidationCsv(items), 'Consols.csv');
-  window.$message?.success($t('page.settlement.transactions.exportSuccess'));
 }
 </script>
 

@@ -2,8 +2,15 @@
  * 结算模块 API 服务
  */
 
-import { queryArBilling, queryApBilling, type BillingTblInput } from './billing';
+import {
+  exportApBilling,
+  exportArBilling,
+  queryArBilling,
+  queryApBilling,
+  type BillingTblInput
+} from './billing';
 import { request } from '@/service/request';
+import type { ExportColumn } from '@/utils/export-columns';
 
 /**
  * API 契约文档（待后端对接）
@@ -205,6 +212,10 @@ export interface SettlementTransactionQueryParams {
   branch?: string;
   department?: string;
   canceled?: string;
+  columns?: ExportColumn[];
+  exportTitle?: string;
+  companyNameLabel?: string;
+  reportPeriodLabel?: string;
 }
 
 // ==================== Mock 数据 ====================
@@ -502,8 +513,8 @@ function buildBillingFilters(params: SettlementTransactionQueryParams): Array<{
   // Keyword filter - map to actual field names
   if (params.keywordValue && params.keywordField) {
     const fieldMap: Record<string, string> = {
-      creditor_debtor: 'ah_oh',
-      creditor_debtor_full_name: 'ah_oh',
+      creditor_debtor: 'creditor_debtor',
+      creditor_debtor_full_name: 'creditor_debtor_full_name',
       job_number: 'job_number',
       transaction_num: 'ah_transactionnum',
       job_invoice_number: 'job_invoice_number'
@@ -666,6 +677,30 @@ export async function queryPayableTransactions(params: SettlementTransactionQuer
   }
 
   return response;
+}
+
+export function exportReceivableTransactions(params: SettlementTransactionQueryParams) {
+  return exportArBilling({
+    skipCount: 0,
+    maxResultCount: 0,
+    filters: buildBillingFilters(params),
+    columns: params.columns,
+    exportTitle: params.exportTitle,
+    companyNameLabel: params.companyNameLabel,
+    reportPeriodLabel: params.reportPeriodLabel
+  });
+}
+
+export function exportPayableTransactions(params: SettlementTransactionQueryParams) {
+  return exportApBilling({
+    skipCount: 0,
+    maxResultCount: 0,
+    filters: buildBillingFilters(params),
+    columns: params.columns,
+    exportTitle: params.exportTitle,
+    companyNameLabel: params.companyNameLabel,
+    reportPeriodLabel: params.reportPeriodLabel
+  });
 }
 
 /**

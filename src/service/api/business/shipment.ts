@@ -1,4 +1,5 @@
 import { request } from '@/service/request';
+import type { ExportColumn } from '@/utils/export-columns';
 
 // ==================== Type Definitions ====================
 
@@ -511,6 +512,10 @@ export interface ShipmentQueryParams {
     start?: string;
     end?: string;
   }>;
+  columns?: ExportColumn[];
+  exportTitle?: string;
+  companyNameLabel?: string;
+  reportPeriodLabel?: string;
 }
 
 export interface ShipmentSaveParams {
@@ -695,12 +700,14 @@ export async function shipmentSave(params: ShipmentSaveParams) {
 }
 
 export async function shipmentExport(params: ShipmentQueryParams) {
-  return request({
+  const response = await request<Blob, 'blob'>({
     url: '/shipment/export',
     method: 'post',
     data: params,
     responseType: 'blob'
   });
+  if (response.error || !response.data) throw response.error || new Error('Export failed');
+  return response.data;
 }
 
 export async function shipmentPdfGenerate(params: ShipmentPdfGenerateParams) {

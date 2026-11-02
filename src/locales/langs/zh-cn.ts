@@ -82,6 +82,10 @@ const local: App.I18n.Schema = {
       selectBranch: '请选择分公司',
       required: '请选择公司和分公司',
       success: '切换分公司成功'
+    },
+    exportMeta: {
+      companyName: '公司名称：',
+      reportGeneratedPeriod: '报表生成期间：'
     }
   },
   request: {

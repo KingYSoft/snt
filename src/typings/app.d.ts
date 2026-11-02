@@ -402,6 +402,10 @@ declare namespace App {
           required: string;
           success: string;
         };
+        exportMeta: {
+          companyName: string;
+          reportGeneratedPeriod: string;
+        };
       };
       request: {
         logout: string;

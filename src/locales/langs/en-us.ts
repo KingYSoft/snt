@@ -82,6 +82,10 @@ const local: App.I18n.Schema = {
       selectBranch: 'Select branch',
       required: 'Please select company and branch',
       success: 'Switch branch successfully'
+    },
+    exportMeta: {
+      companyName: 'Company Name: ',
+      reportGeneratedPeriod: 'Report Generated Period: '
     }
   },
   request: {
