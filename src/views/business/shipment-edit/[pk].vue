@@ -336,6 +336,8 @@ const queryData = async () => {
         const consolidationList = Array.isArray(data.consolidation_list)
           ? data.consolidation_list.map((item: Record<string, any>) => ({
               id: item.id ?? '',
+              pk: item.pk ?? item.jk_pk ?? '',
+              jk_pk: item.jk_pk ?? item.pk ?? '',
               reference: item.reference ?? '',
               first_load: item.first_load ?? '',
               last_disc: item.last_disc ?? '',
