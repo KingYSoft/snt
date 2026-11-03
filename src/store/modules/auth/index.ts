@@ -2,7 +2,8 @@ import { computed, reactive, ref } from 'vue';
 import { useRoute } from 'vue-router';
 import { defineStore } from 'pinia';
 import { useLoading } from '@sa/hooks';
-import { fetchLogin, logoutUser } from '@/service/api';
+import { fetchLogin } from '@/service/api';
+// import { logoutUser } from '@/service/api';
 import { useRouterPush } from '@/hooks/common/router';
 import { localStg } from '@/utils/storage';
 import { SetupStoreId } from '@/enum';
@@ -50,13 +51,14 @@ export const useAuthStore = defineStore(SetupStoreId.Auth, () => {
 
     recordUserId();
 
-    try {
-      if (token.value) {
-        await logoutUser();
-      }
-    } catch {
-      // ignore logout failures so local session can still be cleared
-    }
+    // 后端暂无 /user/logout，先只清本地会话
+    // try {
+    //   if (token.value) {
+    //     await logoutUser();
+    //   }
+    // } catch {
+    //   // ignore logout failures so local session can still be cleared
+    // }
 
     clearAuthStorage();
 
