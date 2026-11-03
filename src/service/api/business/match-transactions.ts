@@ -315,7 +315,8 @@ export function matchTransactionsExport(params: MatchTransactionQueryParams) {
     url: '/match-transactions/export',
     method: 'post',
     data: params,
-    responseType: 'blob'
+    responseType: 'blob',
+    timeout: 300 * 1000,
   }).then(response => {
     if (response.error || !response.data) throw response.error || new Error('Export failed');
     return response.data;

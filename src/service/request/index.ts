@@ -14,7 +14,8 @@ const { baseURL, otherBaseURL } = getServiceBaseURL(import.meta.env, isHttpProxy
 export const request = createFlatRequest(
   {
     baseURL,
-    headers: { 'ngrok-skip-browser-warning': 69420 }
+    headers: { 'ngrok-skip-browser-warning': 69420 },
+    timeout: 30 * 1000,
   },
   {
     defaultState: {
