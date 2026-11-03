@@ -1,14 +1,34 @@
 <script setup lang="ts">
-import { computed } from 'vue';
+import { computed, h } from 'vue';
+import { useRouter } from 'vue-router';
 import type { DataTableColumns } from 'naive-ui';
-import { NDataTable, NCard, NForm, NFormItemGi, NGrid } from 'naive-ui';
+import { NButton, NDataTable, NCard, NForm, NFormItemGi, NGrid } from 'naive-ui';
 import { $t } from '@/locales';
 
 const props = defineProps<{ inputData: Record<string, any> }>();
 
+const router = useRouter();
+
 function displayText(value: unknown) {
   const text = String(value ?? '').trim();
   return text || '—';
+}
+
+function navigateToConsolidation(row: Record<string, any>) {
+  const pk = String(row.jk_pk || row.pk || row.id || props.inputData.js_jx || '').trim();
+  const reference = String(row.reference || '').trim();
+  if (!pk) {
+    window.$message?.warning($t('common.error'));
+    return;
+  }
+  router.push({
+    name: 'business_consolidation-edite',
+    params: { pk },
+    query: {
+      id: row.id || pk,
+      con_unique_consign_ref: reference
+    }
+  });
 }
 
 const consolidationColumns = computed<DataTableColumns<Record<string, any>>>(() => [
@@ -16,7 +36,23 @@ const consolidationColumns = computed<DataTableColumns<Record<string, any>>>(() 
     title: $t('page.business.shipment.section.reference'),
     key: 'reference',
     minWidth: 160,
-    ellipsis: { tooltip: true }
+    ellipsis: { tooltip: true },
+    render(row) {
+      const text = String(row.reference || '').trim();
+      if (!text) return '—';
+      return h(
+        NButton,
+        {
+          text: true,
+          type: 'primary',
+          onClick: (event: MouseEvent) => {
+            event.stopPropagation();
+            navigateToConsolidation(row);
+          }
+        },
+        { default: () => text }
+      );
+    }
   },
   {
     title: $t('page.business.shipment.section.firstLoad'),
