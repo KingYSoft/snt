@@ -15,7 +15,7 @@ export const request = createFlatRequest(
   {
     baseURL,
     headers: { 'ngrok-skip-browser-warning': 69420 },
-    timeout: 30 * 1000,
+    timeout: 30 * 1000
   },
   {
     defaultState: {
@@ -38,12 +38,23 @@ export const request = createFlatRequest(
       const Authorization = getAuthorization();
       const lang = String(localStg.get('lang') || 'zh-CN');
       const cookieLangValue = lang === 'zhHans' ? 'zh-Hans' : lang;
+      const isFormData = typeof FormData !== 'undefined' && config.data instanceof FormData;
 
       Object.assign(config.headers, {
-        'Content-Type': 'application/json',
         Authorization,
         'Facade-Language': `c=${cookieLangValue}|uic=${cookieLangValue}`
       });
+
+      // FormData 需由浏览器自动带 multipart boundary，不能强制 application/json
+      if (isFormData) {
+        if (typeof config.headers?.delete === 'function') {
+          config.headers.delete('Content-Type');
+        } else {
+          delete (config.headers as Record<string, unknown>)['Content-Type'];
+        }
+      } else {
+        Object.assign(config.headers, { 'Content-Type': 'application/json' });
+      }
 
       return config;
     },
