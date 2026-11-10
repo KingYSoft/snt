@@ -301,6 +301,7 @@ const local: App.I18n.Schema = {
     'settlement_payable-transactions': '应付交易',
     'settlement_payable-transactions-create': '新增应付',
     settlement_writeoff: '结算匹配',
+    'settlement_closing-period': '期间管理',
     'settlement_writeoff-create': '新建收款',
     'settlement_writeoff-edit': '结算匹配详情',
     'settlement_billing-detail': '详情',
@@ -948,6 +949,38 @@ const local: App.I18n.Schema = {
       }
     },
     settlement: {
+      closingPeriod: {
+        new: '新增',
+        queryFailed: '期间查询失败',
+        filter: {
+          accountingMonth: '会计月',
+          closingDate: '关账日期',
+          businessUnit: '业务单元'
+        },
+        table: {
+          businessUnit: '业务单元',
+          accountingMonth: '会计月',
+          closingDate: '关账日期'
+        },
+        dialog: {
+          newTitle: '新增关账期间',
+          editTitle: '编辑关账期间',
+          accountingMonth: '会计月',
+          closingDate: '关账日期',
+          businessUnit: '业务单元',
+          branchCode: '代码',
+          orgCode: '组织代码',
+          branchName: '名称',
+          branchCodePlaceholder: '请输入代码或名称搜索',
+          periodRequired: '请选择会计月',
+          closingDateRequired: '请选择关账日期',
+          businessUnitRequired: '请至少选择一个业务单元',
+          createSuccess: '关账期间创建成功',
+          createFailed: '关账期间创建失败',
+          updateSuccess: '关账期间更新成功',
+          updateFailed: '关账期间更新失败'
+        }
+      },
       transactions: {
         invoiceDate: '发票日期',
         ledger: '账套',

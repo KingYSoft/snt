@@ -1388,6 +1388,38 @@ declare namespace App {
           };
         };
         settlement: {
+          closingPeriod: {
+            new: string;
+            queryFailed: string;
+            filter: {
+              accountingMonth: string;
+              closingDate: string;
+              businessUnit: string;
+            };
+            table: {
+              businessUnit: string;
+              accountingMonth: string;
+              closingDate: string;
+            };
+            dialog: {
+              newTitle: string;
+              editTitle: string;
+              accountingMonth: string;
+              closingDate: string;
+              businessUnit: string;
+              branchCode: string;
+              orgCode: string;
+              branchName: string;
+              branchCodePlaceholder: string;
+              periodRequired: string;
+              closingDateRequired: string;
+              businessUnitRequired: string;
+              createSuccess: string;
+              createFailed: string;
+              updateSuccess: string;
+              updateFailed: string;
+            };
+          };
           transactions: {
             invoiceDate: string;
             ledger: string;

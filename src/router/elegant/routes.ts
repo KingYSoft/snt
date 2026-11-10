@@ -425,6 +425,16 @@ export const generatedRoutes: GeneratedRoute[] = [
         }
       },
       {
+        name: 'settlement_closing-period',
+        path: '/settlement/closing-period',
+        component: 'view.settlement_closing-period',
+        meta: {
+          title: 'settlement_closing-period',
+          i18nKey: 'route.settlement_closing-period',
+          order: 4
+        }
+      },
+      {
         name: 'settlement_payable-transactions',
         path: '/settlement/payable-transactions',
         component: 'view.settlement_payable-transactions',

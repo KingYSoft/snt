@@ -305,6 +305,7 @@ const local: App.I18n.Schema = {
     'settlement_payable-transactions': 'Payable Transactions',
     'settlement_payable-transactions-create': 'New AP Transaction',
     settlement_writeoff: 'Matching Transactions',
+    'settlement_closing-period': 'Closing Periods Management',
     'settlement_writeoff-create': 'New Receipt',
     'settlement_writeoff-edit': 'Settlement Match Detail',
     'settlement_billing-detail': 'Detail',
@@ -952,6 +953,38 @@ const local: App.I18n.Schema = {
       }
     },
     settlement: {
+      closingPeriod: {
+        new: 'New',
+        queryFailed: 'Failed to query closing periods',
+        filter: {
+          accountingMonth: 'Accounting Month',
+          closingDate: 'Closing Date',
+          businessUnit: 'Business Unit'
+        },
+        table: {
+          businessUnit: 'Business Unit',
+          accountingMonth: 'Accounting Month',
+          closingDate: 'Closing Date'
+        },
+        dialog: {
+          newTitle: 'New Closing Period',
+          editTitle: 'Edit Closing Period',
+          accountingMonth: 'Accounting Month',
+          closingDate: 'Closing Date',
+          businessUnit: 'Business Unit',
+          branchCode: 'Code',
+          orgCode: 'Org Code',
+          branchName: 'Name',
+          branchCodePlaceholder: 'Search by code or name',
+          periodRequired: 'Accounting Month is required',
+          closingDateRequired: 'Closing Date is required',
+          businessUnitRequired: 'Please select at least one Business Unit',
+          createSuccess: 'Closing period created successfully',
+          createFailed: 'Failed to create closing period',
+          updateSuccess: 'Closing period updated successfully',
+          updateFailed: 'Failed to update closing period'
+        }
+      },
       transactions: {
         invoiceDate: 'Invoice Date',
         ledger: 'Ledger',

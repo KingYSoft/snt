@@ -19,6 +19,7 @@ const routeOrderMap: Partial<Record<RouteKey, number>> = {
   'settlement_receivable-transactions': 1,
   'settlement_payable-transactions': 2,
   settlement_writeoff: 3,
+  'settlement_closing-period': 4,
 
   // Maintain children
   maintain_airlines: 1,
