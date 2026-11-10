@@ -260,7 +260,7 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_exchange-rate',
           i18nKey: 'route.maintain_exchange-rate',
-          hideInMenu: true
+          order: 7
         }
       },
       {

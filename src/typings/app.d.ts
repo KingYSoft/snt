@@ -607,6 +607,19 @@ declare namespace App {
             symbol: string;
             desc: string;
           };
+          exchangeRate: {
+            period: string;
+            startDate: string;
+            expiryDate: string;
+            fromCurrency: string;
+            toCurrency: string;
+            rate: string;
+            filterCurrencyFrom: string;
+            filterCurrencyTo: string;
+            filterPeriod: string;
+            filterPlaceholder: string;
+            queryFailed: string;
+          };
           packageTypes: {
             code: string;
             description: string;
@@ -1603,6 +1616,11 @@ declare namespace App {
             amount: string;
             paymentDate: string;
             description: string;
+            taxInvoiceNo: string;
+            taxInvoiceDate: string;
+            settleCompany: string;
+            writeOffBank: string;
+            writeOffUser: string;
             billingParty: string;
             jobNumber: string;
             etd: string;

@@ -27,6 +27,7 @@ const routeOrderMap: Partial<Record<RouteKey, number>> = {
   maintain_commodities: 4,
   maintain_containers: 5,
   maintain_currency: 6,
+  'maintain_exchange-rate': 7,
   'maintain_package-types': 7,
   'maintain_port-code': 8,
   'maintain_service-level': 9,
