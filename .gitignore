@@ -34,3 +34,4 @@ yarn.lock
 
 .VSCodeCounter
 .claude/worktrees
+.arts

@@ -172,6 +172,30 @@ export function getConsolidationColumns<T>(
       ellipsis: { tooltip: true }
     },
     {
+      title: $t('page.business.consolidation.table.company'),
+      key: 'jh_gc',
+      minWidth: 140,
+      ellipsis: { tooltip: true }
+    },
+    {
+      title: $t('page.business.consolidation.table.sales'),
+      key: 'jh_gs_nkrepsales',
+      minWidth: 120,
+      ellipsis: { tooltip: true }
+    },
+    {
+      title: $t('page.business.consolidation.table.ops'),
+      key: 'jh_gs_nkrepops',
+      minWidth: 120,
+      ellipsis: { tooltip: true }
+    },
+    {
+      title: $t('page.business.consolidation.table.customerService'),
+      key: 'customer_service',
+      minWidth: 120,
+      ellipsis: { tooltip: true }
+    },
+    {
       title: $t('page.business.consolidation.table.cancelled'),
       key: 'jk_iscancelled',
       width: 110,

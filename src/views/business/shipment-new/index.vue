@@ -19,6 +19,7 @@ const activedTab = ref(1);
 const defaultData = () => ({
   id: 0,
   pk: '',
+  shp_consign_no: '',
   shp_transport_mode: 'SEA',
   shp_packing_mode: 'FCL',
   shipper: {},
@@ -218,7 +219,13 @@ const handleBack = () => {
           <TabBilling v-model:refresh-billing-summary="refreshBillingSummary" :input-data="inputData" />
         </NTabPane>
         <NTabPane :name="5" :tab="$t('page.business.shipment.tab.eDocs')">
-          <TabEDocs :input-data="inputData" />
+          <TabEDocs
+            :input-data="inputData"
+            :related-key="inputData.pk"
+            :ship-no="inputData.shp_consign_no"
+            :actived-tab="5"
+            :tab-name="5"
+          />
         </NTabPane>
       </NTabs>
     </NCard>

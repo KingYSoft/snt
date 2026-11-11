@@ -202,6 +202,7 @@ const routeMap: RouteMap = {
   "maintain_warehouse": "/maintain/warehouse",
   "settlement": "/settlement",
   "settlement_billing-detail": "/settlement/billing-detail",
+  "settlement_closing-period": "/settlement/closing-period",
   "settlement_payable-transactions": "/settlement/payable-transactions",
   "settlement_payable-transactions-create": "/settlement/payable-transactions-create",
   "settlement_receivable-transactions": "/settlement/receivable-transactions",

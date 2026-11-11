@@ -305,6 +305,7 @@ const local: App.I18n.Schema = {
     'settlement_payable-transactions': 'Payable Transactions',
     'settlement_payable-transactions-create': 'New AP Transaction',
     settlement_writeoff: 'Matching Transactions',
+    'settlement_closing-period': 'Closing Periods Management',
     'settlement_writeoff-create': 'New Receipt',
     'settlement_writeoff-edit': 'Settlement Match Detail',
     'settlement_billing-detail': 'Detail',
@@ -402,7 +403,11 @@ const local: App.I18n.Schema = {
           transportMode: 'Transport Mode',
           consolMode: 'Consol Mode',
           cancelled: 'Cancelled',
-          contain: 'Contain'
+          contain: 'Contain',
+          company: 'Company',
+          sales: 'Sales',
+          ops: 'Operator',
+          customerService: 'Customer Service'
         },
         table: {
           consolidationNo: 'Consolidation No.',
@@ -425,7 +430,11 @@ const local: App.I18n.Schema = {
           ctrType: 'Ctr Type',
           ctrCount: 'Ctr Count',
           createUser: 'Create User',
-          modifyUser: 'Modify User'
+          modifyUser: 'Modify User',
+          company: 'Company',
+          sales: 'Sales',
+          ops: 'Operator',
+          customerService: 'Customer Service'
         },
         tab: {
           details: 'Details',
@@ -671,7 +680,16 @@ const local: App.I18n.Schema = {
           voyage: 'Voyage',
           createUser: 'Create User',
           modifyUser: 'Modify User',
-          salesRep: 'Sales Rep'
+          salesRep: 'Sales Rep',
+          company: 'Company',
+          ops: 'Operator',
+          customerService: 'Customer Service'
+        },
+        search: {
+          company: 'Company',
+          sales: 'Sales',
+          ops: 'Operator',
+          customerService: 'Customer Service'
         },
         messages: {
           exportFailed: 'Export failed',
@@ -685,6 +703,48 @@ const local: App.I18n.Schema = {
           billingSaveSuccess: 'Successfully saved billing records.',
           billingSaveFailed: 'Failed to save billing records.',
           edocsNotImplemented: 'eDocs save is not implemented yet.'
+        },
+        edoc: {
+          upload: 'Upload',
+          uploadTitle: 'Upload eDoc',
+          file: 'File',
+          fileName: 'File Name',
+          fileType: 'File Type',
+          docType: 'Doc Type',
+          group: 'Group',
+          refNo: 'Ref No',
+          remarks: 'Remarks',
+          inEbooking: 'In Ebooking',
+          visibleInEbooking: 'Visible in Ebooking',
+          publish: 'Publish',
+          publishedBy: 'Published by',
+          publishedTime: 'Published Time',
+          receivedTime: 'Received Time',
+          ediGeneratedTime: 'EDI Generated Time',
+          uploadUser: 'Upload User',
+          department: 'Department',
+          download: 'Download',
+          preview: 'Preview',
+          copy: 'Copy',
+          copyTitle: 'Copy Document',
+          selectFile: 'Please select a file to upload.',
+          selectDocType: 'Please select a doc type.',
+          dropOrClick: 'Click or drag file to this area',
+          uploadSuccess: 'Upload successful',
+          uploadFailed: 'Upload failed',
+          downloadSuccess: 'Download successful',
+          downloadFailed: 'Download failed',
+          previewFailed: 'Preview failed',
+          copyFileNameRequired: 'Please enter file name.',
+          copyDocTypeRequired: 'Please select doc type.',
+          copySuccess: 'Copy successful.',
+          copyFailed: 'Copy failed.',
+          generateEdi: 'Generate EDI',
+          selectAtLeastOne: 'Please select at least one document.',
+          generateSuccess: 'Generate EDI successful',
+          generateSuccessWithFile: 'Generate EDI successful: {fileName}',
+          generateFailed: 'Generate EDI failed',
+          publishApiPending: 'Publish API is not ready yet.'
         },
         export: 'Export',
         tab: {
@@ -906,15 +966,42 @@ const local: App.I18n.Schema = {
           countryCode: 'Country Code',
           saveSuccess: 'Save success.',
           saveFailed: 'Failed to save address.'
-        },
-        edoc: {
-          selectDocType: 'Please select document type.',
-          uploadSuccess: 'Upload success',
-          uploadFailed: 'Upload failed'
         }
       }
     },
     settlement: {
+      closingPeriod: {
+        new: 'New',
+        queryFailed: 'Failed to query closing periods',
+        filter: {
+          accountingMonth: 'Accounting Month',
+          closingDate: 'Closing Date',
+          businessUnit: 'Business Unit'
+        },
+        table: {
+          businessUnit: 'Business Unit',
+          accountingMonth: 'Accounting Month',
+          closingDate: 'Closing Date'
+        },
+        dialog: {
+          newTitle: 'New Closing Period',
+          editTitle: 'Edit Closing Period',
+          accountingMonth: 'Accounting Month',
+          closingDate: 'Closing Date',
+          businessUnit: 'Business Unit',
+          branchCode: 'Code',
+          orgCode: 'Org Code',
+          branchName: 'Name',
+          branchCodePlaceholder: 'Search by code or name',
+          periodRequired: 'Accounting Month is required',
+          closingDateRequired: 'Closing Date is required',
+          businessUnitRequired: 'Please select at least one Business Unit',
+          createSuccess: 'Closing period created successfully',
+          createFailed: 'Failed to create closing period',
+          updateSuccess: 'Closing period updated successfully',
+          updateFailed: 'Failed to update closing period'
+        }
+      },
       transactions: {
         invoiceDate: 'Invoice Date',
         ledger: 'Ledger',
@@ -1128,7 +1215,7 @@ const local: App.I18n.Schema = {
         exportRow: 'Export row',
         moreFilters: 'More Filters',
         hideMoreFilters: 'Hide Filters',
-        keywordPlaceholder: 'Job No. / Shipper / Match No. / Description',
+        keywordPlaceholder: 'Job No. / Shipper / Billing Party / Match No. / Description',
         exportSuccess: 'Export completed',
         exportFailed: 'Export failed. Please try again.',
         exportWarning50k: 'Exporting first 50,000 of {total} rows. Narrow filters to export all.',
@@ -1142,6 +1229,11 @@ const local: App.I18n.Schema = {
         amount: 'Amount',
         paymentDate: 'Payment Date',
         description: 'Description',
+        taxInvoiceNo: 'Tax Invoice No.',
+        taxInvoiceDate: 'Tax Invoice Date',
+        settleCompany: 'Settle Company',
+        writeOffBank: 'Write-off Bank',
+        writeOffUser: 'Write-off User',
         billingParty: 'Billing Party',
         jobNumber: 'Job Number',
         etd: 'ETD',
@@ -1187,6 +1279,19 @@ const local: App.I18n.Schema = {
         code: 'Code',
         symbol: 'Symbol',
         desc: 'Description'
+      },
+      exchangeRate: {
+        period: 'Period',
+        startDate: 'Start Date',
+        expiryDate: 'Expiry Date',
+        fromCurrency: 'From (Cur.)',
+        toCurrency: 'To (Cur.)',
+        rate: 'Exchange Rate',
+        filterCurrencyFrom: 'Currency From',
+        filterCurrencyTo: 'Currency To',
+        filterPeriod: 'Period',
+        filterPlaceholder: 'Please input',
+        queryFailed: 'Failed to query exchange rates'
       },
       packageTypes: {
         code: 'Code',

@@ -209,7 +209,14 @@ async function handleSave() {
         </NTabPane>
         <NTabPane :name="5" :tab="$t('page.business.consolidation.tab.eDocs')">
           <NSkeleton v-if="skeletonLoading" text :row="6" />
-          <TabEDocs v-else :input-data="inputData" />
+          <TabEDocs
+            v-else
+            :input-data="inputData"
+            :related-key="inputData.pk || inputData.jk_pk"
+            :consol-no="inputData.jk_uniqueconsignref"
+            :actived-tab="activedTab"
+            :tab-name="5"
+          />
         </NTabPane>
       </NTabs>
     </NCard>

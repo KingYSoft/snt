@@ -607,6 +607,19 @@ declare namespace App {
             symbol: string;
             desc: string;
           };
+          exchangeRate: {
+            period: string;
+            startDate: string;
+            expiryDate: string;
+            fromCurrency: string;
+            toCurrency: string;
+            rate: string;
+            filterCurrencyFrom: string;
+            filterCurrencyTo: string;
+            filterPeriod: string;
+            filterPlaceholder: string;
+            queryFailed: string;
+          };
           packageTypes: {
             code: string;
             description: string;
@@ -826,6 +839,10 @@ declare namespace App {
               consolMode: string;
               cancelled: string;
               contain: string;
+              company: string;
+              sales: string;
+              ops: string;
+              customerService: string;
             };
             table: {
               consolidationNo: string;
@@ -849,6 +866,10 @@ declare namespace App {
               ctrCount: string;
               createUser: string;
               modifyUser: string;
+              company: string;
+              sales: string;
+              ops: string;
+              customerService: string;
             };
             tab: {
               details: string;
@@ -1095,6 +1116,15 @@ declare namespace App {
               createUser: string;
               modifyUser: string;
               salesRep: string;
+              company: string;
+              ops: string;
+              customerService: string;
+            };
+            search: {
+              company: string;
+              sales: string;
+              ops: string;
+              customerService: string;
             };
             messages: {
               exportFailed: string;
@@ -1108,6 +1138,48 @@ declare namespace App {
               billingSaveSuccess: string;
               billingSaveFailed: string;
               edocsNotImplemented: string;
+            };
+            edoc: {
+              upload: string;
+              uploadTitle: string;
+              file: string;
+              fileName: string;
+              fileType: string;
+              docType: string;
+              group: string;
+              refNo: string;
+              remarks: string;
+              inEbooking: string;
+              visibleInEbooking: string;
+              publish: string;
+              publishedBy: string;
+              publishedTime: string;
+              receivedTime: string;
+              ediGeneratedTime: string;
+              uploadUser: string;
+              department: string;
+              download: string;
+              preview: string;
+              copy: string;
+              copyTitle: string;
+              selectFile: string;
+              selectDocType: string;
+              dropOrClick: string;
+              uploadSuccess: string;
+              uploadFailed: string;
+              downloadSuccess: string;
+              downloadFailed: string;
+              previewFailed: string;
+              copyFileNameRequired: string;
+              copyDocTypeRequired: string;
+              copySuccess: string;
+              copyFailed: string;
+              generateEdi: string;
+              selectAtLeastOne: string;
+              generateSuccess: string;
+              generateSuccessWithFile: string;
+              generateFailed: string;
+              publishApiPending: string;
             };
             export: string;
             menu: {
@@ -1330,14 +1402,41 @@ declare namespace App {
               saveSuccess: string;
               saveFailed: string;
             };
-            edoc: {
-              selectDocType: string;
-              uploadSuccess: string;
-              uploadFailed: string;
-            };
           };
         };
         settlement: {
+          closingPeriod: {
+            new: string;
+            queryFailed: string;
+            filter: {
+              accountingMonth: string;
+              closingDate: string;
+              businessUnit: string;
+            };
+            table: {
+              businessUnit: string;
+              accountingMonth: string;
+              closingDate: string;
+            };
+            dialog: {
+              newTitle: string;
+              editTitle: string;
+              accountingMonth: string;
+              closingDate: string;
+              businessUnit: string;
+              branchCode: string;
+              orgCode: string;
+              branchName: string;
+              branchCodePlaceholder: string;
+              periodRequired: string;
+              closingDateRequired: string;
+              businessUnitRequired: string;
+              createSuccess: string;
+              createFailed: string;
+              updateSuccess: string;
+              updateFailed: string;
+            };
+          };
           transactions: {
             invoiceDate: string;
             ledger: string;
@@ -1566,6 +1665,11 @@ declare namespace App {
             amount: string;
             paymentDate: string;
             description: string;
+            taxInvoiceNo: string;
+            taxInvoiceDate: string;
+            settleCompany: string;
+            writeOffBank: string;
+            writeOffUser: string;
             billingParty: string;
             jobNumber: string;
             etd: string;
