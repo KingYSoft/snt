@@ -73,6 +73,22 @@ const searchKeyOptions = [
   {
     label: $t('page.business.consolidation.search.consolidationNo'),
     value: 'jk_uniqueconsignref'
+  },
+  {
+    label: $t('page.business.consolidation.search.company'),
+    value: 'jh_gc'
+  },
+  {
+    label: $t('page.business.consolidation.search.sales'),
+    value: 'jh_gs_nkrepsales'
+  },
+  {
+    label: $t('page.business.consolidation.search.ops'),
+    value: 'jh_gs_nkrepops'
+  },
+  {
+    label: $t('page.business.consolidation.search.customerService'),
+    value: 'customer_service'
   }
 ];
 

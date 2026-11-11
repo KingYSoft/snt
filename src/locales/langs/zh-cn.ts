@@ -399,7 +399,11 @@ const local: App.I18n.Schema = {
           transportMode: '运输方式',
           consolMode: '拼箱方式',
           cancelled: '已取消',
-          contain: '包含'
+          contain: '包含',
+          company: '所属公司',
+          sales: '销售',
+          ops: '操作',
+          customerService: '客服'
         },
         table: {
           consolidationNo: '拼箱编号',
@@ -669,6 +673,12 @@ const local: App.I18n.Schema = {
           createUser: '创建人',
           modifyUser: '修改人',
           salesRep: '销售代表'
+        },
+        search: {
+          company: '所属公司',
+          sales: '销售',
+          ops: '操作',
+          customerService: '客服'
         },
         messages: {
           exportFailed: '导出失败',

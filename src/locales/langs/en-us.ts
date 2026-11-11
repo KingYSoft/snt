@@ -403,7 +403,11 @@ const local: App.I18n.Schema = {
           transportMode: 'Transport Mode',
           consolMode: 'Consol Mode',
           cancelled: 'Cancelled',
-          contain: 'Contain'
+          contain: 'Contain',
+          company: 'Company',
+          sales: 'Sales',
+          ops: 'Operator',
+          customerService: 'Customer Service'
         },
         table: {
           consolidationNo: 'Consolidation No.',
@@ -673,6 +677,12 @@ const local: App.I18n.Schema = {
           createUser: 'Create User',
           modifyUser: 'Modify User',
           salesRep: 'Sales Rep'
+        },
+        search: {
+          company: 'Company',
+          sales: 'Sales',
+          ops: 'Operator',
+          customerService: 'Customer Service'
         },
         messages: {
           exportFailed: 'Export failed',

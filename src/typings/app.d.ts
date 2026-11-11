@@ -839,6 +839,10 @@ declare namespace App {
               consolMode: string;
               cancelled: string;
               contain: string;
+              company: string;
+              sales: string;
+              ops: string;
+              customerService: string;
             };
             table: {
               consolidationNo: string;
@@ -1108,6 +1112,12 @@ declare namespace App {
               createUser: string;
               modifyUser: string;
               salesRep: string;
+            };
+            search: {
+              company: string;
+              sales: string;
+              ops: string;
+              customerService: string;
             };
             messages: {
               exportFailed: string;
