@@ -426,7 +426,11 @@ const local: App.I18n.Schema = {
           ctrType: '箱型',
           ctrCount: '箱量',
           createUser: '创建人',
-          modifyUser: '修改人'
+          modifyUser: '修改人',
+          company: '所属公司',
+          sales: '销售',
+          ops: '操作',
+          customerService: '客服'
         },
         tab: {
           details: '详情',
@@ -672,7 +676,10 @@ const local: App.I18n.Schema = {
           voyage: '航次',
           createUser: '创建人',
           modifyUser: '修改人',
-          salesRep: '销售代表'
+          salesRep: '销售代表',
+          company: '所属公司',
+          ops: '操作',
+          customerService: '客服'
         },
         search: {
           company: '所属公司',

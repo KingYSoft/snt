@@ -866,6 +866,10 @@ declare namespace App {
               ctrCount: string;
               createUser: string;
               modifyUser: string;
+              company: string;
+              sales: string;
+              ops: string;
+              customerService: string;
             };
             tab: {
               details: string;
@@ -1112,6 +1116,9 @@ declare namespace App {
               createUser: string;
               modifyUser: string;
               salesRep: string;
+              company: string;
+              ops: string;
+              customerService: string;
             };
             search: {
               company: string;

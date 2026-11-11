@@ -430,7 +430,11 @@ const local: App.I18n.Schema = {
           ctrType: 'Ctr Type',
           ctrCount: 'Ctr Count',
           createUser: 'Create User',
-          modifyUser: 'Modify User'
+          modifyUser: 'Modify User',
+          company: 'Company',
+          sales: 'Sales',
+          ops: 'Operator',
+          customerService: 'Customer Service'
         },
         tab: {
           details: 'Details',
@@ -676,7 +680,10 @@ const local: App.I18n.Schema = {
           voyage: 'Voyage',
           createUser: 'Create User',
           modifyUser: 'Modify User',
-          salesRep: 'Sales Rep'
+          salesRep: 'Sales Rep',
+          company: 'Company',
+          ops: 'Operator',
+          customerService: 'Customer Service'
         },
         search: {
           company: 'Company',

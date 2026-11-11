@@ -31,7 +31,7 @@ function restoreListTabLabel() {
 
 onMounted(restoreListTabLabel);
 onActivated(restoreListTabLabel);
-const showMore = ref(false);
+
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const selectedRowsByPk = ref(new Map<string, ConsolidationRow>());
 const exportLoading = ref(false);
@@ -57,13 +57,8 @@ const etdEnd = ref<string | null>(defaultEtdDates().end);
 
 // --- Search state ---
 const searchKey = ref('jk_masterbillnum');
+const searchOp = ref('Contain');
 const searchVal = ref('');
-const transportModeOp = ref('=');
-const transportMode = ref('');
-const consolModeOp = ref('=');
-const consolMode = ref('');
-const cancelledOp = ref('=');
-const cancelled = ref('');
 
 const searchKeyOptions = [
   {
@@ -110,31 +105,7 @@ function buildFilters() {
   }
 
   if (searchVal.value) {
-    filters.push({ key: searchKey.value, op: 'Contain', val: searchVal.value });
-  }
-
-  if (transportMode.value) {
-    filters.push({
-      key: 'jk_transportmode',
-      op: transportModeOp.value,
-      val: transportMode.value
-    });
-  }
-
-  if (consolMode.value) {
-    filters.push({
-      key: 'jk_consolmode',
-      op: consolModeOp.value,
-      val: consolMode.value
-    });
-  }
-
-  if (cancelled.value) {
-    filters.push({
-      key: 'jk_iscancelled',
-      op: cancelledOp.value,
-      val: cancelled.value
-    });
+    filters.push({ key: searchKey.value, op: searchOp.value, val: searchVal.value });
   }
 
   return filters;
@@ -212,13 +183,8 @@ function handleSearch() {
 
 function handleReset() {
   searchKey.value = 'jk_masterbillnum';
+  searchOp.value = 'Contain';
   searchVal.value = '';
-  transportModeOp.value = '=';
-  transportMode.value = '';
-  consolModeOp.value = '=';
-  consolMode.value = '';
-  cancelledOp.value = '=';
-  cancelled.value = '';
   const dates = defaultEtdDates();
   etdStart.value = dates.start;
   etdEnd.value = dates.end;
@@ -290,78 +256,39 @@ async function handleBatchExport() {
 <template>
   <div class="h-full flex-col-stretch gap-16px overflow-hidden">
     <NCard :bordered="false" class="flex-shrink-0">
-      <div class="flex-col-stretch gap-16px">
-        <NSpace align="center" :wrap="false">
-          <div class="flex items-center gap-8px">
-            <span class="shrink-0 text-14px">{{ $t('page.business.shipment.table.etd') }}</span>
-            <NDatePicker
-              v-model:formatted-value="etdStart"
-              type="date"
-              value-format="yyyy-MM-dd"
-              clearable
-              style="width: 140px"
-            />
-            <span class="text-14px text-#999">-</span>
-            <NDatePicker
-              v-model:formatted-value="etdEnd"
-              type="date"
-              value-format="yyyy-MM-dd"
-              clearable
-              style="width: 140px"
-            />
-          </div>
-          <NSelect v-model:value="searchKey" :options="searchKeyOptions" style="width: 180px" />
-          <NInput
-            v-model:value="searchVal"
-            :placeholder="$t('page.business.consolidation.search.placeholder')"
+      <NSpace align="center" :wrap="false">
+        <div class="flex items-center gap-8px">
+          <span class="shrink-0 text-14px">{{ $t('page.business.shipment.table.etd') }}</span>
+          <NDatePicker
+            v-model:formatted-value="etdStart"
+            type="date"
+            value-format="yyyy-MM-dd"
             clearable
-            style="width: 260px"
-            @keyup.enter="handleSearch"
+            style="width: 140px"
           />
-          <NButton type="primary" :loading="loading" @click="handleSearch">
-            {{ $t('common.search') }}
-          </NButton>
-          <NButton @click="showMore = !showMore">
-            <template #icon>
-              <icon-mdi-chevron-up v-if="showMore" />
-              <icon-mdi-chevron-down v-else />
-            </template>
-            {{ $t('page.business.consolidation.search.more') }}
-          </NButton>
-        </NSpace>
-
-        <div v-if="showMore" class="flex-col-stretch gap-14px">
-          <NGrid :cols="2" :x-gap="24" :y-gap="14">
-            <NGi>
-              <NSpace align="center" :wrap="false">
-                <div class="w-150px text-right">{{ $t('page.business.consolidation.search.transportMode') }}:</div>
-                <NSelect v-model:value="transportModeOp" :options="operatorOptions" style="width: 100px" />
-                <NInput v-model:value="transportMode" clearable />
-              </NSpace>
-            </NGi>
-            <NGi>
-              <NSpace align="center" :wrap="false">
-                <div class="w-150px text-right">{{ $t('page.business.consolidation.search.consolMode') }}:</div>
-                <NSelect v-model:value="consolModeOp" :options="operatorOptions" style="width: 100px" />
-                <NInput v-model:value="consolMode" clearable />
-              </NSpace>
-            </NGi>
-            <NGi>
-              <NSpace align="center" :wrap="false">
-                <div class="w-150px text-right">{{ $t('page.business.consolidation.search.cancelled') }}:</div>
-                <NSelect v-model:value="cancelledOp" :options="operatorOptions" style="width: 100px" />
-                <NInput v-model:value="cancelled" clearable />
-              </NSpace>
-            </NGi>
-          </NGrid>
-
-          <div>
-            <NButton ghost type="primary" @click="handleReset">
-              {{ $t('page.business.consolidation.search.clear') }}
-            </NButton>
-          </div>
+          <span class="text-14px text-#999">-</span>
+          <NDatePicker
+            v-model:formatted-value="etdEnd"
+            type="date"
+            value-format="yyyy-MM-dd"
+            clearable
+            style="width: 140px"
+          />
         </div>
-      </div>
+        <NSelect v-model:value="searchKey" :options="searchKeyOptions" style="width: 180px" />
+        <NSelect v-model:value="searchOp" :options="operatorOptions" style="width: 100px" />
+        <NInput
+          v-model:value="searchVal"
+          :placeholder="$t('page.business.consolidation.search.placeholder')"
+          clearable
+          style="width: 260px"
+          @keyup.enter="handleSearch"
+        />
+        <NButton type="primary" :loading="loading" @click="handleSearch">
+          {{ $t('common.search') }}
+        </NButton>
+        <NButton @click="handleReset">{{ $t('common.reset') }}</NButton>
+      </NSpace>
     </NCard>
 
     <NCard :bordered="false" class="h-full flex-1-hidden" content-class="h-full flex flex-col overflow-hidden">
