@@ -71,6 +71,20 @@ export function getMatchTransactionColumns(
         )
     },
     {
+      key: 'taxInvoiceNo',
+      title: t('page.settlement.matchTransactions.taxInvoiceNo'),
+      width: 150,
+      ellipsis: { tooltip: true },
+      render: row => row.taxInvoiceNo || '-'
+    },
+    {
+      key: 'taxInvoiceDate',
+      title: t('page.settlement.matchTransactions.taxInvoiceDate'),
+      width: 120,
+      ellipsis: { tooltip: true },
+      render: row => (row.taxInvoiceDate ? String(row.taxInvoiceDate).split('T')[0] : '-')
+    },
+    {
       key: 'billingParty',
       title: t('page.settlement.matchTransactions.company'),
       width: 240,

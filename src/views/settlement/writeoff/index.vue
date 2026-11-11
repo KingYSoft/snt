@@ -1,16 +1,26 @@
 <script setup lang="ts">
-import { computed, reactive, ref, watch } from 'vue';
-import type { DataTableRowKey } from 'naive-ui';
+import { computed, nextTick, reactive, ref, watch } from 'vue';
+import type { DataTableRowKey, SelectOption } from 'naive-ui';
 import { useRouter } from 'vue-router';
 import { useI18n } from 'vue-i18n';
 import { useNaivePaginatedTable } from '@/hooks/common/table';
 import { sjcTransform } from '@/utils/maintain/transform';
 import {
+  mapWriteOffBankRow,
+  matchTransactionsCurrencyOptions,
   matchTransactionsExport,
+  matchTransactionsGetWriteOffBank,
+  matchTransactionsQueryOrgAddress,
   matchTransactionsQueryPage,
   normalizeMatchTransactionRecord,
+  orgAddressRowLabel,
+  orgAddressRowSelectValue,
+  parseMatchTransactionsCurrencyOptions,
+  parseOrgAddressQueryResponse,
   type MatchTransactionRecord,
-  type MatchTransactionQueryParams
+  type MatchTransactionQueryParams,
+  type OrgAddressRow,
+  type WriteOffBankRow
 } from '@/service/api/business/match-transactions';
 import { downloadBlob } from '@/utils/download';
 import { getExportColumns } from '@/utils/export-columns';
@@ -31,16 +41,20 @@ const defaultEnd = formatDate(today);
 interface FilterState {
   field1: { key: string; start: string; end: string };
   field2: { key: string; value: string };
-  match_number: string;
-  billing_party: string;
+  settleCompany: string;
+  currency: string | null;
+  writeOffBank: string | null;
+  writeOffUser: string;
 }
 
 function createDefaultFilters(): FilterState {
   return {
     field1: { key: 'etd', start: defaultStart, end: defaultEnd },
     field2: { key: 'job_number', value: '' },
-    match_number: '',
-    billing_party: ''
+    settleCompany: '',
+    currency: null,
+    writeOffBank: null,
+    writeOffUser: ''
   };
 }
 
@@ -57,9 +71,86 @@ const field1KeyOptions = computed(() => [
 const field2KeyOptions = computed(() => [
   { label: t('page.settlement.matchTransactions.jobNumber'), value: 'job_number' },
   { label: t('page.business.shipment.table.shipperName'), value: 'shipper' },
+  { label: t('page.settlement.matchTransactions.billingParty'), value: 'billing_party' },
   { label: t('page.settlement.matchTransactions.editor.matchNumber'), value: 'match_number' },
   { label: t('page.settlement.matchTransactions.description'), value: 'description' }
 ]);
+
+const settleCompanyName = ref('');
+const companyOptions = ref<Array<{ label: string; value: string; data: OrgAddressRow }>>([]);
+const companyLoading = ref(false);
+const currencyOptions = ref<SelectOption[]>([]);
+const currencyLoading = ref(false);
+const bankOptions = ref<Array<{ label: string; value: string; data: WriteOffBankRow }>>([]);
+const bankLoading = ref(false);
+
+async function handleSearchCompany(query: string) {
+  companyLoading.value = true;
+  try {
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '' });
+    companyOptions.value = parseOrgAddressQueryResponse(res)
+      .map(item => ({
+        label: orgAddressRowLabel(item),
+        value: orgAddressRowSelectValue(item),
+        data: item
+      }))
+      .filter(option => option.value);
+  } catch {
+    companyOptions.value = [];
+  } finally {
+    companyLoading.value = false;
+  }
+}
+
+function onCompanyMenuShow(show: boolean) {
+  if (show) void nextTick(() => void handleSearchCompany(''));
+}
+
+function handleSelectCompany(value: string | null) {
+  filters.settleCompany = value ?? '';
+  settleCompanyName.value = '';
+  filters.writeOffBank = null;
+  if (value) {
+    const selected = companyOptions.value.find(item => item.value === value);
+    settleCompanyName.value = selected?.data?.oH_FullName?.trim() || selected?.label || '';
+  }
+  void loadWriteOffBanks();
+}
+
+async function loadCurrencyOptions() {
+  currencyLoading.value = true;
+  try {
+    currencyOptions.value = parseMatchTransactionsCurrencyOptions(await matchTransactionsCurrencyOptions());
+  } catch {
+    currencyOptions.value = [];
+  } finally {
+    currencyLoading.value = false;
+  }
+}
+
+async function loadWriteOffBanks() {
+  bankLoading.value = true;
+  try {
+    const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName: settleCompanyName.value.trim() });
+    const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
+    bankOptions.value = list
+      .map(mapWriteOffBankRow)
+      .filter((row): row is WriteOffBankRow => Boolean(row))
+      .map(row => ({
+        label: [row.ab_code, row.ab_bankname].filter(Boolean).join(' ') || row.ab_pk,
+        value: row.ab_bankname || row.ab_code || row.ab_pk,
+        data: row
+      }));
+  } catch {
+    bankOptions.value = [];
+  } finally {
+    bankLoading.value = false;
+  }
+}
+
+function onBankMenuShow(show: boolean) {
+  if (show) void loadWriteOffBanks();
+}
 
 const pageRef = ref(1);
 const pageSizeRef = ref(50);
@@ -67,12 +158,16 @@ const pageSizeRef = ref(50);
 function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: number }): MatchTransactionQueryParams {
   const f = filters;
   const JobNumber = f.field2.key === 'job_number' ? f.field2.value.trim() : '';
-  const fromField2Shipper = f.field2.key === 'shipper' ? f.field2.value.trim() : '';
+  const fromField2Shipper = f.field2.key === 'shipper' || f.field2.key === 'billing_party' ? f.field2.value.trim() : '';
   const fromField2Match = f.field2.key === 'match_number' ? f.field2.value.trim() : '';
   const fromField2Description = f.field2.key === 'description' ? f.field2.value.trim() : '';
-  const Shipper = f.billing_party.trim() || fromField2Shipper;
-  const MatchNumber = f.match_number.trim() || fromField2Match;
+  const Shipper = fromField2Shipper;
+  const MatchNumber = fromField2Match;
   const Description = fromField2Description;
+  const SettleCompany = f.settleCompany ? settleCompanyName.value.trim() || f.settleCompany.trim() : '';
+  const Currency = (f.currency ?? '').trim();
+  const WriteOffBank = (f.writeOffBank ?? '').trim();
+  const WriteOffUser = f.writeOffUser.trim();
   const pg = override ?? {
     SkipCount: (pageRef.value - 1) * pageSizeRef.value,
     MaxResultCount: pageSizeRef.value
@@ -85,6 +180,10 @@ function buildQueryParams(override?: { SkipCount?: number; MaxResultCount?: numb
   if (JobNumber) q.JobNumber = JobNumber;
   if (MatchNumber) q.MatchNumber = MatchNumber;
   if (Description) q.Description = Description;
+  if (SettleCompany) q.SettleCompany = SettleCompany;
+  if (Currency) q.Currency = Currency;
+  if (WriteOffBank) q.WriteOffBank = WriteOffBank;
+  if (WriteOffUser) q.WriteOffUser = WriteOffUser;
   if (f.field1.key === 'etd') {
     if (f.field1.start) q.EtdStart = f.field1.start;
     if (f.field1.end) q.EtdEnd = f.field1.end;
@@ -235,11 +334,13 @@ async function handleExportSelected() {
 
 function resetFiltersAndSearch() {
   Object.assign(filters, createDefaultFilters());
+  settleCompanyName.value = '';
   checkedRowKeys.value = [];
   selectedRowsByPk.value = new Map();
   getDataByPage(1);
 }
 
+void loadCurrencyOptions();
 getData();
 </script>
 
@@ -296,17 +397,46 @@ getData();
             </NButton>
           </NSpace>
         </NGi>
-        <NGi v-if="showMoreFilters" :span="4">
-          <NInput
-            v-model:value="filters.match_number"
-            :placeholder="t('page.settlement.matchTransactions.editor.matchNumber')"
+
+        <NGi v-if="showMoreFilters" :span="6">
+          <NSelect
+            :value="filters.settleCompany || null"
+            :options="companyOptions"
+            :loading="companyLoading"
+            filterable
+            remote
             clearable
+            :placeholder="t('page.settlement.matchTransactions.settleCompany')"
+            @search="handleSearchCompany"
+            @update:show="onCompanyMenuShow"
+            @update:value="handleSelectCompany"
+          />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NSelect
+            v-model:value="filters.currency"
+            :options="currencyOptions"
+            :loading="currencyLoading"
+            filterable
+            clearable
+            :placeholder="t('page.settlement.matchTransactions.currency')"
+          />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="6">
+          <NSelect
+            v-model:value="filters.writeOffBank"
+            :options="bankOptions"
+            :loading="bankLoading"
+            filterable
+            clearable
+            :placeholder="t('page.settlement.matchTransactions.writeOffBank')"
+            @update:show="onBankMenuShow"
           />
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
           <NInput
-            v-model:value="filters.billing_party"
-            :placeholder="t('page.settlement.matchTransactions.billingParty')"
+            v-model:value="filters.writeOffUser"
+            :placeholder="t('page.settlement.matchTransactions.writeOffUser')"
             clearable
           />
         </NGi>
@@ -332,7 +462,7 @@ getData();
           :pagination="pagination"
           :row-key="(r: any) => r.pk"
           :row-props="getRowProps"
-          :scroll-x="1200"
+          :scroll-x="1500"
           remote
           striped
           @update:checked-row-keys="handleCheckedRowKeysUpdate"

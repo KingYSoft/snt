@@ -19,6 +19,7 @@ const routeOrderMap: Partial<Record<RouteKey, number>> = {
   'settlement_receivable-transactions': 1,
   'settlement_payable-transactions': 2,
   settlement_writeoff: 3,
+  'settlement_closing-period': 4,
 
   // Maintain children
   maintain_airlines: 1,
@@ -27,6 +28,7 @@ const routeOrderMap: Partial<Record<RouteKey, number>> = {
   maintain_commodities: 4,
   maintain_containers: 5,
   maintain_currency: 6,
+  'maintain_exchange-rate': 7,
   'maintain_package-types': 7,
   'maintain_port-code': 8,
   'maintain_service-level': 9,

@@ -301,6 +301,7 @@ const local: App.I18n.Schema = {
     'settlement_payable-transactions': '应付交易',
     'settlement_payable-transactions-create': '新增应付',
     settlement_writeoff: '结算匹配',
+    'settlement_closing-period': '期间管理',
     'settlement_writeoff-create': '新建收款',
     'settlement_writeoff-edit': '结算匹配详情',
     'settlement_billing-detail': '详情',
@@ -398,7 +399,11 @@ const local: App.I18n.Schema = {
           transportMode: '运输方式',
           consolMode: '拼箱方式',
           cancelled: '已取消',
-          contain: '包含'
+          contain: '包含',
+          company: '所属公司',
+          sales: '销售',
+          ops: '操作',
+          customerService: '客服'
         },
         table: {
           consolidationNo: '拼箱编号',
@@ -421,7 +426,11 @@ const local: App.I18n.Schema = {
           ctrType: '箱型',
           ctrCount: '箱量',
           createUser: '创建人',
-          modifyUser: '修改人'
+          modifyUser: '修改人',
+          company: '所属公司',
+          sales: '销售',
+          ops: '操作',
+          customerService: '客服'
         },
         tab: {
           details: '详情',
@@ -667,7 +676,16 @@ const local: App.I18n.Schema = {
           voyage: '航次',
           createUser: '创建人',
           modifyUser: '修改人',
-          salesRep: '销售代表'
+          salesRep: '销售代表',
+          company: '所属公司',
+          ops: '操作',
+          customerService: '客服'
+        },
+        search: {
+          company: '所属公司',
+          sales: '销售',
+          ops: '操作',
+          customerService: '客服'
         },
         messages: {
           exportFailed: '导出失败',
@@ -681,6 +699,48 @@ const local: App.I18n.Schema = {
           billingSaveSuccess: '账单记录保存成功。',
           billingSaveFailed: '保存账单记录失败。',
           edocsNotImplemented: '电子文档保存功能尚未实现。'
+        },
+        edoc: {
+          upload: '上传',
+          uploadTitle: '上传电子文档',
+          file: '文件',
+          fileName: '文件名',
+          fileType: '文件类型',
+          docType: '单证类型',
+          group: '分组',
+          refNo: '参考号',
+          remarks: '备注',
+          inEbooking: 'Ebooking可见',
+          visibleInEbooking: '在 Ebooking 中可见',
+          publish: '发布',
+          publishedBy: '发布人',
+          publishedTime: '发布时间',
+          receivedTime: '接收时间',
+          ediGeneratedTime: 'EDI 生成时间',
+          uploadUser: '上传人',
+          department: '部门',
+          download: '下载',
+          preview: '预览',
+          copy: '复制',
+          copyTitle: '复制文档',
+          selectFile: '请选择要上传的文件。',
+          selectDocType: '请选择单证类型。',
+          dropOrClick: '点击或拖拽文件到此处',
+          uploadSuccess: '上传成功',
+          uploadFailed: '上传失败',
+          downloadSuccess: '下载成功',
+          downloadFailed: '下载失败',
+          previewFailed: '预览失败',
+          copyFileNameRequired: '请输入文件名。',
+          copyDocTypeRequired: '请选择单证类型。',
+          copySuccess: '复制成功。',
+          copyFailed: '复制失败。',
+          generateEdi: '生成 EDI',
+          selectAtLeastOne: '请至少选择一个文档。',
+          generateSuccess: '生成 EDI 成功',
+          generateSuccessWithFile: '生成 EDI 成功：{fileName}',
+          generateFailed: '生成 EDI 失败',
+          publishApiPending: 'Publish 接口尚未就绪。'
         },
         export: '导出',
         tab: {
@@ -902,15 +962,42 @@ const local: App.I18n.Schema = {
           countryCode: '国家编码',
           saveSuccess: '保存成功。',
           saveFailed: '保存地址失败。'
-        },
-        edoc: {
-          selectDocType: '请选择文档类型。',
-          uploadSuccess: '上传成功',
-          uploadFailed: '上传失败'
         }
       }
     },
     settlement: {
+      closingPeriod: {
+        new: '新增',
+        queryFailed: '期间查询失败',
+        filter: {
+          accountingMonth: '会计月',
+          closingDate: '关账日期',
+          businessUnit: '业务单元'
+        },
+        table: {
+          businessUnit: '业务单元',
+          accountingMonth: '会计月',
+          closingDate: '关账日期'
+        },
+        dialog: {
+          newTitle: '新增关账期间',
+          editTitle: '编辑关账期间',
+          accountingMonth: '会计月',
+          closingDate: '关账日期',
+          businessUnit: '业务单元',
+          branchCode: '代码',
+          orgCode: '组织代码',
+          branchName: '名称',
+          branchCodePlaceholder: '请输入代码或名称搜索',
+          periodRequired: '请选择会计月',
+          closingDateRequired: '请选择关账日期',
+          businessUnitRequired: '请至少选择一个业务单元',
+          createSuccess: '关账期间创建成功',
+          createFailed: '关账期间创建失败',
+          updateSuccess: '关账期间更新成功',
+          updateFailed: '关账期间更新失败'
+        }
+      },
       transactions: {
         invoiceDate: '发票日期',
         ledger: '账套',
@@ -1124,7 +1211,7 @@ const local: App.I18n.Schema = {
         exportRow: '导出行',
         moreFilters: '更多筛选',
         hideMoreFilters: '收起筛选',
-        keywordPlaceholder: '工作单号 / 发货人 / 匹配号 / 描述',
+        keywordPlaceholder: '工作单号 / 发货人 / 账单方 / 匹配号 / 描述',
         exportSuccess: '导出完成',
         exportFailed: '导出失败，请稍后重试',
         exportWarning50k: '正在导出前 50,000 条记录，共 {total} 条。请缩小筛选范围以导出全部。',
@@ -1138,6 +1225,11 @@ const local: App.I18n.Schema = {
         amount: '金额',
         paymentDate: '付款日期',
         description: '描述',
+        taxInvoiceNo: '税务发票号码',
+        taxInvoiceDate: '税务发票日期',
+        settleCompany: '所属公司',
+        writeOffBank: '核销银行',
+        writeOffUser: '核销人',
         billingParty: '账单方',
         jobNumber: '工作单号',
         etd: 'ETD',
@@ -1183,6 +1275,19 @@ const local: App.I18n.Schema = {
         code: '编码',
         symbol: '符号',
         desc: '描述'
+      },
+      exchangeRate: {
+        period: '期间',
+        startDate: '开始日期',
+        expiryDate: '失效日期',
+        fromCurrency: '源币种',
+        toCurrency: '目标币种',
+        rate: '汇率',
+        filterCurrencyFrom: '源币种',
+        filterCurrencyTo: '目标币种',
+        filterPeriod: '期间',
+        filterPlaceholder: '请输入',
+        queryFailed: '汇率查询失败'
       },
       packageTypes: {
         code: '编码',

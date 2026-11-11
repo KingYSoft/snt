@@ -84,6 +84,22 @@ const searchKeyOptions = [
   {
     label: () => $t('page.business.shipment.table.destination'),
     value: 'js_rl_nkdestination'
+  },
+  {
+    label: () => $t('page.business.shipment.search.company'),
+    value: 'jh_gc'
+  },
+  {
+    label: () => $t('page.business.shipment.search.sales'),
+    value: 'jh_gs_nkrepsales'
+  },
+  {
+    label: () => $t('page.business.shipment.search.ops'),
+    value: 'jh_gs_nkrepops'
+  },
+  {
+    label: () => $t('page.business.shipment.search.customerService'),
+    value: 'customer_service'
   }
 ];
 

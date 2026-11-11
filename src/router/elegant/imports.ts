@@ -51,6 +51,7 @@ export const views: Record<LastLevelRouteKey, RouteComponent | (() => Promise<Ro
   maintain_vessel: () => import("@/views/maintain/vessel/index.vue"),
   maintain_warehouse: () => import("@/views/maintain/warehouse/index.vue"),
   "settlement_billing-detail": () => import("@/views/settlement/billing-detail/index.vue"),
+  "settlement_closing-period": () => import("@/views/settlement/closing-period/index.vue"),
   "settlement_payable-transactions-create": () => import("@/views/settlement/payable-transactions-create/index.vue"),
   "settlement_payable-transactions": () => import("@/views/settlement/payable-transactions/index.vue"),
   "settlement_receivable-transactions-create": () => import("@/views/settlement/receivable-transactions-create/index.vue"),

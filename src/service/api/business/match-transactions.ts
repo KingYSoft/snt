@@ -21,6 +21,16 @@ export interface MatchTransactionRecord {
   settledAmount: number;
   paymentDate: string;
   description: string;
+  /** 税务发票号码 */
+  taxInvoiceNo: string;
+  /** 税务发票日期 */
+  taxInvoiceDate: string;
+  /** 所属公司名称 */
+  settleCompanyName: string;
+  /** 核销银行名称 */
+  writeOffBankName: string;
+  /** 核销人 */
+  writeOffUserName: string;
   index?: number;
 }
 
@@ -36,6 +46,10 @@ export interface MatchTransactionQueryParams {
   EtdEnd?: string;
   PaymentDateStart?: string;
   PaymentDateEnd?: string;
+  SettleCompany?: string;
+  Currency?: string;
+  WriteOffBank?: string;
+  WriteOffUser?: string;
   SelectedPks?: string[];
   Columns?: ExportColumn[];
   ExportTitle?: string;
@@ -202,12 +216,18 @@ export function mapWriteOffBankRow(item: Record<string, any> | null | undefined)
 
 // ==================== 工具函数 ====================
 
+/** 日期值统一为 yyyy-MM-dd（兼容 ISO 时间串） */
+function toDateOnly(value: unknown): string {
+  if (value == null || value === '') return '';
+  const text = String(value);
+  return text.includes('T') ? text.split('T')[0] : text;
+}
+
 /** API 响应 → 表格行（新 camelCase 与旧 snake_case 均可） */
 export function mapMatchTransactionItem(raw: Record<string, any>): Partial<MatchTransactionRecord> {
   if (!raw || typeof raw !== 'object') return {};
-  const paymentRaw = raw.paymentDate ?? raw.ap_matchdate ?? '';
-  const paymentDate =
-    typeof paymentRaw === 'string' && paymentRaw.includes('T') ? paymentRaw.split('T')[0] : paymentRaw;
+  const paymentDate = toDateOnly(raw.paymentDate ?? raw.ap_matchdate);
+  const taxInvoiceDate = toDateOnly(raw.taxInvoiceDate ?? raw.tax_invoice_date);
   return {
     pk: raw.pk ?? raw.ap_pk ?? '',
     jobNumber: raw.jobNumber ?? raw.job_number ?? raw.ah_jobnumber ?? '',
@@ -217,8 +237,13 @@ export function mapMatchTransactionItem(raw: Record<string, any>): Partial<Match
     billingPartyName: raw.billingPartyName ?? raw.companyName ?? '',
     currency: raw.currency ?? raw.ah_rx_nktransactioncurrency ?? '',
     settledAmount: Number(raw.settledAmount ?? raw.ap_amount) || 0,
-    paymentDate: typeof paymentDate === 'string' ? paymentDate : '',
-    description: raw.description ?? raw.ap_reason ?? ''
+    paymentDate,
+    description: raw.description ?? raw.ap_reason ?? '',
+    taxInvoiceNo: raw.taxInvoiceNo ?? raw.tax_invoice_no ?? '',
+    taxInvoiceDate,
+    settleCompanyName: raw.settleCompanyName ?? raw.settle_company_name ?? raw.companyName ?? '',
+    writeOffBankName: raw.writeOffBankName ?? raw.write_off_bank_name ?? '',
+    writeOffUserName: raw.writeOffUserName ?? raw.write_off_user_name ?? ''
   };
 }
 
@@ -236,6 +261,11 @@ export function normalizeMatchTransactionRecord(raw: Record<string, any>, index?
     settledAmount: m.settledAmount ?? 0,
     paymentDate: m.paymentDate ?? '',
     description: m.description ?? '',
+    taxInvoiceNo: m.taxInvoiceNo ?? '',
+    taxInvoiceDate: m.taxInvoiceDate ?? '',
+    settleCompanyName: m.settleCompanyName ?? '',
+    writeOffBankName: m.writeOffBankName ?? '',
+    writeOffUserName: m.writeOffUserName ?? '',
     index
   };
 }
@@ -316,7 +346,7 @@ export function matchTransactionsExport(params: MatchTransactionQueryParams) {
     method: 'post',
     data: params,
     responseType: 'blob',
-    timeout: 300 * 1000,
+    timeout: 300 * 1000
   }).then(response => {
     if (response.error || !response.data) throw response.error || new Error('Export failed');
     return response.data;

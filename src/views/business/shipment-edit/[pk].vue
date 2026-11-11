@@ -692,7 +692,14 @@ const handlePrint = async (payload?: { url: string; urls: string[] }) => {
         </NTabPane>
         <NTabPane :name="5" :tab="$t('page.business.shipment.tab.eDocs')">
           <NSkeleton v-if="skeletonLoading" text :row="5" />
-          <TabEDocs v-else :input-data="inputData" />
+          <TabEDocs
+            v-else
+            :input-data="inputData"
+            :related-key="inputData.pk"
+            :ship-no="inputData.shp_consign_no"
+            :actived-tab="activedTab"
+            :tab-name="5"
+          />
         </NTabPane>
       </NTabs>
     </NCard>

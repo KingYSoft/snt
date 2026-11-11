@@ -260,7 +260,7 @@ export const generatedRoutes: GeneratedRoute[] = [
         meta: {
           title: 'maintain_exchange-rate',
           i18nKey: 'route.maintain_exchange-rate',
-          hideInMenu: true
+          order: 7
         }
       },
       {
@@ -422,6 +422,16 @@ export const generatedRoutes: GeneratedRoute[] = [
           i18nKey: 'route.settlement_billing-detail',
           hideInMenu: true,
           multiTab: true
+        }
+      },
+      {
+        name: 'settlement_closing-period',
+        path: '/settlement/closing-period',
+        component: 'view.settlement_closing-period',
+        meta: {
+          title: 'settlement_closing-period',
+          i18nKey: 'route.settlement_closing-period',
+          order: 4
         }
       },
       {
