@@ -279,21 +279,21 @@ export function getShipmentColumns(
     },
     {
       title: $t('page.business.shipment.table.company'),
-      key: 'jh_gc',
+      key: 'company_name',
       align: 'left',
       minWidth: 120,
       ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.shipment.table.ops'),
-      key: 'jh_gs_nkrepops',
+      key: 'operation_name',
       align: 'left',
       minWidth: 100,
       ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.shipment.table.customerService'),
-      key: 'customer_service',
+      key: 'customer_service_name',
       align: 'left',
       minWidth: 100,
       ellipsis: { tooltip: true }
