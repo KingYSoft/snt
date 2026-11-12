@@ -244,10 +244,10 @@ export function mapMatchTransactionItem(raw: Record<string, any>): Partial<Match
     description: raw.description ?? raw.ap_reason ?? '',
     taxInvoiceNo: raw.taxInvoiceNo ?? raw.tax_invoice_no ?? '',
     taxInvoiceDate,
-    consolNo: raw.consolNo ?? raw.consol_no ?? raw.consolNumber ?? '',
-    settleCompanyName: raw.settleCompanyName ?? raw.settle_company_name ?? raw.companyName ?? '',
-    writeOffBankName: raw.writeOffBankName ?? raw.write_off_bank_name ?? '',
-    writeOffUserName: raw.writeOffUserName ?? raw.write_off_user_name ?? ''
+    consolNo: raw.consolNo,
+    settleCompanyName: raw.settleCompanyName,
+    writeOffBankName: raw.writeOffBankName,
+    writeOffUserName: raw.writeOffUserName
   };
 }
 
@@ -267,10 +267,10 @@ export function normalizeMatchTransactionRecord(raw: Record<string, any>, index?
     description: m.description ?? '',
     taxInvoiceNo: m.taxInvoiceNo ?? '',
     taxInvoiceDate: m.taxInvoiceDate ?? '',
-    consolNo: m.consolNo ?? '',
-    settleCompanyName: m.settleCompanyName ?? '',
-    writeOffBankName: m.writeOffBankName ?? '',
-    writeOffUserName: m.writeOffUserName ?? '',
+    consolNo: m.consolNo as string,
+    settleCompanyName: m.settleCompanyName as string,
+    writeOffBankName: m.writeOffBankName as string,
+    writeOffUserName: m.writeOffUserName as string,
     index
   };
 }

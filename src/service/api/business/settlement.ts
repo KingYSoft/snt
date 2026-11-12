@@ -650,8 +650,8 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
     tran_type: item.ah_transactiontype || '',
     job_invoice_number: jobInvoiceNumber,
     transaction_num: item.ah_transactionnum || '',
-    tax_invoice_no: item.taxInvoiceNo || item.tax_invoice_no || item.ah_transactionnum || '',
-    tax_invoice_date: formatDateToYYYYMMDD(item.taxInvoiceDate || item.tax_invoice_date || item.ah_invoicedate),
+    tax_invoice_no: item.taxInvoiceNo,
+    tax_invoice_date: formatDateToYYYYMMDD(item.taxInvoiceDate),
     creditor_debtor: creditorDebtorCode,
     creditor_debtor_full_name: creditorDebtorName,
     invoice_description: item.ah_desc || '',
@@ -668,10 +668,9 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
     outstanding_amount: item.ah_outstandingamount || 0,
     fully_paid_date: formatDateToYYYYMMDD(item.ah_fullypaiddate),
     job_number: item.ah_jobnumber || '',
-    settle_company_name: item.settleCompanyName || item.settle_company_name || item.oh_fullname || '',
-    write_off_bank_name: item.writeOffBankName || item.write_off_bank_name || item.ab_bankname || '',
-    write_off_user_name:
-      item.writeOffUserName || item.write_off_user_name || item.ah_systemlastedituser || item.ah_systemcreateuser || '',
+    settle_company_name: item.settleCompanyName,
+    write_off_bank_name: item.writeOffBankName,
+    write_off_user_name: item.writeOffUserName,
     canceled: item.ah_iscancelled === 1 ? 'Y' : 'N'
   };
 }
