@@ -12,6 +12,14 @@ import {
   queryPayableTransactions,
   queryReceivableTransactions
 } from '@/service/api/business/settlement';
+import {
+  mapWriteOffBankRow,
+  matchTransactionsQueryOrgAddress,
+  matchTransactionsGetWriteOffBank,
+  orgAddressRowLabel,
+  parseOrgAddressQueryResponse,
+  type WriteOffBankRow
+} from '@/service/api/business/match-transactions';
 import { downloadBlob } from '@/utils/download';
 import { getExportColumns } from '@/utils/export-columns';
 import { getSettlementTransactionColumns, type SettlementTransactionActionKey } from './transaction-columns';
@@ -37,6 +45,10 @@ interface TransactionFilterState {
   branch: string;
   department: string;
   canceled: string;
+  settleCompany: string;
+  currency: string;
+  writeOffBank: string;
+  writeOffUser: string;
 }
 
 const props = defineProps<Props>();
@@ -47,6 +59,10 @@ const router = useRouter();
 const showMoreFilters = ref(true);
 const checkedRowKeys = ref<DataTableRowKey[]>([]);
 const exportLoading = ref(false);
+const companyOptions = ref<Array<{ label: string; value: string }>>([]);
+const companyLoading = ref(false);
+const bankOptions = ref<Array<{ label: string; value: string; data: WriteOffBankRow }>>([]);
+const bankLoading = ref(false);
 /** 勾选行的完整数据：Naive 在远程分页下只对内存中的节点解析得到 row，翻页时用当前页 rows 补全 */
 const selectedRowsByPk = ref(new Map<string, SettlementTransactionRecord>());
 
@@ -77,11 +93,67 @@ function createDefaultFilters(): TransactionFilterState {
     tranType: '',
     branch: '',
     department: '',
-    canceled: ''
+    canceled: '',
+    settleCompany: '',
+    currency: '',
+    writeOffBank: '',
+    writeOffUser: ''
   };
 }
 
 const filters = reactive<TransactionFilterState>(createDefaultFilters());
+
+async function handleSearchCompany(query: string) {
+  companyLoading.value = true;
+  try {
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '', IncludeAll: true });
+    const uniqueCompanies = new Map<string, { label: string; value: string }>();
+    for (const item of parseOrgAddressQueryResponse(res)) {
+      const name = String(item.oH_FullName ?? '').trim();
+      if (!name) continue;
+      const key = name.toLocaleLowerCase();
+      if (!uniqueCompanies.has(key)) {
+        uniqueCompanies.set(key, { label: orgAddressRowLabel(item), value: name });
+      }
+    }
+    companyOptions.value = [...uniqueCompanies.values()];
+  } catch {
+    companyOptions.value = [];
+  } finally {
+    companyLoading.value = false;
+  }
+}
+
+function onCompanyMenuShow(show: boolean) {
+  if (show && companyOptions.value.length === 0) void handleSearchCompany('');
+}
+
+async function loadWriteOffBanks() {
+  bankLoading.value = true;
+  try {
+    const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName: '' });
+    const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
+    const uniqueBanks = new Map<string, { label: string; value: string; data: WriteOffBankRow }>();
+    for (const item of list) {
+      const row = mapWriteOffBankRow(item);
+      const bankName = row?.ab_bankname.trim() ?? '';
+      if (!row || !bankName) continue;
+      const key = bankName.toLocaleLowerCase();
+      if (!uniqueBanks.has(key)) {
+        uniqueBanks.set(key, { label: bankName, value: bankName, data: row });
+      }
+    }
+    bankOptions.value = [...uniqueBanks.values()];
+  } catch {
+    bankOptions.value = [];
+  } finally {
+    bankLoading.value = false;
+  }
+}
+
+function onBankMenuShow(show: boolean) {
+  if (show && bankOptions.value.length === 0) void loadWriteOffBanks();
+}
 
 const title = computed(() =>
   t(props.type === 'receivable' ? 'route.settlement_receivable-transactions' : 'route.settlement_payable-transactions')
@@ -136,6 +208,10 @@ function buildParams(override?: Partial<SettlementTransactionQueryParams>): Sett
     branch: filters.branch,
     department: filters.department,
     canceled: filters.canceled,
+    settleCompany: filters.settleCompany,
+    currency: filters.currency,
+    writeOffBank: filters.writeOffBank,
+    writeOffUser: filters.writeOffUser,
     ...override
   };
 }
@@ -402,6 +478,46 @@ function getRowProps(row: SettlementTransactionRecord) {
           <NInput
             v-model:value="filters.canceled"
             :placeholder="t('page.settlement.transactions.canceled')"
+            clearable
+          />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NSelect
+            :value="filters.settleCompany || null"
+            :options="companyOptions"
+            :loading="companyLoading"
+            filterable
+            remote
+            clearable
+            :placeholder="t('page.settlement.transactions.settleCompany')"
+            @search="handleSearchCompany"
+            @update:show="onCompanyMenuShow"
+            @update:value="value => (filters.settleCompany = value ?? '')"
+          />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NInput
+            v-model:value="filters.currency"
+            :placeholder="t('page.settlement.transactions.currency')"
+            clearable
+          />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NSelect
+            :value="filters.writeOffBank || null"
+            :options="bankOptions"
+            :loading="bankLoading"
+            filterable
+            clearable
+            :placeholder="t('page.settlement.transactions.writeOffBank')"
+            @update:show="onBankMenuShow"
+            @update:value="value => (filters.writeOffBank = value ?? '')"
+          />
+        </NGi>
+        <NGi v-if="showMoreFilters" :span="4">
+          <NInput
+            v-model:value="filters.writeOffUser"
+            :placeholder="t('page.settlement.transactions.writeOffUser')"
             clearable
           />
         </NGi>

@@ -272,7 +272,7 @@ export function getShipmentColumns(
     },
     {
       title: $t('page.business.shipment.table.salesRep'),
-      key: 'shp_job_rep_sales_name',
+      key: 'sales_name',
       align: 'left',
       minWidth: 100,
       ellipsis: { tooltip: true }

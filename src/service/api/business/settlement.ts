@@ -176,6 +176,8 @@ export interface SettlementTransactionRecord {
   tran_type: string;
   job_invoice_number: string;
   transaction_num: string;
+  tax_invoice_no: string;
+  tax_invoice_date: string;
   creditor_debtor: string;
   creditor_debtor_full_name: string;
   invoice_description: string;
@@ -191,6 +193,9 @@ export interface SettlementTransactionRecord {
   outstanding_amount: number;
   fully_paid_date: string;
   job_number: string;
+  settle_company_name: string;
+  write_off_bank_name: string;
+  write_off_user_name: string;
   canceled: 'Y' | 'N';
 }
 
@@ -206,6 +211,10 @@ export interface SettlementTransactionQueryParams {
   branch?: string;
   department?: string;
   canceled?: string;
+  settleCompany?: string;
+  currency?: string;
+  writeOffBank?: string;
+  writeOffUser?: string;
   selectedPks?: string[];
   columns?: ExportColumn[];
   exportTitle?: string;
@@ -566,6 +575,22 @@ function buildBillingFilters(params: SettlementTransactionQueryParams): Array<{
     });
   }
 
+  if (params.settleCompany) {
+    filters.push({ key: 'settle_company', op: 'Contain', val: params.settleCompany });
+  }
+
+  if (params.currency) {
+    filters.push({ key: 'currency', op: 'Equal', val: params.currency });
+  }
+
+  if (params.writeOffBank) {
+    filters.push({ key: 'write_off_bank', op: 'Contain', val: params.writeOffBank });
+  }
+
+  if (params.writeOffUser) {
+    filters.push({ key: 'write_off_user', op: 'Contain', val: params.writeOffUser });
+  }
+
   return filters;
 }
 
@@ -584,6 +609,8 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
       tran_type: '',
       job_invoice_number: '',
       transaction_num: '',
+      tax_invoice_no: '',
+      tax_invoice_date: '',
       creditor_debtor: '',
       creditor_debtor_full_name: '',
       invoice_description: '',
@@ -599,6 +626,9 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
       outstanding_amount: 0,
       fully_paid_date: '',
       job_number: '',
+      settle_company_name: '',
+      write_off_bank_name: '',
+      write_off_user_name: '',
       canceled: 'N'
     };
   }
@@ -620,6 +650,8 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
     tran_type: item.ah_transactiontype || '',
     job_invoice_number: jobInvoiceNumber,
     transaction_num: item.ah_transactionnum || '',
+    tax_invoice_no: item.taxInvoiceNo || item.tax_invoice_no || item.ah_transactionnum || '',
+    tax_invoice_date: formatDateToYYYYMMDD(item.taxInvoiceDate || item.tax_invoice_date || item.ah_invoicedate),
     creditor_debtor: creditorDebtorCode,
     creditor_debtor_full_name: creditorDebtorName,
     invoice_description: item.ah_desc || '',
@@ -636,6 +668,10 @@ function mapBillingRecordToTransaction(item: any): SettlementTransactionRecord {
     outstanding_amount: item.ah_outstandingamount || 0,
     fully_paid_date: formatDateToYYYYMMDD(item.ah_fullypaiddate),
     job_number: item.ah_jobnumber || '',
+    settle_company_name: item.settleCompanyName || item.settle_company_name || item.oh_fullname || '',
+    write_off_bank_name: item.writeOffBankName || item.write_off_bank_name || item.ab_bankname || '',
+    write_off_user_name:
+      item.writeOffUserName || item.write_off_user_name || item.ah_systemlastedituser || item.ah_systemcreateuser || '',
     canceled: item.ah_iscancelled === 1 ? 'Y' : 'N'
   };
 }
