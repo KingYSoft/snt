@@ -173,25 +173,25 @@ export function getConsolidationColumns<T>(
     },
     {
       title: $t('page.business.consolidation.table.company'),
-      key: 'jh_gc',
+      key: 'company_name',
       minWidth: 140,
       ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.sales'),
-      key: 'jh_gs_nkrepsales',
+      key: 'sales_name',
       minWidth: 120,
       ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.ops'),
-      key: 'jh_gs_nkrepops',
+      key: 'operation_name',
       minWidth: 120,
       ellipsis: { tooltip: true }
     },
     {
       title: $t('page.business.consolidation.table.customerService'),
-      key: 'customer_service',
+      key: 'customer_service_name',
       minWidth: 120,
       ellipsis: { tooltip: true }
     },

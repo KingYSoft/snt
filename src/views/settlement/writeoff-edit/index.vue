@@ -173,7 +173,7 @@ function getCompanyOptionByValue(value: string) {
 async function handleSearchCompany(query: string) {
   companyLoading.value = true;
   try {
-    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '' });
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '', IncludeAll: true });
     const raw = parseOrgAddressQueryResponse(res);
     companyOptions.value = raw
       .map((item: OrgAddressRow) => ({

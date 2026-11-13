@@ -450,6 +450,10 @@ export interface ShipmentListItem {
   shp_freight_terms?: string | null;
   shp_delivery_mode?: string | null;
   shp_job_rep_sales_name?: string | null;
+  company_name?: string | null;
+  sales_name?: string | null;
+  operation_name?: string | null;
+  customer_service_name?: string | null;
 }
 
 /** GET /shipment/detail — shipper / consignee org address */

@@ -87,6 +87,11 @@ const searchKeyOptions = [
   }
 ];
 
+const searchPlaceholder = computed(() => {
+  const option = searchKeyOptions.find(item => item.value === searchKey.value);
+  return option ? option.label : $t('page.business.consolidation.search.placeholder');
+});
+
 const operatorOptions = [
   { label: '=', value: '=' },
   { label: $t('page.business.consolidation.search.contain'), value: 'Contain' }
@@ -279,7 +284,7 @@ async function handleBatchExport() {
         <NSelect v-model:value="searchOp" :options="operatorOptions" style="width: 100px" />
         <NInput
           v-model:value="searchVal"
-          :placeholder="$t('page.business.consolidation.search.placeholder')"
+          :placeholder="searchPlaceholder"
           clearable
           style="width: 260px"
           @keyup.enter="handleSearch"

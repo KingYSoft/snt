@@ -85,6 +85,13 @@ export function getMatchTransactionColumns(
       render: row => (row.taxInvoiceDate ? String(row.taxInvoiceDate).split('T')[0] : '-')
     },
     {
+      key: 'consolNo',
+      title: t('page.settlement.matchTransactions.consolNo'),
+      width: 150,
+      ellipsis: { tooltip: true },
+      render: row => row.consolNo || '-'
+    },
+    {
       key: 'billingParty',
       title: t('page.settlement.matchTransactions.company'),
       width: 240,
@@ -92,11 +99,32 @@ export function getMatchTransactionColumns(
       render: row => companyCell(row)
     },
     {
+      key: 'settleCompanyName',
+      title: t('page.settlement.matchTransactions.settleCompany'),
+      width: 240,
+      ellipsis: { tooltip: true },
+      render: row => row.settleCompanyName || '-'
+    },
+    {
       key: 'currency',
       title: t('page.settlement.matchTransactions.currency'),
       width: 80,
       align: 'center',
       ellipsis: { tooltip: true }
+    },
+    {
+      key: 'writeOffBankName',
+      title: t('page.settlement.matchTransactions.writeOffBank'),
+      width: 180,
+      ellipsis: { tooltip: true },
+      render: row => row.writeOffBankName || '-'
+    },
+    {
+      key: 'writeOffUserName',
+      title: t('page.settlement.matchTransactions.writeOffUser'),
+      width: 140,
+      ellipsis: { tooltip: true },
+      render: row => row.writeOffUserName || '-'
     },
     {
       key: 'settledAmount',

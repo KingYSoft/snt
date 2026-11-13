@@ -87,7 +87,7 @@ const bankLoading = ref(false);
 async function handleSearchCompany(query: string) {
   companyLoading.value = true;
   try {
-    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '' });
+    const res: any = await matchTransactionsQueryOrgAddress({ Query: query ?? '', IncludeAll: true });
     companyOptions.value = parseOrgAddressQueryResponse(res)
       .map(item => ({
         label: orgAddressRowLabel(item),
@@ -131,16 +131,19 @@ async function loadCurrencyOptions() {
 async function loadWriteOffBanks() {
   bankLoading.value = true;
   try {
-    const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName: settleCompanyName.value.trim() });
+    const res: any = await matchTransactionsGetWriteOffBank({ settleCompanyName: '' });
     const list: WriteOffBankRow[] = Array.isArray(res?.data) ? res.data : [];
-    bankOptions.value = list
-      .map(mapWriteOffBankRow)
-      .filter((row): row is WriteOffBankRow => Boolean(row))
-      .map(row => ({
-        label: [row.ab_code, row.ab_bankname].filter(Boolean).join(' ') || row.ab_pk,
-        value: row.ab_bankname || row.ab_code || row.ab_pk,
-        data: row
-      }));
+    const uniqueBanks = new Map<string, { label: string; value: string; data: WriteOffBankRow }>();
+    for (const item of list) {
+      const row = mapWriteOffBankRow(item);
+      const bankName = row?.ab_bankname.trim() ?? '';
+      if (!row || !bankName) continue;
+      const key = bankName.toLocaleLowerCase();
+      if (!uniqueBanks.has(key)) {
+        uniqueBanks.set(key, { label: bankName, value: bankName, data: row });
+      }
+    }
+    bankOptions.value = [...uniqueBanks.values()];
   } catch {
     bankOptions.value = [];
   } finally {
@@ -269,7 +272,7 @@ async function handleRowAction(key: MatchTransactionActionKey, row: MatchTransac
       const blob = await matchTransactionsExport({
         ...buildQueryParams({ SkipCount: 0, MaxResultCount: 0 }),
         MatchNumber: row.matchNumber || '',
-        Columns: getExportColumns(columns.value),
+        Columns: getMatchExportColumns(),
         ExportTitle: t('route.settlement_writeoff'),
         CompanyNameLabel: t('common.exportMeta.companyName'),
         ReportPeriodLabel: t('common.exportMeta.reportGeneratedPeriod')
@@ -310,6 +313,17 @@ function getRowProps(row: MatchTransactionRecord) {
   };
 }
 
+function getMatchExportColumns() {
+  const exportColumns = getExportColumns(columns.value);
+  const existingKeys = new Set(exportColumns.map(column => column.key));
+  const extraColumns = [
+    { key: 'settleCompanyName', title: t('page.settlement.matchTransactions.settleCompany') },
+    { key: 'writeOffBankName', title: t('page.settlement.matchTransactions.writeOffBank') },
+    { key: 'writeOffUserName', title: t('page.settlement.matchTransactions.writeOffUser') }
+  ];
+  return exportColumns.concat(extraColumns.filter(column => !existingKeys.has(column.key)));
+}
+
 async function handleExportSelected() {
   if (exportLoading.value) return;
 
@@ -318,7 +332,7 @@ async function handleExportSelected() {
     const blob = await matchTransactionsExport({
       ...buildQueryParams({ SkipCount: 0, MaxResultCount: 0 }),
       SelectedPks: [...selectedRowsByPk.value.keys()],
-      Columns: getExportColumns(columns.value),
+      Columns: getMatchExportColumns(),
       ExportTitle: t('route.settlement_writeoff'),
       CompanyNameLabel: t('common.exportMeta.companyName'),
       ReportPeriodLabel: t('common.exportMeta.reportGeneratedPeriod')
