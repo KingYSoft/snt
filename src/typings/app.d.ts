@@ -1458,6 +1458,9 @@ declare namespace App {
             outstandingAmount: string;
             fullyPaidDate: string;
             jobNumber: string;
+            settleCompany: string;
+            writeOffBank: string;
+            writeOffUser: string;
             canceled: string;
             print: string;
             export: string;
@@ -1667,6 +1670,7 @@ declare namespace App {
             description: string;
             taxInvoiceNo: string;
             taxInvoiceDate: string;
+            consolNo: string;
             settleCompany: string;
             writeOffBank: string;
             writeOffUser: string;

@@ -103,6 +103,11 @@ const searchKeyOptions = [
   }
 ];
 
+const searchPlaceholder = computed(() => {
+  const option = searchKeyOptions.find(item => item.value === searchKey.value);
+  return option ? option.label() : $t('common.keywordSearch');
+});
+
 const opOptions = [
   { label: () => $t('common.op.equal'), value: 'Equal' },
   { label: () => $t('common.op.notEqual'), value: 'NotEqual' },
@@ -387,7 +392,7 @@ async function handleBatchExport() {
         <NSelect v-model:value="searchOp" :options="opOptions" style="width: 120px" />
         <NInput
           v-model:value="searchVal"
-          :placeholder="$t('common.keywordSearch')"
+          :placeholder="searchPlaceholder"
           clearable
           style="width: 200px"
           @keyup.enter="handleSearch"

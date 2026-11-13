@@ -104,11 +104,33 @@ export function getSettlementTransactionColumns(
       ellipsis: { tooltip: true }
     },
     {
+      key: 'tax_invoice_no',
+      title: $t('page.settlement.matchTransactions.taxInvoiceNo'),
+      minWidth: 150,
+      ellipsis: { tooltip: true },
+      render: row => row.tax_invoice_no || '-'
+    },
+    {
+      key: 'tax_invoice_date',
+      title: $t('page.settlement.matchTransactions.taxInvoiceDate'),
+      minWidth: 120,
+      ellipsis: { tooltip: true },
+      render: row => row.tax_invoice_date || '-'
+    },
+    {
       key: 'creditor_debtor_full_name',
       title: $t('page.settlement.transactions.creditorDebtorFullName'),
       minWidth: 320,
       width: 320,
       ellipsis: { tooltip: true }
+    },
+    {
+      key: 'settle_company_name',
+      title: $t('page.settlement.transactions.settleCompany'),
+      minWidth: 240,
+      width: 240,
+      ellipsis: { tooltip: true },
+      render: row => row.settle_company_name || '-'
     },
     {
       key: 'invoice_description',
@@ -134,6 +156,20 @@ export function getSettlementTransactionColumns(
       align: 'center',
       minWidth: 80,
       ellipsis: { tooltip: true }
+    },
+    {
+      key: 'write_off_bank_name',
+      title: $t('page.settlement.transactions.writeOffBank'),
+      minWidth: 180,
+      ellipsis: { tooltip: true },
+      render: row => row.write_off_bank_name || '-'
+    },
+    {
+      key: 'write_off_user_name',
+      title: $t('page.settlement.transactions.writeOffUser'),
+      minWidth: 140,
+      ellipsis: { tooltip: true },
+      render: row => row.write_off_user_name || '-'
     },
     {
       key: 'trans_amount',
