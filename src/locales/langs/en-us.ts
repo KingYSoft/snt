@@ -1027,6 +1027,7 @@ const local: App.I18n.Schema = {
         writeOffBank: 'Write-off Bank',
         writeOffUser: 'Write-off User',
         canceled: 'Canceled',
+        canceledFilter: 'Is Canceled',
         print: 'Print',
         export: 'Export',
         moreFilters: 'More Filters',

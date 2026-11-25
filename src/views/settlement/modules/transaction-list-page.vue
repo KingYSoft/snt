@@ -189,6 +189,17 @@ const field2Options = computed<SelectOption[]>(() => [
   }
 ]);
 
+const canceledOptions = computed<SelectOption[]>(() => [
+  {
+    label: t('common.yesOrNo.yes'),
+    value: 'Y'
+  },
+  {
+    label: t('common.yesOrNo.no'),
+    value: 'N'
+  }
+]);
+
 const queryFn = props.type === 'receivable' ? queryReceivableTransactions : queryPayableTransactions;
 
 // --- Pagination refs synced with useNaivePaginatedTable ---
@@ -475,10 +486,12 @@ function getRowProps(row: SettlementTransactionRecord) {
           />
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
-          <NInput
-            v-model:value="filters.canceled"
-            :placeholder="t('page.settlement.transactions.canceled')"
+          <NSelect
+            :value="filters.canceled || null"
+            :options="canceledOptions"
             clearable
+            :placeholder="t('page.settlement.transactions.canceledFilter')"
+            @update:value="value => (filters.canceled = value ?? '')"
           />
         </NGi>
         <NGi v-if="showMoreFilters" :span="4">
