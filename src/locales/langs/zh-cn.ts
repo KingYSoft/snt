@@ -1023,6 +1023,7 @@ const local: App.I18n.Schema = {
         writeOffBank: '核销银行',
         writeOffUser: '核销人',
         canceled: '已取消',
+        canceledFilter: '是否取消',
         print: '打印',
         export: '导出',
         moreFilters: '更多筛选',
