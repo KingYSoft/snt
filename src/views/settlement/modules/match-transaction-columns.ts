@@ -9,10 +9,6 @@ export type MatchTransactionActionKey = 'view' | 'print' | 'export';
 /** Type-safe alias for i18n keys */
 const t = (key: string) => $t(key as any);
 
-function companyCell(row: MatchTransactionRecord) {
-  return row.billingPartyName?.trim() || row.billingParty || '-';
-}
-
 function formatSettledAmount(amount: string | number | null | undefined) {
   const n = Number(amount);
   if (Number.isNaN(n)) return '—';
@@ -90,13 +86,6 @@ export function getMatchTransactionColumns(
       width: 150,
       ellipsis: { tooltip: true },
       render: row => row.consolNo || '-'
-    },
-    {
-      key: 'billingParty',
-      title: t('page.settlement.matchTransactions.company'),
-      width: 240,
-      ellipsis: { tooltip: true },
-      render: row => companyCell(row)
     },
     {
       key: 'settleCompanyName',
